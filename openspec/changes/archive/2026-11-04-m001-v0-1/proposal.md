@@ -16,8 +16,8 @@ Milestone only; behavior is specified in the child changes.
 
 | Id | Change | Status |
 |---|---|---|
-| C001 | `c001-groma-suite` | active |
-| C002 | `c002-review-loop` | active |
+| C001 | `c001-groma-suite` | done |
+| C002 | `c002-review-loop` | done |
 
 ## Capabilities
 

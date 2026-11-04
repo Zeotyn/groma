@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Structure checks for the groma repository (test level 1).
 
-Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|catalog|versions|all]
+Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|versions|all]
 Exit code 0 when all selected checks pass, 1 otherwise.
 """
 from __future__ import annotations
@@ -21,6 +21,12 @@ KNOWN_CONDITIONS = {"has_ui", "greenfield", "brownfield"}
 LINK_SCAN_DIRS = ["skills", "tests", "docs"]
 LINK_SCAN_FILES = ["README.md", "CONTRIBUTING.md", "AGENTS.md", "CHANGELOG.md"]
 CATALOG = "skills/groma-skills/catalog.yaml"
+AGENTS = "skills/groma/agents.yaml"
+METHODOLOGIES = "skills/groma-methodology/methodologies.yaml"
+AGENT_IDS = ["claude", "copilot", "gemini", "cursor", "codex"]
+AGENT_FIELDS = ["skills_dir", "home_marker", "npx_skills_id", "instructions"]
+AGENT_COMMANDS = ["npx_skills", "plugin_marketplace", "plugin_install"]
+METHODOLOGY_IDS = ["openspec", "spec-kit", "bmad", "gsd", "none"]
 MANIFESTS = [
     ".claude-plugin/plugin.json",
     ".codex-plugin/plugin.json",
@@ -195,6 +201,79 @@ def validate_catalog(data: dict, label: str) -> None:
                 err(f"{where}: recommended '{r}' is not an option")
 
 
+def load_yaml(root: Path, rel: str) -> dict | None:
+    path = root / rel
+    if not path.is_file():
+        err(f"{rel}: missing")
+        return None
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+def check_agents(root: Path = ROOT) -> None:
+    data = load_yaml(root, AGENTS)
+    if data is not None:
+        validate_agents(data, AGENTS)
+
+
+def validate_agents(data: dict, label: str) -> None:
+    if data.get("schema") != 1:
+        err(f"{label}: schema must be 1")
+    agents = data.get("agents") or {}
+    for a in AGENT_IDS:
+        if a not in agents:
+            err(f"{label}: agents.{a} missing")
+    for a, entry in agents.items():
+        if a not in AGENT_IDS:
+            err(f"{label}: unknown agent '{a}' (known: {AGENT_IDS})")
+            continue
+        for f in AGENT_FIELDS:
+            if not (entry or {}).get(f):
+                err(f"{label}: agents.{a}: '{f}' missing")
+    commands = data.get("commands") or {}
+    for c in AGENT_COMMANDS:
+        if not commands.get(c):
+            err(f"{label}: commands.{c} missing")
+    for k, paths in (data.get("touches") or {}).items():
+        if not isinstance(paths, list):
+            err(f"{label}: touches.{k} must be a list")
+
+
+def check_methodologies(root: Path = ROOT) -> None:
+    data = load_yaml(root, METHODOLOGIES)
+    if data is not None:
+        validate_methodologies(data, METHODOLOGIES)
+
+
+def validate_methodologies(data: dict, label: str) -> None:
+    if data.get("schema") != 1:
+        err(f"{label}: schema must be 1")
+    entries = data.get("methodologies") or {}
+    for m in METHODOLOGY_IDS:
+        if m not in entries:
+            err(f"{label}: methodology '{m}' missing")
+    for m, e in entries.items():
+        where = f"{label}: methodologies.{m}"
+        if m not in METHODOLOGY_IDS:
+            err(f"{where}: unknown methodology (known: {METHODOLOGY_IDS})")
+            continue
+        if m == "none":
+            continue
+        e = e or {}
+        for f in ("detect", "requires", "touches"):
+            if not isinstance(e.get(f), list):
+                err(f"{where}: '{f}' must be a list")
+        if not e.get("init"):
+            err(f"{where}: 'init' missing")
+        if not isinstance(e.get("interactive"), bool):
+            err(f"{where}: 'interactive' must be true or false")
+        ids = e.get("agent_ids") or {}
+        for a in ids:
+            if a not in AGENT_IDS:
+                err(f"{where}: unknown agent '{a}' in agent_ids")
+        if ids and "{agents}" not in str(e.get("init", "")):
+            err(f"{where}: init must contain {{agents}} when agent_ids is set")
+
+
 REQUIRED_FIELDS = {
     ".claude-plugin/plugin.json": ["name", "version", "description"],
     ".codex-plugin/plugin.json": ["name", "version", "description"],
@@ -269,6 +348,12 @@ def check_versions(root: Path = ROOT) -> None:
                     versions[f"{mp.relative_to(root)}:{entry.get('name')}"] = entry["version"]
         except json.JSONDecodeError as e:
             err(f".claude-plugin/marketplace.json: invalid JSON ({e})")
+    pkg = root / "package.json"
+    if pkg.is_file():
+        try:
+            versions["package.json"] = json.loads(pkg.read_text(encoding="utf-8")).get("version")
+        except json.JSONDecodeError as e:
+            err(f"package.json: invalid JSON ({e})")
     vf = root / "skills" / "groma" / "VERSION"
     if vf.is_file():
         versions["skills/groma/VERSION"] = vf.read_text(encoding="utf-8").strip()
@@ -288,6 +373,8 @@ CHECKS = {
     "links": check_links,
     "published": check_published_skills,
     "catalog": check_catalog,
+    "agents": check_agents,
+    "methodologies": check_methodologies,
     "manifests": check_manifests,
     "versions": check_versions,
 }

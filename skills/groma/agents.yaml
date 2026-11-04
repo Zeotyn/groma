@@ -1,0 +1,58 @@
+# Agent table, read by the `groma` CLI and by the groma skills.
+#
+# Per agent:
+#   skills_dir      project skill folder (groma init copies the groma skills here)
+#   home_marker     folder whose presence means the agent is installed on this machine
+#   npx_skills_id   agent id for `npx skills add -a <id>`
+#   instructions    agent instruction file (codex reads AGENTS.md)
+#   plugins         true when catalog entries with `claude_plugin` install as plugins
+#
+# commands: install command templates. Placeholders: {source} {ref} {skills}
+#   ({skills} is --skill '*' or one --skill <name> per listed skill),
+#   {agents} (one -a <npx_skills_id> per agent), {marketplace}, {claude_plugin}.
+# builtin_marketplaces: marketplaces that need no `marketplace add`.
+# touches: files and folders each installer writes in the project; {skill} is
+#   each skill name an entry lists. Existing paths make the installer ask first.
+#
+# Verified with skills 1.7.6 on 2026-11-04. gemini and codex npx ids unverified.
+
+schema: 1
+
+agents:
+  claude:
+    skills_dir: .claude/skills
+    home_marker: ~/.claude
+    npx_skills_id: claude-code
+    instructions: CLAUDE.md
+    plugins: true
+  copilot:
+    skills_dir: .github/skills
+    home_marker: ~/.copilot
+    npx_skills_id: github-copilot
+    instructions: .github/copilot-instructions.md
+  gemini:
+    skills_dir: .gemini/skills
+    home_marker: ~/.gemini
+    npx_skills_id: gemini-cli
+    instructions: GEMINI.md
+  cursor:
+    skills_dir: .cursor/skills
+    home_marker: ~/.cursor
+    npx_skills_id: cursor
+    instructions: .cursor/rules/groma.mdc
+  codex:
+    skills_dir: .agents/skills
+    home_marker: ~/.codex
+    npx_skills_id: codex
+    instructions: AGENTS.md
+
+commands:
+  npx_skills: npx --yes skills@1.7.6 add https://github.com/{source}/tree/{ref} {skills} {agents} -y
+  plugin_marketplace: claude plugin marketplace add {marketplace} --scope project
+  plugin_install: claude plugin install {claude_plugin} --scope project
+
+builtin_marketplaces: [anthropics/claude-plugins-official]
+
+touches:
+  npx_skills: [skills-lock.json, '.agents/skills/{skill}', '.claude/skills/{skill}']
+  claude_plugin: [.claude/settings.json]

@@ -19,10 +19,10 @@ Set up one spec methodology and the change naming convention. `docs/` stays the 
        none
    ```
 
-2. **Initialize.** Open the chosen section of [references/methodologies.md](references/methodologies.md) and follow it: skip when already present, check prerequisites (`sh ../groma/scripts/check-prereqs.sh` when available), ask before the init touches existing files, run the init command. On missing tools, refusal or failure: add the command to `<project>/.groma/install.sh`, mark `steps.methodology: pending` in the config, and continue.
+2. **Initialize.** Read the chosen recipe in [methodologies.yaml](methodologies.yaml) and apply it as [references/methodologies.md](references/methodologies.md) describes: skip when already present, check prerequisites (`sh ../groma/scripts/check-prereqs.sh` when available), ask before the init touches existing files, run the init command. On missing tools, refusal or failure: add the command to `<project>/.groma/install.sh`, mark `steps.methodology: pending` in the config, and continue.
    Done when the methodology folder exists or its command is pending in `.groma/install.sh`.
 
-3. **Link to docs.** Apply the "Link to docs" item of the chosen section, only to files this run created. For files that existed before, put the text into the findings report as a snippet.
+3. **Link to docs.** Append the recipe's `docs_link.append` to `docs_link.file`, only when this run created that file. For files that existed before, put the text into the findings report as a snippet.
 
 4. **Convention.** Write `conventions.changes` into the config if missing (defaults in [references/conventions.md](references/conventions.md)). If the changes folder already holds changes, write their names to `<project>/.groma/conventions-baseline.txt` (only if that file is absent). Run `sh scripts/check-conventions.sh --root <project>`; it must print `conventions: ok`.
 

@@ -147,3 +147,86 @@ def test_marketplace_plugin_needs_source_and_matching_name(tmp_path):
     check.check_manifests(tmp_path)
     assert any("plugins[0].source missing" in e for e in check.errors)
     assert any("does not match plugin.json name" in e for e in check.errors)
+
+
+def good_agents() -> dict:
+    agent = {"skills_dir": ".claude/skills", "home_marker": "~/.claude", "npx_skills_id": "claude-code", "instructions": "CLAUDE.md"}
+    return {
+        "schema": 1,
+        "agents": {a: dict(agent) for a in check.AGENT_IDS},
+        "commands": {k: "x" for k in check.AGENT_COMMANDS},
+        "touches": {"npx_skills": ["skills-lock.json"], "claude_plugin": [".claude/settings.json"]},
+    }
+
+
+def test_valid_agents_passes():
+    check.validate_agents(good_agents(), "a")
+    assert check.errors == []
+
+
+def test_agents_field_missing():
+    a = good_agents()
+    del a["agents"]["copilot"]["skills_dir"]
+    check.validate_agents(a, "a")
+    assert any("agents.copilot: 'skills_dir' missing" in e for e in check.errors)
+
+
+def test_agents_must_cover_every_agent():
+    a = good_agents()
+    del a["agents"]["codex"]
+    check.validate_agents(a, "a")
+    assert any("codex" in e for e in check.errors)
+
+
+def test_agents_command_missing():
+    a = good_agents()
+    del a["commands"]["npx_skills"]
+    check.validate_agents(a, "a")
+    assert any("commands.npx_skills" in e for e in check.errors)
+
+
+def good_methodologies() -> dict:
+    m = {
+        "detect": ["openspec/"],
+        "requires": ["npx"],
+        "init": "npx x --tools {agents} .",
+        "agent_ids": {"claude": "claude"},
+        "touches": ["openspec/"],
+        "interactive": False,
+    }
+    data = {"schema": 1, "methodologies": {k: dict(m) for k in check.METHODOLOGY_IDS if k != "none"}}
+    data["methodologies"]["none"] = {}
+    return data
+
+
+def test_valid_methodologies_passes():
+    check.validate_methodologies(good_methodologies(), "m")
+    assert check.errors == []
+
+
+def test_methodology_unknown_agent_in_agent_ids():
+    m = good_methodologies()
+    m["methodologies"]["openspec"]["agent_ids"] = {"claud": "claude"}
+    check.validate_methodologies(m, "m")
+    assert any("unknown agent 'claud'" in e for e in check.errors)
+
+
+def test_methodology_init_needs_agents_placeholder_with_agent_ids():
+    m = good_methodologies()
+    m["methodologies"]["openspec"]["init"] = "npx x init ."
+    check.validate_methodologies(m, "m")
+    assert any("{agents}" in e for e in check.errors)
+
+
+def test_methodology_missing():
+    m = good_methodologies()
+    del m["methodologies"]["gsd"]
+    check.validate_methodologies(m, "m")
+    assert any("'gsd' missing" in e for e in check.errors)
+
+
+def test_package_json_version_must_match(tmp_path):
+    write(tmp_path / ".claude-plugin/plugin.json", json.dumps({"name": "groma", "version": "0.1.0"}))
+    write(tmp_path / "package.json", json.dumps({"name": "groma", "version": "0.2.0"}))
+    check.check_versions(tmp_path)
+    assert any("package.json=0.2.0" in e for e in check.errors)

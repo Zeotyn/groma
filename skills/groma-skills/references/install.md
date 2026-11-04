@@ -2,37 +2,21 @@
 
 All installs are **project scope**: the skill is active in this project only. Pin every install to the catalog `ref`.
 
-## Command per agent
+Command templates, agent ids and touched paths live in [../../groma/agents.yaml](../../groma/agents.yaml), shared with the `groma` CLI. The `groma` CLI (`npx groma init`) produces the same commands from the same data.
 
-| Agent | Entry has `claude_plugin` | Entry without plugin |
-|---|---|---|
-| claude | `claude plugin marketplace add <marketplace> --scope project` (skip for `anthropics/claude-plugins-official`, it is built in), then `claude plugin install <claude_plugin> --scope project` | npx skills with `-a claude-code` |
-| copilot | npx skills with `-a github-copilot` | same |
-| gemini | npx skills with `-a gemini-cli` (agent id unverified, check `npx skills add --help`) | same |
-| cursor | npx skills with `-a cursor` | same |
-| codex | npx skills with `-a codex` (agent id unverified) | same |
+## Building the commands
 
-npx skills command (verified with skills 1.7.6), one call for all non-plugin agents:
+For each picked catalog entry, in this order:
 
-```sh
-npx --yes skills@1.7.6 add https://github.com/<source>/tree/<ref> --skill '<skill>' -a <agent> [-a <agent> ...] -y
-```
+1. **Custom `install`:** the entry's `install` command replaces everything below; run it once regardless of agents.
+2. **Claude plugin:** when the entry has `claude_plugin` and `claude` is a configured agent (`plugins: true`): `commands.plugin_marketplace` (skip when `marketplace` is in `builtin_marketplaces`), then `commands.plugin_install`.
+3. **npx skills:** one `commands.npx_skills` call for all remaining agents (claude only when step 2 did not apply). `{skills}` is `--skill '*'` when the entry lists `['*']`, otherwise one `--skill <name>` per listed skill; `{agents}` is one `-a <npx_skills_id>` per agent.
 
-Use `--skill '*'` when the entry lists `['*']`, otherwise one `--skill <name>` per listed skill.
-
-Entries with `install` replace the npx skills call with that command; run it once regardless of agents.
 Entries with `post_install` (for example `/impeccable init`): tell the user to run it inside their agent once; it cannot be run from a shell.
 
-## Files each installer touches
+## Asking first
 
-| Installer | Files and folders |
-|---|---|
-| npx skills | `.agents/skills/<name>/`, `.claude/skills/<name>` (link), `skills-lock.json` |
-| claude plugin, project scope | `.claude/settings.json` |
-| `uv tool install` (graphify) | user-level tool folder outside the project (`~/.local/bin`), plus `graphify-out/` when run |
-| repomix (as configured) | `.groma/repomix.xml` |
-
-Before running an installer: if one of its files **already exists** in the project, or it installs outside the project, ask the user once ("npx skills will update the existing skills-lock.json. Go ahead?"). On "no", write the command to `.groma/install.sh` instead.
+Before running an installer: if one of its `touches` paths **already exists** in the project, ask the user once ("npx skills will update the existing skills-lock.json. Go ahead?"). Custom `install` commands always ask, they may install outside the project (graphify installs a user-level tool). On "no", write the command to `.groma/install.sh` instead.
 
 ## When commands cannot run
 

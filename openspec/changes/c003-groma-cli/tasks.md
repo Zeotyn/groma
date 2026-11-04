@@ -1,8 +1,8 @@
 ## 1. Data files first
 
-- [ ] 1.1 `skills/groma/agents.yaml` (skill folders, home markers, npx skills ids, instruction files) and validator support in `tests/structure/check.py`
-- [ ] 1.2 `skills/groma-methodology/methodologies.yaml` for openspec, spec-kit, bmad, gsd, none; structure check
-- [ ] 1.3 Point `methodologies.md`, `install.md`, `groma-skills` and `groma-methodology` SKILL.md at the data files; remove command lines from prose
+- [x] 1.1 `skills/groma/agents.yaml` (skill folders, home markers, npx skills ids, instruction files) and validator support in `tests/structure/check.py`
+- [x] 1.2 `skills/groma-methodology/methodologies.yaml` for openspec, spec-kit, bmad, gsd, none; structure check
+- [x] 1.3 Point `methodologies.md`, `install.md`, `groma-skills` and `groma-methodology` SKILL.md at the data files; remove command lines from prose
 
 ## 2. Package and test harness
 

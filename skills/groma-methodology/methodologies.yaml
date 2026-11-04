@@ -1,0 +1,72 @@
+# Methodology recipes, read by the `groma` CLI and by groma-methodology.
+# Explanations live in references/methodologies.md; commands live only here.
+#
+# Per methodology:
+#   detect        paths that mean "already present": do not run init
+#   requires      commands that must be on PATH
+#   init          command template; {agents} becomes the mapped agent ids
+#   agent_ids     groma agent -> methodology id (agents without an id are dropped)
+#   agents        all | first (first: one primary agent, the first in `agents`)
+#   separator     joins the ids in {agents} (default ",")
+#   touches       paths init writes; existing ones make the installer ask first
+#   interactive   true: init needs a person at the terminal
+#   docs_link     file: created by init; append: text added only when this run created it
+#
+# Versions verified on 2026-11-04; bump them in a PR.
+
+schema: 1
+
+methodologies:
+  openspec:
+    detect: [openspec/]
+    requires: [npx]
+    init: npx --yes @fission-ai/openspec@1.16.0 init --tools {agents} --no-animation --no-copilot-cloud .
+    agent_ids: {claude: claude, copilot: github-copilot, gemini: gemini, cursor: cursor, codex: codex}
+    agents: all
+    touches: [openspec/, .claude/commands/opsx/, .claude/skills/openspec-*, .github/prompts/opsx-*, .github/skills/openspec-*, .gemini/commands/opsx/, .cursor/commands/opsx-*, .codex/]
+    interactive: false
+    docs_link:
+      file: openspec/config.yaml
+      append: |
+
+        context: |
+          Product truth lives in docs/ (start at docs/README.md). Read the relevant docs and ADRs before writing artifacts.
+
+        rules:
+          proposal:
+            - "Name every new change <type><NNN>-<slug> in lowercase kebab-case (m milestone, c change, f fix, s spike, r refactor, d docs); see AGENTS.md"
+
+  spec-kit:
+    detect: [.specify/]
+    requires: [uvx]
+    init: uvx --from git+https://github.com/github/spec-kit.git@v1.3.0 specify init --here --integration {agents} --script sh --ignore-agent-tools
+    agent_ids: {claude: claude, copilot: copilot, gemini: gemini, cursor: cursor-agent, codex: codex}
+    agents: first
+    touches: [.specify/, .claude/commands/, .github/prompts/, .gemini/commands/, .cursor/commands/, .codex/]
+    interactive: true
+    docs_link:
+      file: .specify/memory/constitution.md
+      append: |
+
+        ## Product context
+
+        Product goals live in docs/vision.md and docs/concept.md; this constitution does not restate them.
+
+  bmad:
+    detect: [_bmad/, .bmad-core/]
+    requires: [npx]
+    init: npx bmad-method@6.12.4 install
+    touches: [_bmad/]
+    interactive: true
+
+  gsd:
+    detect: [.planning/]
+    requires: [npx]
+    init: npx --yes @opengsd/gsd-core@1.20.0 {agents} --local
+    agent_ids: {claude: --claude, codex: --codex}
+    agents: all
+    separator: " "
+    touches: [.planning/, .claude/commands/, .codex/]
+    interactive: false
+
+  none: {}

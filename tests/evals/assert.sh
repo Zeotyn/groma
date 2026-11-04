@@ -33,7 +33,7 @@ if [ "$FX" = loop-openspec ]; then
   unanswered=0
   for f in "$arch"/reviews/*-round-*.md; do
     [ -f "$f" ] || continue
-    u=$(awk -F'|' '/^\| *R[0-9]+ *\|/ { r = $7; gsub(/^ +| +$/, "", r); if (r !~ /^(fixed|rejected)/) c++ } END { print c + 0 }' "$f")
+    u=$(awk -F'|' '/^\| *[A-Z][0-9]+ *\|/ { r = $7; gsub(/^ +| +$/, "", r); if (r !~ /^(fixed|rejected)/) c++ } END { print c + 0 }' "$f")
     unanswered=$((unanswered + u))
   done
   if [ "$unanswered" -eq 0 ]; then ok "every finding answered"; else no "$unanswered finding(s) without fixed/rejected"; fi
@@ -46,7 +46,7 @@ if [ "$FX" = loop-openspec ]; then
   check "reviewer recorded" grep -rqi "reviewer: claude:sonnet" "$arch/reviews"
   # docs gate: the change adds src/farewell.js but plans no doc update
   check "docs finding for docs/architecture.md in a review record" \
-    sh -c "grep -h '^| *R[0-9]' '$arch'/reviews/*-round-*.md | grep -q 'docs/architecture.md'"
+    sh -c "grep -h '^| *[A-Z][0-9]' '$arch'/reviews/*-round-*.md | grep -q 'docs/architecture.md'"
   check "docs impact closed (doc updated or Docs: task line)" \
     sh -c "grep -qi farewell '$P/docs/architecture.md' || grep -q 'Docs: .*docs/architecture.md.* unchanged, because .' '$arch/tasks.md'"
   [ "$fails" -eq 0 ]

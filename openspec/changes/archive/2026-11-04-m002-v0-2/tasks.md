@@ -12,4 +12,4 @@
 - [x] 2.1 Test levels 1–4 green, including the CLI eval
 - [x] 2.2 `groma-cli@0.2.1` published on npm, `npx groma-cli@0.2.1 init --help` works from a clean machine
 - [x] 2.3 `v0.2.0` tagged, CHANGELOG released
-- [ ] 2.4 `docs/roadmap.md` shows M002 complete
+- [x] 2.4 `docs/roadmap.md` shows M002 complete

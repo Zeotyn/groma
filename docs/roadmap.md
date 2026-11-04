@@ -26,7 +26,7 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 ## M002 v0-2
 
 - Goal: `npx groma-cli@0.2.1 init` works in an empty and in an existing project for Claude Code and Copilot, `groma-cli` is published on npm, all test levels green.
-- Status: active
+- Status: done
 - Progress: 6/6 done
 
 | Id | Change | Status |

@@ -1,0 +1,8 @@
+# test output
+tests/.work/
+.DS_Store
+
+# OpenSpec tooling for contributors is generated locally (see CONTRIBUTING.md),
+# so `npx skills add` on this repo only offers the groma skills.
+.claude/skills/openspec-*/
+.github/skills/openspec-*/

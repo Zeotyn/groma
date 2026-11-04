@@ -1,0 +1,52 @@
+schema: spec-driven
+githubCopilot:
+  cloudAgent: false
+
+context: |
+  groma is an open-source (MIT) skill suite for AI coding agents that initializes
+  greenfield and brownfield projects: methodology setup, skill catalog, docs/ tree,
+  read-only brownfield survey, AGENTS.md.
+  Deliverables are Markdown skills (SKILL.md, Agent Skills format) plus POSIX sh
+  scripts; test tooling may use Python via `uv run`.
+  Targets: Claude Code and GitHub Copilot (tested); Codex, Gemini CLI, Cursor (best effort).
+  Hard constraints: never modify, move or delete existing files in a target project;
+  never connect to databases; stack-agnostic via reference tables, no per-language code.
+  All artifacts are written in English.
+
+rules:
+  proposal:
+    - "Change names follow <type><NNN>-<slug> (m milestone, c change, f fix, s spike, r refactor, d docs)"
+    - "Child changes start proposal.md with a 'Milestone: mNNN' line when they belong to a milestone"
+  tasks:
+    - "Tests or test harness tasks come before the implementation they cover"
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

@@ -12,7 +12,7 @@
 
 ## 3. Docs
 
-- [x] 3.1 `docs/architecture.md` (status.sh row) and `docs/data-model.md` (config keys); proposed ADR for D1 with `origin: f002-status-milestone-gates#D1` (ADR 0027); `docs/concept.md` and `docs/glossary.md` reminder rows updated too
+- [x] 3.1 `docs/architecture.md` (status.sh row) and `docs/data-model.md` (config keys); proposed ADR for D1 with `origin: f002-status-milestone-gates#D1` (ADR 0027), plus ADR 0029 (D2) and ADR 0030 (D3), all proposed; `docs/concept.md` and `docs/glossary.md` reminder rows updated too
 - [x] 3.2 CHANGELOG `[Unreleased]`: Fixed entry
 - [x] Docs: docs/vision.md unchanged, because only README.md (npm name, F004) matches its sources, and the vision does not change
 - [x] 3.3 Run `status.sh` on this repository and record the output here; expected: M002 gate line. Actual (worktree at 6b6be26, clean tree): `f002-status-milestone-gates  9/10 tasks → tasks ticked since the last test change, add or run tests`. No M002 gate line, because F002 and F003 are active with `Milestone: m002`; the gate line appears once both are archived. No unpushed line, because local `main` has no commits beyond its upstream in this clone.

@@ -43,5 +43,7 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0026](0026-record-docs-exceptions-as-a-task-line.md) | Record docs exceptions as a task line with a reason | accepted | 2026-11-04 |
 | [0027](0027-detect-milestone-gates-from-missing-child-references.md) | Detect a milestone gate when no active change references the milestone | proposed | 2026-11-04 |
 | [0028](0028-let-last-reviewed-cover-source-commits-of-that-day.md) | Let last_reviewed cover source commits up to the end of that day | proposed | 2026-11-04 |
+| [0029](0029-report-repository-state-from-local-git-only.md) | Report uncommitted and unpushed work from local git state only | proposed | 2026-11-04 |
+| [0030](0030-toggle-uncommitted-and-unpushed-reminders-separately.md) | Toggle the uncommitted and unpushed reminders separately | proposed | 2026-11-04 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

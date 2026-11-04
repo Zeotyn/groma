@@ -230,3 +230,15 @@ def test_package_json_version_must_match(tmp_path):
     write(tmp_path / "package.json", json.dumps({"name": "groma", "version": "0.2.0"}))
     check.check_versions(tmp_path)
     assert any("package.json=0.2.0" in e for e in check.errors)
+
+
+def test_openspec_docs_link_has_living_docs_rules():
+    import yaml
+
+    recipes = yaml.safe_load((check.ROOT / check.METHODOLOGIES).read_text(encoding="utf-8"))
+    rules = yaml.safe_load(recipes["methodologies"]["openspec"]["docs_link"]["append"])["rules"]
+    for key in ("proposal", "tasks", "design"):
+        assert all(isinstance(r, str) for r in rules[key]), key
+    assert any("## Docs impact" in r for r in rules["proposal"])
+    assert any("Docs: <path> unchanged, because" in r for r in rules["tasks"])
+    assert any("Alternatives" in r for r in rules["design"])

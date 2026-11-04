@@ -31,4 +31,5 @@ Name every new change `<type><NNN>-<slug>` in lowercase. Types: {{types}}. Numbe
 
 - `docs/` is the product truth. Update the affected doc and its `last_reviewed` date in the same change that alters behavior.
 - Record significant decisions as a new ADR in `docs/adr/` (MADR 4.0).
+- Living docs: in every change, update the docs it affects and record each design decision with alternatives as a proposed ADR (`origin: <change>#D<n>`). Check with `sh {{docs_impact_script}} --root . --gate <change-dir>`, or exempt a doc with the task line `Docs: <path> unchanged, because <reason>`.
 - Use the terms from `docs/glossary.md`.

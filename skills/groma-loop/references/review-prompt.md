@@ -12,7 +12,7 @@ Phase: `<propose | apply: task group N | verify>`
 
 <For propose: the full proposal.md, design.md, every spec delta and tasks.md.>
 <For apply: the task group's tasks, the spec requirements they implement, and the diff (`git diff <base>`), plus the test command and its result.>
-<For verify: the verification report and the remaining diff.>
+<For verify: the verification report, the remaining diff, and the docs impact report (`docs-impact.sh`) when the docs gate is on.>
 
 ## Project rules
 
@@ -24,7 +24,7 @@ Phase: `<propose | apply: task group N | verify>`
 
 ## How to judge
 
-- **high**: breaks a spec requirement or scenario, loses or corrupts data, security issue, violates an accepted ADR or a project rule, tests do not cover a changed requirement.
+- **high**: breaks a spec requirement or scenario, loses or corrupts data, security issue, violates an accepted ADR or a project rule, tests do not cover a changed requirement, a doc whose sources changed is neither updated nor exempted with a justified `Docs:` task line, a design decision with alternatives has no ADR.
 - **medium**: likely bug in an edge case, missing scenario test, unclear requirement that two readers would implement differently, design decision without rationale.
 - **low**: naming, duplication, small readability issues.
 

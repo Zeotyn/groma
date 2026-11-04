@@ -12,11 +12,11 @@
 
 ## 3. Skills and templates
 
-- [ ] 3.1 `adr-template.md`: `origin` key; groma-lay-out SKILL: writing ADR candidates from a change design
-- [ ] 3.2 groma-loop SKILL, `review-prompt.md`, `methodology-adapters.md`: docs gate at verify, docs sync and `strict` at archive
-- [ ] 3.3 `methodologies.md` (OpenSpec): `rules.proposal`, `rules.tasks`, `rules.design` when groma created the config, snippet otherwise
-- [ ] 3.4 AGENTS.md template line; `upgrades.md` row for 0.2.0
-- [ ] 3.5 Structure check and `scripts/test.sh` green
+- [x] 3.1 `adr-template.md`: `origin` key; groma-lay-out SKILL: writing ADR candidates from a change design
+- [x] 3.2 groma-loop SKILL, `review-prompt.md`, `methodology-adapters.md`: docs gate at verify, docs sync and `strict` at archive
+- [x] 3.3 `methodologies.md` (OpenSpec): `rules.proposal`, `rules.tasks`, `rules.design` when groma created the config, snippet otherwise
+- [x] 3.4 AGENTS.md template line; `upgrades.md` row for 0.2.0
+- [x] 3.5 Structure check and `scripts/test.sh` green
 
 ## 4. Dogfood
 

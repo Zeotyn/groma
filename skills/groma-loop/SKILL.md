@@ -7,7 +7,7 @@ description: Runs one change through propose, apply, verify and archive with an 
 
 You are the **author** and the orchestrator. A different model is the **reviewer**. Every round: the reviewer finds, you answer each finding, the loop decides. The user is interrupted only on escalation (and, in `gated` mode, at the two gates).
 
-Paths are relative to this skill folder unless they start with `<project>`. Settings come from `review` in `<project>/.groma/config.yaml`; missing keys use these defaults: `mode: autonomous`, `stop_when: no-high`, propose `reviewer: auto, max_rounds: 2`, apply `reviewer: auto, per: task-group, max_rounds: 1, test_retries: 2`.
+Paths are relative to this skill folder unless they start with `<project>`. Settings come from `review` in `<project>/.groma/config.yaml`; missing keys use these defaults: `mode: autonomous`, `stop_when: no-high`, propose `reviewer: auto, max_rounds: 2`, apply `reviewer: auto, per: task-group, max_rounds: 1, test_retries: 2`. The docs gate reads `docs.gate` (default `review`).
 
 ## Start
 
@@ -32,9 +32,13 @@ Announce each step as `<Phase> · <unit> · round N of M`.
 3. **Tests gate.** Run the tests. Red: fix and rerun, at most `test_retries` times; still red → escalate with the failing output. No review on red tests.
 4. Review rounds on the unit's diff (`git diff <base>`), its tasks and the requirements they implement.
 
-**Verify.** Run the methodology's verify step, then one review round on its report and the full diff. Critical verify issues count as high findings.
+**Verify.** Run the methodology's verify step, then one review round on its report and the full diff. Critical verify issues count as high findings. **Docs gate** (`docs.gate` is `review` or `strict`, and groma-lay-out is installed): run `sh ../groma-lay-out/scripts/docs-impact.sh --root <project> <change-dir>` and add every `impact` and `adr` line as a high finding of that round. Answer an `impact` finding by updating the doc or by adding a task line `Docs: <path> unchanged, because <reason>`; answer an `adr` finding by writing the proposed ADR (groma-lay-out, "ADR candidates from a change").
 
-**Archive.** `gated`: wait for approval. Then archive with spec sync. After archiving, run `sh ../groma-methodology/scripts/roadmap.sh --root <project>` when groma-methodology is installed.
+**Archive.** `gated`: wait for approval. `strict`: run `docs-impact.sh --gate` first; exit 4 → escalate with the report instead of archiving. Then archive with spec sync, followed by the **docs sync** (skip it when `docs.gate` is `off`), editing only docs that the change created or modified:
+1. Every ADR in `<project>/docs/adr/` with `origin: <change>#…` and `status: proposed` → `status: accepted`.
+2. `last_reviewed` → today in every doc under `<project>/docs/` that the change modified (`git diff --name-only <base>`, base as in docs-impact.sh).
+3. Add missing ADRs to `docs/adr/README.md` with their status.
+4. Run `sh ../groma-methodology/scripts/roadmap.sh --root <project>` when groma-methodology is installed.
 
 ## Review round
 

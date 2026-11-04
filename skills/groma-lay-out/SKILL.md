@@ -36,6 +36,16 @@ Use whatever is available, in this order: survey results (from groma-survey in t
 
 7. **Verify.** Run `grep -rn "{{" <every file you created>`; it must print nothing. Done when every slot is filled and the list of created files is ready for the caller.
 
+## ADR candidates from a change
+
+Called during a change (by groma-loop, or when the user asks to record its decisions). Run:
+
+```sh
+sh scripts/docs-impact.sh --root <project> <change-dir>
+```
+
+For each `adr<TAB><change>#D<n><TAB><title>` line, write a new ADR from [templates/adr-template.md](templates/adr-template.md) into `<project>/docs/adr/`, numbered after the highest existing ADR: `status: proposed`, `origin: <change>#D<n>`, considered options from the decision's "Alternatives" paragraph, and `evidence` from the code the change touches. Add it to `docs/adr/README.md` as proposed. Each `impact` line names a doc to update in the change, or to exempt with a task line `Docs: <path> unchanged, because <reason>`. Doc updates and new ADRs here are authored work inside the user's change, like its code; the additive rule above covers setup writes only. Done when the report prints `summary<TAB>impact=0<TAB>adr=0`.
+
 ## Report
 
 List created files, slots filled by existing files, and snippets you could not apply because the target existed.

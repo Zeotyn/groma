@@ -14,7 +14,8 @@ Never pass overwrite flags such as `--force`.
 
 ## openspec (recommended)
 
-- **Link to docs:** the appended `rules.proposal` item is one double-quoted YAML string; it contains `: `, which unquoted would turn the list item into a mapping and OpenSpec would ignore the rules. The full naming rule is in [conventions.md](conventions.md).
+- **Link to docs:** every appended `rules.*` item is one double-quoted YAML string; they contain `: `, which unquoted would turn the list item into a mapping and OpenSpec would ignore the rules. The full naming rule is in [conventions.md](conventions.md).
+- **Living docs:** the `## Docs impact` rule under `rules.proposal` and the `rules.tasks` and `rules.design` items apply when `docs.gate` is `review` or `strict` (the default). With `off` or `remind`, leave those three items out of the append. When `openspec/config.yaml` existed before the run, they go into the findings report with the rest of the snippet (step 5).
 - **Changes folder:** `openspec/changes/` (archive: `openspec/changes/archive/YYYY-MM-DD-<name>/`). New milestones: `openspec new change m00N-<slug>`, add `skip_specs: true` to its `.openspec.yaml`, fill `proposal.md` from [../templates/milestone-proposal.md](../templates/milestone-proposal.md).
 
 ## spec-kit

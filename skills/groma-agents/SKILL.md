@@ -17,6 +17,7 @@ One source of instructions: `AGENTS.md`. Every other agent file only points to i
    - change naming: the rule text from `../groma-methodology/references/conventions.md` when available, else the template text with the config's types.
    - `status_script`: the path of `../groma-methodology/scripts/status.sh` as the project's agents will reach it (relative to the project when the skill is installed project-locally, else the installed path). groma-methodology missing: drop the "Session start" section.
    - `review_mode`: `review.mode` from the config (default `autonomous`). groma-loop not installed: drop that bullet.
+   - `docs_impact_script`: the path of `../groma-lay-out/scripts/docs-impact.sh`, resolved like `status_script`. `docs.gate: off` or groma-lay-out missing: drop the "Living docs" bullet.
    Keep it under 150 lines. Done when no `{{` remains.
 
 2. **Pointer files.** For each agent in `agents`, create the file from [templates/](templates/README.md) when absent:

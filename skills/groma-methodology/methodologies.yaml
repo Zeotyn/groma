@@ -35,6 +35,11 @@ methodologies:
         rules:
           proposal:
             - "Name every new change <type><NNN>-<slug> in lowercase kebab-case. Types: m milestone, c change, f fix, s spike, r refactor, d docs. Numbers are three digits, count per type, include archived changes and are never reused. A change that belongs to a milestone starts its proposal.md with 'Milestone: mNNN'. Milestones, refactors and docs changes carry no spec deltas; spikes end in an ADR or a follow-up change, not in production code."
+            - "Every proposal has a '## Docs impact' section: the docs in docs/ this change updates and the ADRs it plans, or 'none, because <reason>'."
+          tasks:
+            - "The last task group is 'Docs': update each affected doc, or add a line 'Docs: <path> unchanged, because <reason>'. Check with docs-impact.sh --gate <change-dir> (skill groma-lay-out)."
+          design:
+            - "Write each decision as a '### D<n>: <title>' heading with a line starting 'Alternatives:' that names the options considered and why they lost. Each such decision gets an ADR in docs/adr/ with status: proposed and origin: <change>#D<n>."
 
   spec-kit:
     detect: [.specify/]

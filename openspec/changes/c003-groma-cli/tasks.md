@@ -23,7 +23,7 @@
 
 - [x] 4.1 `init` end to end with summary and `/groma` hand-off
 - [x] 4.2 `update` with hash-based ownership, `--force`, removal of retired skills, pending steps
-- [ ] 4.3 `status` (runs status.sh) and `doctor` (prereqs, config validation, generated file check)
+- [x] 4.3 `status` (runs status.sh) and `doctor` (prereqs, config validation, generated file check)
 - [x] 4.4 Plugin detection for Claude
 
 ## 5. Integration

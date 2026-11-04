@@ -2,6 +2,11 @@
 
 Instructions for coding agents working on {{project_name}}. Keep this file short; details live in `docs/`.
 
+## Session start
+
+Run the groma status script and mention any reminder before starting new work:
+`sh {{status_script}} --root .` (prints `groma status: nothing open` when all is well).
+
 ## Read first
 
 1. `docs/README.md`: index of all project docs (vision, concept, architecture, data model, glossary, risks, ADRs).
@@ -16,6 +21,7 @@ Instructions for coding agents working on {{project_name}}. Keep this file short
 - Methodology: {{methodology}}. {{methodology_hint}}
 - Workflow layer: {{workflow}}.
 - Active skills: {{skills}}.
+- Changes run through the review loop: use the `groma-loop` skill (mode: {{review_mode}}) to propose, apply, verify and archive with an independent reviewer.
 
 ## Change naming
 

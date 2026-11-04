@@ -28,7 +28,7 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
    - brownfield: confirm the project purpose in one sentence from README and code, ask about UI only when no frontend is visible, ask about agents only when no agent folders exist.
    Done when name, purpose, `has_ui` and `agents` are known.
 
-3. **config**: create `<project>/.groma/config.yaml` from [templates/config.yaml](templates/config.yaml) with the answers so far (methodology and skills stay as placeholders filled by steps 4 and 5; write `none` where still unknown), `initialized_with: groma@<VERSION>`. Run `sh scripts/check-prereqs.sh` and report missing required tools with their install hint.
+3. **config**: create `<project>/.groma/config.yaml` from [templates/config.yaml](templates/config.yaml) (it carries the `review` and `reminders` defaults: autonomous loop, reviewer auto) with the answers so far (methodology and skills stay as placeholders filled by steps 4 and 5; write `none` where still unknown), `initialized_with: groma@<VERSION>`. Run `sh scripts/check-prereqs.sh` and report missing required tools with their install hint.
 
 4. **methodology**: follow `../groma-methodology/SKILL.md`.
 
@@ -49,7 +49,8 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
    Findings:  <n high> high · <n medium> medium · <n low> low   → docs/_groma/findings-<date>.md
    Pending:   <commands in .groma/install.sh, or "none">
 
-   Next: <one concrete action, e.g. "Review docs/adr/0003-use-postgresql.md (proposed)">
+   Next: <one concrete action, e.g. "Review docs/adr/0003-use-postgresql.md (proposed)",
+          or when nothing is open: "Start your first change with groma-loop">
    ```
    Done when the summary names exactly one next action.
 

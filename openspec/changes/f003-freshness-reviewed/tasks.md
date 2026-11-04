@@ -13,4 +13,5 @@
 - [x] 3.2 CHANGELOG `[Unreleased]`: Fixed entry
 - [x] Docs: docs/glossary.md unchanged, because its Freshness entry ("from frontmatter and git dates") still holds; the other paths come from F004 and release commits
 - [x] Docs: docs/vision.md unchanged, because README.md changed in F004 and release commits, not in this change
-- [ ] 3.3 Run `freshness.sh .` on this repository and record the result here; expected: architecture, concept, data-model and glossary fresh
+- [x] 3.3 Run `freshness.sh .` on this repository and record the result here; expected: architecture, concept, data-model and glossary fresh
+  - Result (2026-11-04, after the docs commit): `summary	stale=0	fresh=36	unknown=0	broken=0`; architecture, concept, data-model and glossary are fresh, as expected.

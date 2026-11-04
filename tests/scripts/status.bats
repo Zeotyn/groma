@@ -111,3 +111,46 @@ tasks() { # change done open
   run sh "$ST" --root "$P" --today 2026-11-04
   [ "$output" = "groma status: nothing open" ]
 }
+
+# --- living docs (C004) -------------------------------------------------------------
+
+docs_setup() { # doc with sources [src/], change c007-cache proposed later, then code changed
+  mkdir -p "$P/docs"
+  printf -- '---\nsources: [src/]\n---\n# Architecture\n' > "$P/docs/architecture.md"
+  echo t > "$P/tests/a.test.js"
+  commit_at "$P" 2026-10-01 base
+  tasks c007-cache 2 0
+  echo "## Why" > "$C/c007-cache/proposal.md"
+  commit_at "$P" 2026-11-01 propose
+  echo y > "$P/src/a.js"
+  commit_at "$P" 2026-11-02 code
+}
+
+@test "done but docs impact open: docs reminder wins over archive" {
+  docs_setup
+  run sh "$ST" --root "$P" --today 2026-11-04
+  assert_output_contains "c007-cache  2/2 tasks → update docs/architecture.md or add a Docs: task line"
+  assert_output_not_contains "verify, then archive"
+}
+
+@test "docs.gate off: no docs reminder" {
+  docs_setup
+  mkdir -p "$P/.groma"
+  printf 'docs:\n  gate: off\n' > "$P/.groma/config.yaml"
+  run sh "$ST" --root "$P" --today 2026-11-04
+  assert_output_contains "c007-cache  2/2 tasks → verify, then archive"
+}
+
+@test "proposed ADR whose origin change is archived: accept or reject" {
+  mkdir -p "$C/archive/2026-10-20-c007-cache" "$C/c008-next" "$P/docs/adr"
+  printf -- '- [x] 1 done\n' > "$C/archive/2026-10-20-c007-cache/tasks.md"
+  printf -- '---\nstatus: proposed\norigin: c007-cache#D2\n---\n# Use Redis\n' > "$P/docs/adr/0011-use-redis.md"
+  printf -- '---\nstatus: accepted\norigin: c007-cache#D1\n---\n# Cache reads\n' > "$P/docs/adr/0010-cache-reads.md"
+  printf -- '---\nstatus: proposed\norigin: c008-next#D1\n---\n# Next\n' > "$P/docs/adr/0012-next.md"
+  echo t > "$P/tests/a.test.js"
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  assert_output_contains "ADR 0011 still proposed (c007-cache archived) → accept or reject"
+  assert_output_not_contains "ADR 0010"
+  assert_output_not_contains "ADR 0012"
+}

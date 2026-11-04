@@ -5,12 +5,16 @@
 #
 # One line per active change that needs attention, at most one reminder each,
 # in this priority:
+#   all tasks done, docs impact open        -> update the docs or add a Docs: task line
 #   all tasks done                         -> verify, then archive
 #   tasks ticked after the last test change -> add or run tests (not for m/d changes)
 #   no commit for stale_change_days        -> continue or close
+# Then one line per ADR with status: proposed whose origin change is archived.
 # Nothing to report: "groma status: nothing open".
 # Toggles: reminders.archive_when_done, reminders.untested_tasks,
-#          reminders.stale_change_days (0 disables) in .groma/config.yaml.
+#          reminders.stale_change_days (0 disables), docs.gate (off disables
+#          both docs reminders) in .groma/config.yaml. The docs impact report
+#          comes from groma-lay-out's docs-impact.sh when it is installed.
 set -eu
 
 HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
@@ -27,20 +31,23 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-cfg_value() { # key default
+cfg_value() { # key default [section]
   v=""
-  [ -f "$ROOT/.groma/config.yaml" ] && v=$(awk -v k="$1" '
+  [ -f "$ROOT/.groma/config.yaml" ] && v=$(awk -v k="$1" -v sec="${3:-reminders}" '
     function ind(s) { match(s, /^ */); return RLENGTH }
     /^[ ]*#/ || /^[ ]*$/ { next }
     { i = ind($0); l = $0; sub(/^ */, "", l); sub(/[ ]+#.*/, "", l)
       if (inr && i == 0) inr = 0
-      if (l ~ /^reminders:/ && i == 0) { inr = 1; next }
+      if (l == sec ":" && i == 0) { inr = 1; next }
       if (inr && index(l, k ":") == 1) { sub(/^[^:]*:[ ]*/, "", l); print l; exit } }' "$ROOT/.groma/config.yaml")
   echo "${v:-$2}"
 }
 ARCHIVE_WHEN_DONE=$(cfg_value archive_when_done true)
 UNTESTED=$(cfg_value untested_tasks true)
 STALE_DAYS=$(cfg_value stale_change_days 14)
+DOCS_GATE=$(cfg_value gate review docs)
+DOCS_IMPACT="$HERE/../../groma-lay-out/scripts/docs-impact.sh"
+[ "$DOCS_GATE" != off ] && [ -f "$DOCS_IMPACT" ] || DOCS_IMPACT=""
 
 days() { # YYYY-MM-DD -> days since epoch
   echo "$1" | awk -F- '{ y = $1 + 0; m = $2 + 0; d = $3 + 0; if (m <= 2) { y--; m += 12 }
@@ -86,7 +93,15 @@ for line in $(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $1 "|"
   [ "$total" -gt 0 ] || continue
   rel=${path#"$ROOT"/}
   msg=""
-  if [ "$ARCHIVE_WHEN_DONE" = true ] && [ "$done_n" -eq "$total" ]; then
+  if [ -n "$DOCS_IMPACT" ] && [ "$done_n" -eq "$total" ]; then
+    report=$(sh "$DOCS_IMPACT" --root "$ROOT" "$path" 2>/dev/null || true)
+    docs=$(printf '%s\n' "$report" | awk -F "$TAB" '$1 == "impact" { printf "%s%s", (n++ ? ", " : ""), $2 }')
+    adrs=$(printf '%s\n' "$report" | awk -F "$TAB" '$1 == "adr" { printf "%s%s", (n++ ? ", " : ""), $2 }')
+    if [ -n "$docs" ]; then msg="update $docs or add a Docs: task line"
+    elif [ -n "$adrs" ]; then msg="write a proposed ADR for $adrs"
+    fi
+  fi
+  if [ -z "$msg" ] && [ "$ARCHIVE_WHEN_DONE" = true ] && [ "$done_n" -eq "$total" ]; then
     msg="verify, then archive"
   fi
   codeless=0
@@ -109,5 +124,20 @@ for line in $(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $1 "|"
     reported=$((reported + 1))
   fi
 done
+
+if [ "$DOCS_GATE" != off ] && [ -d "$ROOT/docs/adr" ]; then
+  archived=" $(list_changes "$DIR" | awk -F "$TAB" '$2 == "archive" { printf "%s ", $1 }')"
+  for adr in "$ROOT"/docs/adr/[0-9]*.md; do
+    [ -f "$adr" ] || continue
+    fm=$(awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } NR > 1' "$adr")
+    printf '%s\n' "$fm" | grep -q '^status:[[:space:]]*proposed[[:space:]]*$' || continue
+    origin=$(printf '%s\n' "$fm" | sed -n 's/^origin:[[:space:]]*\([^#[:space:]]*\)#.*/\1/p')
+    [ -n "$origin" ] || continue
+    case "$archived" in *" $origin "*) ;; *) continue ;; esac
+    n=${adr##*/}; n=${n%%-*}
+    echo "ADR $n still proposed ($origin archived) → accept or reject"
+    reported=$((reported + 1))
+  done
+fi
 
 [ "$reported" -gt 0 ] || echo "groma status: nothing open"

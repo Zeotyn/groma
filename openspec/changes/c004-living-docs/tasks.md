@@ -1,14 +1,14 @@
 ## 1. Tests and fixture first
 
-- [ ] 1.1 Fixture `living-docs` in `tests/fixtures/` (git history: docs with `sources`, an OpenSpec change touching code, a design with two decisions, one with Alternatives)
-- [ ] 1.2 `tests/scripts/docs-impact.bats`: impact line, doc updated in change, ADR docs skipped, docs without sources skipped, justified and unjustified `Docs:` lines, `adr` line and `origin` coverage, `marked` and `off` modes, base from proposal commit and working-tree fallback, `--gate` exit codes
-- [ ] 1.3 bats cases for `validate-config.sh` (`docs.gate`, `docs.adr_from`, closest match) and `status.sh` (docs reminder priority, pending ADR after archive)
+- [x] 1.1 Fixture `living-docs` in `tests/fixtures/` (git history: docs with `sources`, an OpenSpec change touching code, a design with two decisions, one with Alternatives)
+- [x] 1.2 `tests/scripts/docs-impact.bats`: impact line, doc updated in change, ADR docs skipped, docs without sources skipped, justified and unjustified `Docs:` lines, `adr` line and `origin` coverage, `marked` and `off` modes, base from proposal commit and working-tree fallback, `--gate` exit codes
+- [x] 1.3 bats cases for `validate-config.sh` (`docs.gate`, `docs.adr_from`, closest match) and `status.sh` (docs reminder priority, pending ADR after archive)
 
 ## 2. Script
 
-- [ ] 2.1 `skills/groma-lay-out/scripts/docs-impact.sh` per design D1, D2, D5; shellcheck clean
-- [ ] 2.2 `validate-config.sh` and `skills/groma/templates/config.yaml`: `docs.gate`, `docs.adr_from`
-- [ ] 2.3 `status.sh`: docs reminders, respecting `docs.gate`
+- [x] 2.1 `skills/groma-lay-out/scripts/docs-impact.sh` per design D1, D2, D5; shellcheck clean
+- [x] 2.2 `validate-config.sh` and `skills/groma/templates/config.yaml`: `docs.gate`, `docs.adr_from`
+- [x] 2.3 `status.sh`: docs reminders, respecting `docs.gate`
 
 ## 3. Skills and templates
 

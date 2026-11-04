@@ -218,3 +218,30 @@ YAML
   [ "$status" -eq 1 ]
   assert_output_contains "unknown agent 'claud' in agents_via_plugin"
 }
+
+# --- living docs (C004) -------------------------------------------------------------
+
+@test "docs.gate and docs.adr_from defaults validate" {
+  sed -i.bak 's/^  optional: \[security\]/&\
+  gate: review\
+  adr_from: design-alternatives/' "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "summary	errors=0	warnings=0"
+}
+
+@test "typo in docs.gate reports line and closest value" {
+  sed -i.bak 's/^  optional: \[security\]/&\
+  gate: strikt/' "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "error	line 17	docs.gate must be off, remind, review or strict, got 'strikt', did you mean strict?"
+}
+
+@test "unknown docs.adr_from fails with closest value" {
+  sed -i.bak 's/^  optional: \[security\]/&\
+  adr_from: marke/' "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "docs.adr_from must be design-alternatives, marked or off, got 'marke', did you mean marked?"
+}

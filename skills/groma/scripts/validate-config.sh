@@ -139,6 +139,8 @@ done
 for o in $(get docs.optional | tr ',' ' '); do
   in_set "$o" "constraints quality security operations stakeholders" || report error docs.optional "unknown optional doc '$o'"
 done
+v=$(get docs.gate); [ -z "$v" ] || in_set "$v" "off remind review strict" || report error docs.gate "docs.gate must be off, remind, review or strict, got '$v'$(c=$(closest "$v" "off remind review strict"); [ -z "$c" ] || printf ', did you mean %s?' "$c")"
+v=$(get docs.adr_from); [ -z "$v" ] || in_set "$v" "design-alternatives marked off" || report error docs.adr_from "docs.adr_from must be design-alternatives, marked or off, got '$v'$(c=$(closest "$v" "design-alternatives marked off"); [ -z "$c" ] || printf ', did you mean %s?' "$c")"
 
 # --- review and reminders (optional sections) ----------------------------------------
 is_int() { case "$1" in ''|*[!0-9]*) return 1 ;; *) return 0 ;; esac; }

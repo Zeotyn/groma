@@ -28,6 +28,8 @@ skills:
 docs:
   review_after_days: 90           # default for new docs
   optional: []                    # any of: constraints, quality, security, operations, stakeholders
+  gate: review                    # off | remind | review | strict, see "Living docs" in the README
+  adr_from: design-alternatives   # design-alternatives | marked | off
 
 conventions:
   changes:

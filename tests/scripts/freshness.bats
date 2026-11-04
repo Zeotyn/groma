@@ -333,6 +333,41 @@ commit_ts() {
   assert_output_not_contains "last_reviewed"
 }
 
+@test "last_reviewed day ends at UTC midnight" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs" "$D/skills"
+  printf -- '---\nlast_reviewed: 2026-11-04\nsources: [skills/]\n---\n' > "$D/docs/a.md"
+  echo 1 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T10:00:00Z docs
+  echo 2 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T23:59:59Z late
+  run sh "$FRESH" "$D" --today 2026-11-05
+  assert_output_contains "fresh	docs/a.md"
+  echo 3 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-05T01:00:00+02:00 offset
+  run sh "$FRESH" "$D" --today 2026-11-05
+  assert_output_contains "fresh	docs/a.md"
+  echo 4 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-05T00:00:00Z midnight
+  run sh "$FRESH" "$D" --today 2026-11-05
+  assert_output_contains "stale	docs/a.md	code changed: skills/ on 2026-11-05, doc last changed 2026-11-04, last_reviewed 2026-11-04"
+}
+
+@test "malformed last_reviewed falls back to commits only" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs" "$D/skills"
+  printf -- '---\nlast_reviewed: 2026-11-4\nsources: [skills/]\n---\n' > "$D/docs/a.md"
+  echo 1 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T10:00:00Z docs
+  echo 2 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T15:00:00Z fix
+  run sh "$FRESH" "$D" --today 2026-11-04
+  assert_output_contains "stale	docs/a.md	code changed: skills/ on 2026-11-04, doc last changed 2026-11-04"
+  assert_output_not_contains "last_reviewed"
+}
+
 @test "doc without sources honors last_reviewed for repository code" {
   D="$BATS_TEST_TMPDIR/p"
   make_repo "$D"

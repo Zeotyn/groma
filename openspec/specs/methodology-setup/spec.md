@@ -35,3 +35,10 @@ When a required runtime (e.g. Node ≥ 22 or `uv`) is missing, groma SHALL stop 
 - **WHEN** methodology is `spec-kit` and `uv` is not installed
 - **THEN** groma reports "uv missing: install via https://docs.astral.sh/uv/" and marks the step as pending in the config
 
+### Requirement: Shared methodology recipes
+Methodology init recipes SHALL live in one data file read by both the CLI and the `groma-methodology` skill. Each recipe SHALL declare: id, detection paths (already present), prerequisites, the init command with its agent-id mapping, the files it touches, whether it can run non-interactively, and the docs link step.
+
+#### Scenario: New methodology version
+- **WHEN** a contributor bumps the OpenSpec version in the recipe file
+- **THEN** both `groma init` and the skill use the new version, with no other file changed
+

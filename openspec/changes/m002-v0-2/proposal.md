@@ -17,7 +17,7 @@ Milestone only; behavior is specified in the child changes.
 | Id | Change | Status |
 |---|---|---|
 | F001 | `f001-freshness-adrs` | archived |
-| C003 | `c003-groma-cli` | active |
+| C003 | `c003-groma-cli` | archived |
 | C004 | `c004-living-docs` | active (after F001) |
 
 ## Capabilities

@@ -3,8 +3,9 @@
 - [x] 1.1 F001 `f001-freshness-adrs` implemented, verified and archived
 - [x] 1.2 C003 `c003-groma-cli` implemented, verified and archived
 - [x] 1.3 C004 `c004-living-docs` implemented, verified and archived
-- [ ] 1.4 F002 `f002-status-milestone-gates` implemented, verified and archived
-- [ ] 1.5 F003 `f003-freshness-reviewed` implemented, verified and archived
+- [x] 1.4 F002 `f002-status-milestone-gates` implemented, verified and archived
+- [x] 1.5 F003 `f003-freshness-reviewed` implemented, verified and archived
+- [x] 1.6 F004 `f004-npm-package-name` implemented, verified and archived
 
 ## 2. Release gate
 

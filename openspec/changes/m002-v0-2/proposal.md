@@ -9,7 +9,7 @@ Milestone only; behavior is specified in the child changes.
 **Goal:** `npx groma-cli@0.2.1 init` works in an empty and in an existing project for Claude Code and Copilot, `groma-cli` is published on npm, all test levels green.
 
 **Scope:**
-- In: everything specified in `c003-groma-cli`, `f001-freshness-adrs`, `c004-living-docs`, `f002-status-milestone-gates` and `f003-freshness-reviewed`.
+- In: everything specified in `c003-groma-cli`, `f001-freshness-adrs`, `c004-living-docs`, `f002-status-milestone-gates`, `f003-freshness-reviewed` and `f004-npm-package-name`.
 - Out: porting skill logic to Node, a global install requirement, Node < 22.
 
 **Child changes:**
@@ -19,8 +19,9 @@ Milestone only; behavior is specified in the child changes.
 | F001 | `f001-freshness-adrs` | archived |
 | C003 | `c003-groma-cli` | archived |
 | C004 | `c004-living-docs` | archived |
-| F002 | `f002-status-milestone-gates` | active |
-| F003 | `f003-freshness-reviewed` | active |
+| F002 | `f002-status-milestone-gates` | archived |
+| F003 | `f003-freshness-reviewed` | archived |
+| F004 | `f004-npm-package-name` | archived |
 
 ## Capabilities
 

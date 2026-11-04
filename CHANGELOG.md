@@ -12,6 +12,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - Config key `agents_via_plugin` for agents whose skills come from an installed plugin.
 - Shared data files `skills/groma/agents.yaml` and `skills/groma-methodology/methodologies.yaml`, read by both the CLI and the skills.
 - `/groma` skips the config, methodology and skills steps when the CLI marked them `done`.
+- Living docs (change C004): `docs-impact.sh` in groma-lay-out reports docs whose sources a change touched without updating them and design decisions without an ADR; config keys `docs.gate` (`off`, `remind`, `review`, `strict`) and `docs.adr_from`; ADR frontmatter `origin: <change>#D<n>`; groma-loop adds the report to verify as high findings and runs a docs sync on archive; `status.sh` reminds about open docs impact and ADRs still proposed after archive; OpenSpec rules for a Docs impact section, a Docs task group and decision alternatives; a living-docs line in the AGENTS.md template.
+- ADRs 0009 to 0026 for the decisions of C002, C003 and C004.
 
 ### Changed
 

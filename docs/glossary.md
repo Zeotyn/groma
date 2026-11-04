@@ -27,3 +27,10 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Change id | `<type><NNN>`, e.g. `c003`, prefix of every change name | conventions | an ADR number |
 | Milestone | Change of type `m` grouping child changes via `Milestone: mNNN` | conventions | a release |
 | Freshness | Whether a doc is fresh, stale or unknown, from frontmatter and git dates | survey | `status` in frontmatter |
+| Review loop | `groma-loop`: propose, apply, verify, archive with review rounds by a second model | `groma-loop` | a code review by a person |
+| Finding | One row of a reviewer's table (high, medium, low) that the author must fix or reject with a reason | `groma-loop` | a survey finding in the findings report |
+| Lifecycle reminder | One line from `status.sh` naming the next action for an open change or a pending ADR | `groma-methodology` | a CI check |
+| Living docs | Keeping `docs/` current inside every change: docs impact, ADR candidates, docs sync on archive | `groma-lay-out`, `groma-loop` | freshness, which only reports age |
+| Docs impact | Docs whose `sources` changed in a change while the doc did not, plus decisions without an ADR | `docs-impact.sh` | stale docs |
+| Docs gate | `docs.gate` level: `off`, `remind`, `review` (default), `strict` | config | the tests gate |
+| ADR candidate | A design decision with alternatives (or `ADR: yes`) that needs an ADR with `origin: <change>#D<n>` | living docs | an accepted ADR |

@@ -18,8 +18,12 @@ rules:
   proposal:
     - "Change names follow <type><NNN>-<slug> (m milestone, c change, f fix, s spike, r refactor, d docs)"
     - "Child changes start proposal.md with a 'Milestone: mNNN' line when they belong to a milestone"
+    - "Every proposal has a '## Docs impact' section: the docs in docs/ this change updates and the ADRs it plans, or 'none, because <reason>'."
   tasks:
     - "Tests or test harness tasks come before the implementation they cover"
+    - "The last task group is 'Docs': update each affected doc, or add a line 'Docs: <path> unchanged, because <reason>'. Check with skills/groma-lay-out/scripts/docs-impact.sh --gate <change-dir>."
+  design:
+    - "Write each decision as a '### D<n>: <title>' heading with a line starting 'Alternatives:' that names the options considered and why they lost. Each such decision gets an ADR in docs/adr/ with status: proposed and origin: <change>#D<n>."
 
 # Project context (optional)
 # This is shown to AI when creating artifacts.

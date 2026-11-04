@@ -91,7 +91,22 @@ propose ─▶ review ⟲ ─▶ apply per task group ─▶ tests green? ─▶
 - **Mode `autonomous`** (default) runs to the archive and stops only when it is stuck: open high findings after the last round, tests still red after retries, a rejected high finding, or a destructive step outside the change. **`gated`** also waits for you after propose and before archive.
 - Every round is kept in the change folder as `reviews/<phase>-round-<n>.md` and archived with it.
 
-Reminders: `skills/groma-methodology/scripts/status.sh` lists changes that are ready to archive, ticked without test changes, or stale. `AGENTS.md` tells agents to run it at session start; Claude Code can run it automatically through an optional SessionStart hook.
+Reminders: `skills/groma-methodology/scripts/status.sh` lists changes whose docs need an update, that are ready to archive, ticked without test changes, or stale, plus ADRs still `proposed` after their change was archived. `AGENTS.md` tells agents to run it at session start; Claude Code can run it automatically through an optional SessionStart hook.
+
+## Living docs
+
+Every change keeps `docs/` current in the same change, like its code. `skills/groma-lay-out/scripts/docs-impact.sh <change-dir>` compares the files changed since the change started with each doc's frontmatter `sources` and lists docs that need an update. It also lists design decisions with an "Alternatives" paragraph that have no ADR with `origin: <change>#D<n>`. To keep a doc as it is, add a task line `Docs: <path> unchanged, because <reason>`.
+
+`docs.gate` in `.groma/config.yaml` sets how hard this is enforced:
+
+| `docs.gate` | Status reminder | OpenSpec rules | Verify finding (groma-loop) | Blocks archive |
+|---|---|---|---|---|
+| `off` | no | no | no | no |
+| `remind` | yes | no | no | no |
+| `review` (default) | yes | yes | high | no |
+| `strict` | yes | yes | high | yes |
+
+On archive, groma-loop accepts the change's proposed ADRs, sets `last_reviewed` in the docs the change touched, completes the ADR index and regenerates the roadmap. `docs.adr_from` picks which decisions need an ADR: `design-alternatives` (default), `marked` (a line `ADR: yes`) or `off`.
 
 ## Requirements
 
@@ -128,6 +143,9 @@ review:
     per: task-group              # task | task-group | change
     max_rounds: 1
     test_retries: 2
+docs:
+  gate: review                   # off | remind | review | strict
+  adr_from: design-alternatives  # design-alternatives | marked | off
 reminders:
   archive_when_done: true
   stale_change_days: 14

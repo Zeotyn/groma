@@ -27,7 +27,7 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 | Container | Technology | Responsibility | Evidence |
 |---|---|---|---|
 | Skills | Markdown (Agent Skills format) | Procedure for each step | `skills/*/SKILL.md` |
-| Runtime scripts | POSIX sh | Detection, freshness, config validation, change ids, schema dump | `skills/*/scripts/` |
+| Runtime scripts | POSIX sh | Detection, freshness, docs impact, config validation, change ids, lifecycle status, reviewer calls, schema dump | `skills/*/scripts/` |
 | Templates and references | Markdown, YAML | Docs and agent file templates, stack tables, skill catalog | `skills/*/templates/`, `skills/*/references/`, `skills/groma-skills/catalog.yaml` |
 | Distribution manifests | JSON | Plugin and extension metadata per agent | `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/`, `gemini-extension.json`, `install.sh` |
 | Test suite (not shipped) | sh, bats, Python via uv | Structure checks, script tests, invariant, evals | `scripts/test.sh`, `tests/` |
@@ -37,8 +37,9 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 - `groma`: orchestrator, owns `config.yaml` template, `check-prereqs.sh`, `validate-config.sh`.
 - `groma-detect`: `detect.sh` plus `references/signals.md`.
 - `groma-survey`: `freshness.sh`, `dump-schema.sh`, ADR and data-source tables, findings template.
-- `groma-lay-out`: doc templates and `doc-slots.md`.
-- `groma-methodology`: `next-change-id.sh`, `check-conventions.sh`, `roadmap.sh` (share `lib-changes.sh`).
+- `groma-lay-out`: doc templates, `doc-slots.md` and `docs-impact.sh` (docs impact and ADR candidates of a change).
+- `groma-methodology`: `next-change-id.sh`, `check-conventions.sh`, `roadmap.sh`, `status.sh` (lifecycle reminders; share `lib-changes.sh`).
+- `groma-loop`: runs one change through propose, apply, verify and archive with an independent reviewer; `resolve-reviewer.sh`, `review.sh`, review prompt and record templates.
 - `groma-skills`: `catalog.yaml` and `references/install.md`.
 - `groma-agents`: templates for `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `copilot-instructions.md`, `groma.mdc`.
 
@@ -47,6 +48,10 @@ The orchestrator refers to siblings by relative path (`../groma-detect/`). A ski
 ## Runtime view
 
 `/groma` in init mode: detect → interview → write `.groma/config.yaml` → methodology → skills → docs (survey first on brownfield) → agents → summary. After each step `steps.<name>` becomes `done`, `pending` or `skipped`. A later run validates the config and resumes at the first `pending` step.
+
+`groma-loop` per change: propose → review rounds → apply per task group (tests gate, then review rounds on the diff) → verify (plus the docs gate: every `docs-impact.sh` line is a high finding) → archive with spec sync and docs sync (proposed ADRs with this change's `origin` become accepted, `last_reviewed` of touched docs set, ADR index and roadmap updated). With `docs.gate: strict` archive waits until the report is empty.
+
+`status.sh` at session start prints at most one reminder per active change (docs impact open, verify and archive, untested ticks, stale change) and one line per ADR still `proposed` after its origin change was archived.
 
 ## Deployment
 

@@ -20,14 +20,14 @@
 
 ## 4. Dogfood
 
-- [ ] 4.1 Add the three rules to this repository's `openspec/config.yaml`
-- [ ] 4.2 ADRs for C002 D1–D6 (`accepted`, `origin: c002-review-loop#Dn`), proposed ADRs for C003 D1–D7, ADRs for C004 D1–D5
-- [ ] 4.3 `docs/architecture.md`, `docs/concept.md`, `docs/glossary.md`: groma-loop, lifecycle reminders, living docs; ADR index
-- [ ] 4.4 `docs-impact.sh --gate openspec/changes/c004-living-docs` exits 0
+- [x] 4.1 Add the three rules to this repository's `openspec/config.yaml`
+- [x] 4.2 ADRs for C002 D1–D6 (`accepted`, `origin: c002-review-loop#Dn`), proposed ADRs for C003 D1–D7, ADRs for C004 D1–D5
+- [x] 4.3 `docs/architecture.md`, `docs/concept.md`, `docs/glossary.md`: groma-loop, lifecycle reminders, living docs; ADR index
+- [x] 4.4 `docs-impact.sh --gate openspec/changes/c004-living-docs` exits 0
 - [ ] 4.5 Eval: loop eval asserts a docs finding when a fixture change skips its doc update
 
 ## 5. Docs
 
-- [ ] 5.1 README: living-docs section with the gate table
-- [ ] 5.2 CHANGELOG `[Unreleased]`: Added entry
-- [ ] 5.3 `docs/data-model.md`: `docs.gate` and `docs.adr_from` in the config entity, `origin` in the ADR entity
+- [x] 5.1 README: living-docs section with the gate table
+- [x] 5.2 CHANGELOG `[Unreleased]`: Added entry
+- [x] 5.3 `docs/data-model.md`: `docs.gate` and `docs.adr_from` in the config entity, `origin` in the ADR entity

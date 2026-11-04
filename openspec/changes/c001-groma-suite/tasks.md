@@ -67,5 +67,5 @@
 ## 9. Release v0.1.0
 
 - [x] 9.1 Complete README install matrix (Claude, Copilot tested; Codex, Gemini, Cursor best effort) and CONTRIBUTING (add catalog entry, add detection pattern, add fixture)
-- [ ] 9.2 Run all test levels green and record C001 in CHANGELOG `Unreleased` (tagging `v0.1.0` is M001 task 2.3, because C002 is part of the same release)
+- [x] 9.2 Run all test levels green and record C001 in CHANGELOG `Unreleased` (tagging `v0.1.0` is M001 task 2.3, because C002 is part of the same release)
 - [ ] 9.3 Dogfood: run `/groma` update mode on this repository itself and fix findings

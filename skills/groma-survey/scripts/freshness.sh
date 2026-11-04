@@ -1,0 +1,162 @@
+#!/bin/sh
+# Report stale documentation. Read-only.
+#
+# Usage: freshness.sh [dir] [--docs <docs-dir>] [--today YYYY-MM-DD]
+#
+# A doc is stale when
+#   (a) frontmatter last_reviewed + review_after_days lies before today, or
+#   (b) the newest commit touching any path in frontmatter `sources` is newer
+#       than the newest commit touching the doc, or
+#   (c) without `sources`: the newest commit touching any non-Markdown file
+#       outside the docs dir is newer than the doc.
+#
+# Output, one line per doc, tab-separated:
+#   stale<TAB><doc><TAB><reason>
+#   fresh<TAB><doc>
+#   unknown<TAB><doc><TAB><reason>
+# followed by: summary<TAB>stale=<n><TAB>fresh=<n><TAB>unknown=<n>
+# Exit code 0 even when stale docs exist (it is a report, not a gate).
+set -eu
+
+DIR=.
+DOCS=docs
+TODAY=$(date -u +%Y-%m-%d)
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --docs) DOCS=$2; shift 2 ;;
+    --today) TODAY=$2; shift 2 ;;
+    -*) echo "unknown option: $1" >&2; exit 2 ;;
+    *) DIR=$1; shift ;;
+  esac
+done
+[ -d "$DIR" ] || { echo "not a directory: $DIR" >&2; exit 2; }
+cd "$DIR"
+
+TAB=$(printf '\t')
+in_git=0
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git rev-parse HEAD >/dev/null 2>&1 && in_git=1
+
+# days since 1970-01-01 for YYYY-MM-DD (proleptic Gregorian), portable awk
+days() {
+  echo "$1" | awk -F- '{
+    y = $1 + 0; m = $2 + 0; d = $3 + 0
+    if (m <= 2) { y -= 1; m += 12 }
+    era = int(y / 400); yoe = y - era * 400
+    doy = int((153 * (m - 3) + 2) / 5) + d - 1
+    doe = yoe * 365 + int(yoe / 4) - int(yoe / 100) + doy
+    print era * 146097 + doe - 719468
+  }'
+}
+
+last_commit() { # epoch of newest commit touching paths, 0 if none
+  if [ "$in_git" -eq 1 ]; then
+    t=$(git log -1 --format=%ct -- "$@" 2>/dev/null || true)
+    echo "${t:-0}"
+  else
+    echo 0
+  fi
+}
+
+ymd() { # epoch -> YYYY-MM-DD
+  awk -v t="$1" 'BEGIN {
+    z = int(t / 86400) + 719468; era = int(z / 146097); doe = z - era * 146097
+    yoe = int((doe - int(doe / 1460) + int(doe / 36524) - int(doe / 146096)) / 365)
+    y = yoe + era * 400; doy = doe - (365 * yoe + int(yoe / 4) - int(yoe / 100))
+    mp = int((5 * doy + 2) / 153); d = doy - int((153 * mp + 2) / 5) + 1
+    m = mp < 10 ? mp + 3 : mp - 9; if (m <= 2) y++
+    printf "%04d-%02d-%02d\n", y, m, d
+  }'
+}
+
+# frontmatter value for key (scalar), empty if absent
+fm_get() {
+  awk -v k="$2" '
+    NR == 1 && $0 != "---" { exit }
+    NR > 1 && $0 == "---" { exit }
+    NR > 1 {
+      if (index($0, k ":") == 1) {
+        v = substr($0, length(k) + 2); gsub(/^[ \t"]+|[ \t"]+$/, "", v); print v; exit
+      }
+    }' "$1"
+}
+
+# frontmatter list for `sources`, one per line; supports [a, b] and block lists
+fm_sources() {
+  awk '
+    NR == 1 && $0 != "---" { exit }
+    NR > 1 && $0 == "---" { exit }
+    NR > 1 && inlist {
+      if ($0 ~ /^[ \t]*-[ \t]*/) { v = $0; sub(/^[ \t]*-[ \t]*/, "", v); gsub(/["'\'']/, "", v); gsub(/[ \t]+$/, "", v); if (v != "") print v; next }
+      inlist = 0
+    }
+    NR > 1 && /^sources:/ {
+      v = substr($0, 9); gsub(/^[ \t]+|[ \t]+$/, "", v)
+      if (v == "") { inlist = 1; next }
+      gsub(/^\[|\]$/, "", v); n = split(v, a, ",")
+      for (i = 1; i <= n; i++) { s = a[i]; gsub(/^[ \t"'\'']+|[ \t"'\'']+$/, "", s); if (s != "") print s }
+    }' "$1"
+}
+
+stale=0 fresh=0 unknown=0
+today_days=$(days "$TODAY")
+code_epoch=""
+
+if [ ! -d "$DOCS" ]; then
+  printf 'summary%sstale=0%sfresh=0%sunknown=0\n' "$TAB" "$TAB" "$TAB"
+  exit 0
+fi
+
+find "$DOCS" -type f -name '*.md' ! -path "$DOCS/_groma/*" | LC_ALL=C sort > "${TMPDIR:-/tmp}/groma-fresh.$$"
+trap 'rm -f "${TMPDIR:-/tmp}/groma-fresh.$$"' EXIT
+
+while IFS= read -r doc; do
+  reasons=""
+  lr=$(fm_get "$doc" last_reviewed)
+  rad=$(fm_get "$doc" review_after_days)
+  if [ -n "$lr" ] && [ -n "$rad" ]; then
+    age=$((today_days - $(days "$lr")))
+    if [ "$age" -gt "$rad" ]; then
+      reasons="review overdue: last_reviewed $lr is $age days old (limit $rad)"
+    fi
+  fi
+
+  doc_t=$(last_commit "$doc")
+  if [ "$in_git" -eq 1 ] && [ "$doc_t" -eq 0 ]; then
+    if [ -z "$reasons" ]; then
+      unknown=$((unknown + 1))
+      printf 'unknown%s%s%snot committed yet\n' "$TAB" "$doc" "$TAB"
+      continue
+    fi
+  elif [ "$in_git" -eq 1 ]; then
+    srcs=$(fm_sources "$doc")
+    if [ -n "$srcs" ]; then
+      newest=0 newest_src=""
+      for s in $srcs; do
+        t=$(last_commit "$s")
+        if [ "$t" -gt "$newest" ]; then newest=$t newest_src=$s; fi
+      done
+      if [ "$newest" -gt "$doc_t" ]; then
+        r="code changed: $newest_src on $(ymd "$newest"), doc last changed $(ymd "$doc_t")"
+        reasons=${reasons:+"$reasons; "}$r
+      fi
+    else
+      if [ -z "$code_epoch" ]; then
+        code_epoch=$(last_commit . ":(exclude)$DOCS" ":(exclude)*.md")
+      fi
+      if [ "$code_epoch" -gt "$doc_t" ]; then
+        r="repository code changed on $(ymd "$code_epoch"), doc last changed $(ymd "$doc_t") (no sources in frontmatter)"
+        reasons=${reasons:+"$reasons; "}$r
+      fi
+    fi
+  fi
+
+  if [ -n "$reasons" ]; then
+    stale=$((stale + 1))
+    printf 'stale%s%s%s%s\n' "$TAB" "$doc" "$TAB" "$reasons"
+  else
+    fresh=$((fresh + 1))
+    printf 'fresh%s%s\n' "$TAB" "$doc"
+  fi
+done < "${TMPDIR:-/tmp}/groma-fresh.$$"
+
+printf 'summary%sstale=%d%sfresh=%d%sunknown=%d\n' "$TAB" "$stale" "$TAB" "$fresh" "$TAB" "$unknown"

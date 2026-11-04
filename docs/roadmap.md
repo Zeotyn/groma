@@ -15,7 +15,7 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 ## M001 v0-1
 
 - Goal: `v0.1.0` tagged, all test levels green on all fixtures for Claude Code, Copilot manual protocol passed.
-- Status: active
+- Status: done
 - Progress: 2/2 done
 
 | Id | Change | Status |

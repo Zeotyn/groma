@@ -35,7 +35,7 @@ Re-run `/groma` at any time. It only adds what is missing and reports what went 
 | Agent | Command | Status |
 |---|---|---|
 | Claude Code | `claude plugin marketplace add Zeotyn/groma` then `claude plugin install groma@groma` | tested (local `--plugin-dir`, evals) |
-| GitHub Copilot CLI | `copilot plugin marketplace add Zeotyn/groma` then `copilot plugin install groma@groma` | pending manual test |
+| GitHub Copilot CLI | `copilot plugin marketplace add Zeotyn/groma` then `copilot plugin install groma@groma` | tested (manual protocol, [run 2026-11-04](tests/manual/copilot-2026-11-04.md)) |
 | Any agent (skills CLI) | `npx skills add Zeotyn/groma --all` or a single skill: `npx skills add Zeotyn/groma --skill groma-lay-out` | tested (local path) |
 | Codex | `codex plugin marketplace add Zeotyn/groma` | best effort |
 | Gemini CLI | `gemini extensions install https://github.com/Zeotyn/groma` | best effort |

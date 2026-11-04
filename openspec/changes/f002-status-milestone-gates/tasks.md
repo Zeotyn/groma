@@ -7,7 +7,7 @@
 
 - [x] 2.1 `status.sh`: milestone references and gate reminder per D1; header comment updated
 - [x] 2.2 `status.sh`: repository lines per D2, toggles per D3
-- [x] 2.3 `config.yaml` template and `validate-config.sh`; runtime on this repository under 300 ms, else note the measurement here. Measured: 0.70 s (3 runs, 0.70–0.73 s); the unchanged script took 0.56–0.64 s, so F002 adds about 0.1 s. The base cost was already over the target before this change.
+- [x] 2.3 `config.yaml` template and `validate-config.sh`; runtime on this repository under 300 ms, else note the measurement here. Measured: 0.70 s (3 runs, 0.70–0.73 s); the unchanged script took 0.56–0.64 s, so F002 adds about 0.1 s. The base cost was already over the target before this change. After review round 1 (one `list_changes` call), 5 runs side by side on a slower moment: script before F002 0.81–0.87 s, round 0 0.90–1.05 s, now 0.86–0.96 s, about 0.05 s over the script before F002.
 - [x] 2.4 `shellcheck -s sh` and `scripts/test.sh` green
 
 ## 3. Docs

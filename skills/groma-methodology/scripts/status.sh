@@ -73,7 +73,7 @@ last_commit() { # epoch of the newest commit touching the paths (relative to ROO
 }
 dirty() { # 0 when the path has uncommitted changes
   [ "$in_git" -eq 1 ] || return 1
-  [ -n "$(git -C "$ROOT" status --porcelain -- "$1" 2>/dev/null)" ]
+  [ -n "$(git -C "$ROOT" --no-optional-locks status --porcelain -- "$1" 2>/dev/null)" ]
 }
 
 # newest commit touching test files: test folders or test file name conventions,
@@ -91,11 +91,12 @@ fi
 DIR=$(changes_dir "$ROOT")
 reported=0
 TAB=$(printf '\t')
-ACTIVE=$(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $3 }')
+CHANGES=$(list_changes "$DIR")
 # milestones referenced by active changes through "Milestone: mNNN" near the top of proposal.md
-REFERENCED=" $(for p in $ACTIVE; do [ -f "$p/proposal.md" ] && sed -n '1,5s/^Milestone:[[:space:]]*\(m[0-9]*\).*/\1/p' "$p/proposal.md"; done | tr '\n' ' ')"
-for line in $(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $1 "|" $3 }'); do
-  name=${line%%|*}; path=${line#*|}
+REFERENCED=" $(printf '%s\n' "$CHANGES" | awk -F "$TAB" '$2 == "active" { print $3 }' | while IFS= read -r p; do
+  [ ! -f "$p/proposal.md" ] || sed -n '1,5s/^Milestone:[[:space:]]*\(m[0-9]*\).*/\1/p' "$p/proposal.md"; done | tr '\n' ' ')"
+while IFS="$TAB" read -r name loc path <&3; do
+  [ "$loc" = active ] || continue
   tf="$path/tasks.md"
   [ -f "$tf" ] || continue
   total=$(grep -c '^[[:space:]]*- \[[ xX]\]' "$tf" || true)
@@ -126,7 +127,11 @@ for line in $(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $1 "|"
     m[0-9]*-*)
       case "$REFERENCED" in *" ${name%%-*} "*) ;; *)
         if [ -z "$msg" ] && [ "$done_n" -lt "$total" ]; then
-          gate=$(sed -n 's/^[[:space:]]*- \[ \][[:space:]]*//p' "$tf" | head -n 1 | tr -d '`' | awk '{ print substr($0, 1, 60) }')
+          # cut to 60 characters, not bytes: count bytes that do not continue a UTF-8 character
+          gate=$(sed -n 's/^[[:space:]]*- \[ \][[:space:]]*//p' "$tf" | head -n 1 | tr -d '`' | LC_ALL=C awk '{
+            n = 0; for (i = 1; i <= length($0); i++) { c = substr($0, i, 1)
+              if ((c < "\200" || c > "\277") && ++n > 60) break }
+            print substr($0, 1, i - 1) }')
           msg="gate: $gate"
         fi ;;
       esac ;;
@@ -142,10 +147,12 @@ for line in $(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $1 "|"
     printf '%s  %s/%s tasks → %s\n' "$name" "$done_n" "$total" "$msg"
     reported=$((reported + 1))
   fi
-done
+done 3<<EOF
+$CHANGES
+EOF
 
 if [ "$DOCS_GATE" != off ] && [ -d "$ROOT/docs/adr" ]; then
-  archived=" $(list_changes "$DIR" | awk -F "$TAB" '$2 == "archive" { printf "%s ", $1 }')"
+  archived=" $(printf '%s\n' "$CHANGES" | awk -F "$TAB" '$2 == "archive" { printf "%s ", $1 }')"
   for adr in "$ROOT"/docs/adr/[0-9]*.md; do
     [ -f "$adr" ] || continue
     fm=$(awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } NR > 1' "$adr" | tr -d "\"'")
@@ -160,7 +167,7 @@ if [ "$DOCS_GATE" != off ] && [ -d "$ROOT/docs/adr" ]; then
 fi
 
 if [ "$in_git" -eq 1 ] && [ "$UNCOMMITTED" = true ]; then
-  n=$(git -C "$ROOT" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+  n=$(git -C "$ROOT" --no-optional-locks status --porcelain 2>/dev/null | wc -l | tr -d ' ')
   if [ "$n" -gt 0 ]; then
     echo "working tree: $n files uncommitted → commit or stash"
     reported=$((reported + 1))

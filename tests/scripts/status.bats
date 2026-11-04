@@ -107,9 +107,11 @@ tasks() { # change done open
 @test "milestone and docs changes get no test reminder" {
   tasks m001-mvp 1 2
   tasks d001-adrs 1 1
+  tasks c009-child 0 1
+  printf 'Milestone: m001\n' > "$C/c009-child/proposal.md"
   commit_at "$P" 2026-11-03 x
   run sh "$ST" --root "$P" --today 2026-11-04
-  assert_output_not_contains "add or run tests"
+  [ "$output" = "groma status: nothing open" ]
 }
 
 # --- living docs (C004) -------------------------------------------------------------
@@ -200,6 +202,28 @@ milestone() { # change done open: open tasks are the gate tasks
   [ "$output" = "m002-v0-2  1/2 tasks → gate: 2.1 Run scripts/test.sh and then a very long explanation tha" ]
 }
 
+@test "gate text is cut by characters, not bytes" {
+  tasks m002-v0-2 1 0
+  a=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa   # 54 characters
+  echo "- [ ] 2.1 ${a}–ü and more" >> "$C/m002-v0-2/tasks.md"
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "m002-v0-2  1/2 tasks → gate: 2.1 ${a}–ü" ]
+}
+
+@test "milestone references are found in a project path with spaces" {
+  P="$BATS_TEST_TMPDIR/my project"
+  make_repo "$P"
+  C="$P/openspec/changes"
+  milestone m003-v0-3 1 2
+  tasks c005-code-style 0 2
+  printf 'Milestone: m003\n' > "$C/c005-code-style/proposal.md"
+  milestone m004-v0-4 1 1
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "m004-v0-4  1/2 tasks → gate: 2.1 Test levels 1–4 green" ]
+}
+
 @test "milestone with an active child: no gate reminder" {
   milestone m003-v0-3 1 2
   tasks c005-code-style 0 2
@@ -247,6 +271,30 @@ upstream() { # bare remote with main pushed and tracked
   echo 2 > "$P/src/a.js"; commit_at "$P" 2026-11-03 two
   run sh "$ST" --root "$P" --today 2026-11-04
   [ "$output" = "main: 1 commits not pushed → git push" ]
+}
+
+@test "main branch comes from origin/HEAD" {
+  git -C "$P" checkout -q -b trunk
+  commit_at "$P" 2026-11-01 base
+  git init -q --bare "$BATS_TEST_TMPDIR/r.git"
+  git -C "$P" remote add origin "$BATS_TEST_TMPDIR/r.git"
+  git -C "$P" push -q -u origin trunk 2>/dev/null
+  git -C "$P" remote set-head origin trunk
+  echo 1 > "$P/src/a.js"; commit_at "$P" 2026-11-02 one
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "trunk: 1 commits not pushed → git push" ]
+}
+
+@test "without origin/HEAD and main, master is the main branch" {
+  git -C "$P" checkout -q -b master
+  commit_at "$P" 2026-11-01 base
+  git -C "$P" branch -q -D main 2>/dev/null || true
+  git init -q --bare "$BATS_TEST_TMPDIR/r.git"
+  git -C "$P" remote add origin "$BATS_TEST_TMPDIR/r.git"
+  git -C "$P" push -q -u origin master 2>/dev/null
+  echo 1 > "$P/src/a.js"; commit_at "$P" 2026-11-02 one
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "master: 1 commits not pushed → git push" ]
 }
 
 @test "no upstream: no unpushed line" {

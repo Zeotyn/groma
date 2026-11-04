@@ -16,6 +16,6 @@ sources: [skills/groma-skills/catalog.yaml, tests/invariant/, install.sh, gemini
 | R3 | Gemini, Cursor and Codex manifests drift because they are untested | medium | medium | Marked best effort in README; schema checks for all manifests | Eugen Waldschmidt | open |
 | R4 | Third-party installers become interactive or change flags | medium | medium | Pinned versions; fall back to `.groma/install.sh` on non-zero exit | Eugen Waldschmidt | open |
 | R5 | Decisions D1-D11 exist only in an unarchived change design, not as ADRs | high | medium | Review proposed ADRs 0003-0008 | Eugen Waldschmidt | open |
-| R6 | CHANGELOG has no release entry matching manifest version 0.1.0 | high | low | Cut the `[0.1.0]` entry when M001 ships | Eugen Waldschmidt | open |
+| R6 | CHANGELOG has no release entry matching manifest version 0.1.0 | high | low | Cut the `[0.1.0]` entry when M001 ships | Eugen Waldschmidt | closed |
 
 Findings from groma surveys (stale docs, data-model drift, missing ADRs) can be copied here once confirmed.

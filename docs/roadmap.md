@@ -27,13 +27,13 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 
 - Goal: `npx groma@0.2.0 init` works in an empty and in an existing project for Claude Code and Copilot, `groma` is published on npm, all test levels green.
 - Status: active
-- Progress: 0/3 done
+- Progress: 1/3 done
 
 | Id | Change | Status |
 |---|---|---|
 | C003 | `c003-groma-cli` | active |
 | C004 | `c004-living-docs` | active |
-| F001 | `f001-freshness-adrs` | active |
+| F001 | `f001-freshness-adrs` | done |
 
 ## M003 v0-3
 

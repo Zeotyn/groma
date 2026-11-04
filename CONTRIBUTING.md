@@ -36,6 +36,10 @@ scripts/test.sh evals    # agent evals, needs ANTHROPIC_API_KEY and costs tokens
 
 Fixtures are generated, not committed as git repositories. Extend `tests/fixtures/generate.sh` so the history is deterministic (fixed dates and author).
 
+### Add a reviewer CLI
+
+Reviewer commands live in `skills/groma-loop/scripts/review.sh` (`call()`), the auto order in `resolve-reviewer.sh`. Add the agent to both, to the validator's reviewer list in `skills/groma/scripts/validate-config.sh`, and a stub test in `tests/scripts/review.bats`. Reviewers must run headless and read-only.
+
 ## Change workflow
 
 groma is built with [OpenSpec](https://github.com/Fission-AI/OpenSpec) and follows its own naming convention: `<type><NNN>-<slug>` with types `m` milestone, `c` change, `f` fix, `s` spike, `r` refactor, `d` docs.
@@ -44,6 +48,8 @@ groma is built with [OpenSpec](https://github.com/Fission-AI/OpenSpec) and follo
 skills/groma-methodology/scripts/next-change-id.sh c      # prints the next free change id, e.g. c002
 openspec new change "c002-your-slug"
 ```
+
+Larger changes run through `groma-loop` so a second model reviews the proposal and every task group.
 
 ## Rules that every PR must keep
 

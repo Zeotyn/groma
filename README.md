@@ -38,8 +38,23 @@ Re-run `/groma` at any time. It only adds what is missing and reports what went 
 | `groma-methodology` | Initializes OpenSpec, Spec Kit, BMAD or GSD non-interactively |
 | `groma-skills` | Lets you pick third-party skills per category and installs them |
 | `groma-agents` | Writes `AGENTS.md` and pointer files for each agent |
+| `groma-loop` | Runs a change through propose, apply, verify and archive with an independent reviewer model |
 
 Every skill also works on its own.
+
+## Review loop
+
+`groma-loop` works through one change at a time. You write (as the author agent), a different model reviews, and you must answer every finding with `fixed` or `rejected: <reason>`.
+
+```
+propose ─▶ review ⟲ ─▶ apply per task group ─▶ tests green? ─▶ review ⟲ ─▶ verify ─▶ archive
+```
+
+- **Reviewer `auto`** picks the most independent reviewer it can reach: another vendor's CLI (`codex`, `gemini`, `copilot`), else another Claude model, else a self-review in a fresh context, clearly marked as such. Pin one per phase with `review.<phase>.reviewer: gemini` or `claude:opus`.
+- **Mode `autonomous`** (default) runs to the archive and stops only when it is stuck: open high findings after the last round, tests still red after retries, a rejected high finding, or a destructive step outside the change. **`gated`** also waits for you after propose and before archive.
+- Every round is kept in the change folder as `reviews/<phase>-round-<n>.md` and archived with it.
+
+Reminders: `skills/groma-methodology/scripts/status.sh` lists changes that are ready to archive, ticked without test changes, or stale. `AGENTS.md` tells agents to run it at session start; Claude Code can run it automatically through an optional SessionStart hook.
 
 ## Requirements
 
@@ -66,6 +81,20 @@ skills:
   pragmatism: ponytail
   diagrams: archify
   discovery: graphify
+review:
+  mode: autonomous               # autonomous | gated
+  propose:
+    reviewer: auto               # auto | self | claude|copilot|gemini|codex[:model]
+    max_rounds: 2
+  apply:
+    reviewer: auto
+    per: task-group              # task | task-group | change
+    max_rounds: 1
+    test_retries: 2
+reminders:
+  archive_when_done: true
+  stale_change_days: 14
+  untested_tasks: true
 conventions:
   changes:
     digits: 3

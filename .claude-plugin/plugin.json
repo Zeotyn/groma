@@ -1,0 +1,10 @@
+{
+  "name": "groma",
+  "version": "0.1.0",
+  "description": "Lays out a project before you build: greenfield/brownfield detection, methodology setup, skill catalog, docs/ with ADRs, read-only survey, AGENTS.md.",
+  "author": { "name": "groma contributors" },
+  "license": "MIT",
+  "homepage": "https://github.com/Zeotyn/groma",
+  "repository": "https://github.com/Zeotyn/groma",
+  "keywords": ["project-init", "brownfield", "adr", "docs", "openspec", "skills"]
+}

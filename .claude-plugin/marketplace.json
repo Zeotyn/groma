@@ -1,0 +1,13 @@
+{
+  "name": "groma",
+  "owner": { "name": "groma contributors" },
+  "metadata": { "description": "groma skill suite" },
+  "plugins": [
+    {
+      "name": "groma",
+      "source": "./",
+      "description": "Lays out a project before you build: greenfield/brownfield detection, methodology setup, skill catalog, docs/ with ADRs, read-only survey, AGENTS.md.",
+      "version": "0.1.0"
+    }
+  ]
+}

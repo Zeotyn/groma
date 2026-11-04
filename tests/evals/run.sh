@@ -3,6 +3,7 @@
 # copies of the fixtures and asserts the results. Costs API tokens.
 #
 # Usage: tests/evals/run.sh [fixture...]      (default: all fixtures)
+#        cli-<fixture>: run `groma init --yes --print` on <fixture> first, then /groma
 # Env:   GROMA_EVAL_BUDGET  max USD per fixture run (default 3)
 #        GROMA_EVAL_DIR     work folder (default: $TMPDIR/groma-evals)
 #        GROMA_EVAL_MODEL   model alias for claude -p (default: CLI default)
@@ -18,17 +19,28 @@ BUDGET=${GROMA_EVAL_BUDGET:-3}
 command -v claude >/dev/null 2>&1 || { echo "claude CLI not found" >&2; exit 3; }
 
 if [ $# -eq 0 ]; then
-  set -- empty node-prisma java-flyway python-django-stale-docs go-no-db loop-openspec
+  set -- empty node-prisma java-flyway python-django-stale-docs go-no-db loop-openspec cli-node-prisma
 fi
 
 rm -rf "$WORK"
 mkdir -p "$WORK"
-sh "$ROOT/tests/fixtures/generate.sh" "$WORK" "$@" >/dev/null
+for fx in "$@"; do
+  case "$fx" in
+    cli-*) sh "$ROOT/tests/fixtures/generate.sh" "$WORK/cli" "${fx#cli-}" >/dev/null
+           mv "$WORK/cli/${fx#cli-}" "$WORK/$fx" ;;
+    *) sh "$ROOT/tests/fixtures/generate.sh" "$WORK" "$fx" >/dev/null ;;
+  esac
+done
 
 failed=0
 for fx in "$@"; do
   P="$WORK/$fx"
   sh "$ROOT/tests/invariant/checksum.sh" snapshot "$P" "$WORK/$fx.manifest" >/dev/null
+  case "$fx" in
+    cli-*) node "$ROOT/bin/groma.js" init "$P" --yes --print --agents claude,copilot \
+             --methodology openspec --skills recommended > "$WORK/$fx.cli.log" 2>&1 \
+             || { echo "   FAIL $fx: groma init failed (see $WORK/$fx.cli.log)"; failed=$((failed + 1)); continue; } ;;
+  esac
   tools="Bash(sh:*) Bash(grep:*) Bash(find:*) Bash(ls:*) Bash(cat:*) Bash(git log:*) Bash(git config:*) Bash(mkdir:*) Read Write Edit Glob Grep Skill Edit(.groma/**)"
 
   if [ -f "$HERE/prompts/$fx.md" ]; then
@@ -38,7 +50,7 @@ for fx in "$@"; do
   else
   answers="$HERE/answers/$fx.md"
   [ -f "$answers" ] || { echo "missing answers file: $answers" >&2; exit 2; }
-  prompt="Run the groma skill (/groma) in the current directory, in init mode.
+  prompt="Run the groma skill (/groma) in the current directory.
 This is an automated evaluation: nobody can answer questions. Use the answers
 below whenever groma would ask; for anything not covered, take groma's
 recommended default.

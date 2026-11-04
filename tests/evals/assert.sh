@@ -95,6 +95,17 @@ case "$FX" in
     check "snippet for existing CLAUDE.md" any_has '@AGENTS\.md' "$findings"
     check "existing architecture.md kept as slot" has "$P/docs/README.md" 'architecture\.md'
     ;;
+  cli-node-prisma)
+    # groma init --yes --print ran first; /groma must reuse its setup
+    check "project_type brownfield" has "$P/.groma/config.yaml" '^project_type: *brownfield'
+    check "CLI setup kept: methodology openspec" has "$P/.groma/config.yaml" '^methodology: *openspec'
+    check "CLI setup kept: steps.config done" has "$P/.groma/config.yaml" '^  config: *done'
+    check "CLI install.sh kept" has "$P/.groma/install.sh" 'openspec@[0-9.]+ init'
+    check "/groma installed nothing itself: steps.skills still pending" has "$P/.groma/config.yaml" '^  skills: *pending'
+    check "/groma installed nothing itself: no second install script" sh -c "! ls '$P'/.groma/install-*.sh >/dev/null 2>&1"
+    check "generated skill copies untouched" sh -c "node '$ROOT/bin/groma.js' doctor '$P' | grep -q 'generated files: ok'"
+    check "next action recommends npx groma update" sh -c "tail -n 20 '${M%.manifest}.log' | grep -q 'npx groma update'"
+    ;;
   go-no-db)
     check "data model not applicable" has "$P/docs/data-model.md" 'not applicable'
     ;;

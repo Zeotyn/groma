@@ -31,4 +31,4 @@
 - [x] 5.1 `groma` orchestrator: skip setup steps done by the CLI, recommend `npx groma init|update` for pending installs
 - [x] 5.2 bats end-to-end tests on fixtures with stubbed `npx`, `claude`, `openspec`, incl. the invariant
 - [x] 5.3 README: `npx groma init` as the first install path, other paths kept; CONTRIBUTING: CLI development
-- [ ] 5.4 Eval: `groma init --yes --print` followed by `/groma` on the node-prisma fixture
+- [x] 5.4 Eval: `groma init --yes --print` followed by `/groma` on the node-prisma fixture

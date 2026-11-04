@@ -24,7 +24,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 | Skills (`groma-skills`) | Curated third-party skills per category, installed project-scoped |
 | Agents (`groma-agents`) | One canonical `AGENTS.md` and pointer files for each agent |
 | Loop (`groma-loop`) | Each change proposed, applied, verified and archived with an independent reviewer model and a tests gate |
-| Lifecycle reminders (`status.sh`) | One reminder per open change at session start: docs to update, verify and archive, untested ticks, stale work, pending ADRs |
+| Lifecycle reminders (`status.sh`) | One reminder per open change at session start: docs to update, verify and archive, untested ticks, milestone gates, stale work, pending ADRs; then uncommitted and unpushed work |
 
 ## Crosscutting concepts
 

@@ -12,6 +12,7 @@
 
 ## 3. Docs
 
-- [ ] 3.1 `docs/architecture.md` (status.sh row) and `docs/data-model.md` (config keys); proposed ADR for D1 with `origin: f002-status-milestone-gates#D1`
-- [ ] 3.2 CHANGELOG `[Unreleased]`: Fixed entry
+- [x] 3.1 `docs/architecture.md` (status.sh row) and `docs/data-model.md` (config keys); proposed ADR for D1 with `origin: f002-status-milestone-gates#D1` (ADR 0027); `docs/concept.md` and `docs/glossary.md` reminder rows updated too
+- [x] 3.2 CHANGELOG `[Unreleased]`: Fixed entry
+- [x] Docs: docs/vision.md unchanged, because only README.md (npm name, F004) matches its sources, and the vision does not change
 - [ ] 3.3 Run `status.sh` on this repository and record the output here; expected: M002 gate line

@@ -41,6 +41,7 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0024](0024-gate-docs-with-four-levels-default-review.md) | Gate docs with four levels and default to review | accepted | 2026-11-04 |
 | [0025](0025-allow-docs-edits-inside-a-change-as-authored-work.md) | Treat docs edits inside a change as authored work | accepted | 2026-11-04 |
 | [0026](0026-record-docs-exceptions-as-a-task-line.md) | Record docs exceptions as a task line with a reason | accepted | 2026-11-04 |
+| [0027](0027-detect-milestone-gates-from-missing-child-references.md) | Detect a milestone gate when no active change references the milestone | proposed | 2026-11-04 |
 | [0028](0028-let-last-reviewed-cover-source-commits-of-that-day.md) | Let last_reviewed cover source commits up to the end of that day | proposed | 2026-11-04 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

@@ -51,7 +51,7 @@ The orchestrator refers to siblings by relative path (`../groma-detect/`). A ski
 
 `groma-loop` per change: propose → review rounds → apply per task group (tests gate, then review rounds on the diff) → verify (plus the docs gate: every `docs-impact.sh` line is a high finding) → archive with spec sync and docs sync (proposed ADRs with this change's `origin` become accepted, `last_reviewed` of touched docs set, ADR index and roadmap updated). With `docs.gate: strict` archive waits until the report is empty.
 
-`status.sh` at session start prints at most one reminder per active change (docs impact open, verify and archive, untested ticks, stale change) and one line per ADR still `proposed` after its origin change was archived.
+`status.sh` at session start prints at most one reminder per active change (docs impact open, verify and archive, untested ticks, milestone gate, stale change), one line per ADR still `proposed` after its origin change was archived, and from local git state one line each for uncommitted files and for commits on the main branch not yet on its upstream. A milestone is at its gate when it has open tasks and no active change names it in a `Milestone:` line.
 
 ## Deployment
 

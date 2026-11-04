@@ -4,7 +4,7 @@ status: draft
 last_reviewed: 2026-11-04
 review_after_days: 60
 owner: Eugen Waldschmidt
-sources: [skills/groma-skills/catalog.yaml, tests/invariant/, install.sh, gemini-extension.json, .claude-plugin/, .codex-plugin/, .cursor-plugin/, CHANGELOG.md]
+sources: [skills/groma-skills/catalog.yaml, tests/invariant/, install.sh, gemini-extension.json, .claude-plugin/, .codex-plugin/, .cursor-plugin/]
 ---
 
 # Risks and technical debt

@@ -2,6 +2,8 @@
 
 Single source of truth for greenfield/brownfield detection. `scripts/detect.sh` parses the table below; agents read it to explain verdicts. Add a row to support a new stack, no code change needed.
 
+In git repositories `scripts/detect.sh` lists files with `git ls-files`, so everything in `.gitignore` is skipped as well.
+
 Kinds:
 
 - `source`: file extension that counts as source code, with the stack it hints at.
@@ -54,6 +56,8 @@ Kinds:
 | source | .nim | Nim |
 | source | .sql | SQL |
 | source | .sh | Shell |
+| source | .bash | Shell |
+| source | .bats | Shell tests (bats) |
 | source | .ps1 | PowerShell |
 | source | .tf | Terraform |
 | source | .sol | Solidity |
@@ -142,6 +146,10 @@ Kinds:
 | ignore | .bmad-core | methodology |
 | ignore | _bmad | methodology |
 | ignore | .planning | methodology |
+| ignore | fixtures | test data |
+| ignore | __fixtures__ | test data |
+| ignore | testdata | test data |
+| ignore | __pycache__ | build output |
 | ignore | .idea | editor |
 | ignore | .vscode | editor |
 

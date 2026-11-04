@@ -21,7 +21,16 @@ if git -C "$DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   commits=$(git -C "$DIR" rev-list --count HEAD 2>/dev/null || echo 0)
 fi
 
-(cd "$DIR" && find . -type f) | awk -v commits="$commits" '
+# In git repositories respect .gitignore (build output, caches); else list everything.
+list_files() {
+  if git -C "$DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$DIR" ls-files --cached --others --exclude-standard | sed 's|^|./|'
+  else
+    (cd "$DIR" && find . -type f)
+  fi
+}
+
+list_files | awk -v commits="$commits" '
   # pass 1: the signal table
   FNR == NR {
     if ($0 !~ /^\|/) next

@@ -48,7 +48,7 @@ $(cat "$answers")"
   (cd "$P" && claude -p "$prompt" \
       --plugin-dir "$ROOT" \
       --permission-mode acceptEdits \
-      --allowedTools "Bash(sh:*) Bash(grep:*) Bash(find:*) Bash(ls:*) Bash(cat:*) Bash(git log:*) Bash(git config:*) Bash(mkdir:*) Read Write Edit Glob Grep Skill Write(.groma/**) Edit(.groma/**)" \
+      --allowedTools "Bash(sh:*) Bash(grep:*) Bash(find:*) Bash(ls:*) Bash(cat:*) Bash(git log:*) Bash(git config:*) Bash(mkdir:*) Read Write Edit Glob Grep Skill Edit(.groma/**)" \
       --max-budget-usd "$BUDGET" \
       ${GROMA_EVAL_MODEL:+--model "$GROMA_EVAL_MODEL"} \
       --output-format text > "$WORK/$fx.log" 2>&1)

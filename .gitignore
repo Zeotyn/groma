@@ -6,3 +6,5 @@ tests/.work/
 # so `npx skills add` on this repo only offers the groma skills.
 .claude/skills/openspec-*/
 .github/skills/openspec-*/
+__pycache__/
+*.pyc

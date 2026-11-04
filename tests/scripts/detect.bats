@@ -80,3 +80,29 @@ F() { echo "$BATS_FILE_TMPDIR/f/$1"; }
   run sh "$DETECT" "$BATS_TEST_TMPDIR/nope"
   [ "$status" -eq 2 ]
 }
+
+@test "test fixture folders do not count as project stacks" {
+  D="$BATS_TEST_TMPDIR/withfixtures"
+  mkdir -p "$D/src" "$D/tests/fixtures/java/src" "$D/pkg/testdata"
+  echo "echo hi" > "$D/src/run.sh"
+  echo "class A {}" > "$D/tests/fixtures/java/src/A.java"
+  echo "<project/>" > "$D/tests/fixtures/java/pom.xml"
+  echo "x" > "$D/pkg/testdata/sample.go"
+  run sh "$DETECT" "$D"
+  assert_output_contains ".sh (Shell) x1"
+  assert_output_not_contains ".java"
+  assert_output_not_contains "pom.xml"
+  assert_output_not_contains ".go"
+}
+
+@test "git-ignored files are not counted" {
+  D="$BATS_TEST_TMPDIR/ignored"
+  make_repo "$D"
+  mkdir -p "$D/out"
+  echo "out/" > "$D/.gitignore"
+  echo "x" > "$D/out/generated.java"
+  echo "# notes" > "$D/notes.md"
+  run sh "$DETECT" "$D"
+  assert_output_contains "project_type=greenfield"
+  assert_output_not_contains ".java"
+}

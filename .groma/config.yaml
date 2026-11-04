@@ -1,0 +1,53 @@
+# groma project configuration (.groma/config.yaml)
+# Commit this file. Edit it by hand or re-run /groma; groma validates it on every run.
+# Reference: https://github.com/Zeotyn/groma#configuration
+
+schema: 1                         # config schema version, do not edit
+initialized_with: groma@0.1.0     # suite version of the last /groma run
+
+project:
+  name: groma
+  has_ui: false                   # true | false, controls the design skill question
+
+project_type: brownfield          # greenfield | brownfield, detected
+project_type_override: none       # none | greenfield | brownfield
+
+methodology: openspec             # openspec | spec-kit | bmad | gsd | none
+workflow: superpowers             # workflow layer from the catalog, or none
+
+agents: [claude, copilot]         # any of: claude, copilot, gemini, cursor, codex
+
+# One entry per catalog category. Single-select: one id. Multi-select: a list.
+skills:
+  design: none
+  writing: [anti-ai-slop-writing, i-have-adhd]
+  pragmatism: ponytail
+  diagrams: archify
+  discovery: graphify
+
+docs:
+  review_after_days: 90           # default for new docs
+  optional: []                    # any of: constraints, quality, security, operations, stakeholders
+
+conventions:
+  changes:
+    enabled: true
+    digits: 3
+    types:
+      m: milestone
+      c: change
+      f: fix
+      s: spike
+      r: refactor
+      d: docs
+
+# Progress of the last run, used to resume. Values: done | pending | skipped
+steps:
+  detect: done
+  interview: done
+  config: done
+  methodology: done
+  skills: pending
+  docs: done
+  agents: done
+  summary: done

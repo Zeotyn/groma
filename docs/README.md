@@ -1,0 +1,31 @@
+---
+title: Documentation index
+status: current
+last_reviewed: 2026-11-04
+review_after_days: 90
+owner: Eugen Waldschmidt
+sources: [docs/]
+---
+
+# groma documentation
+
+Start here. Agents read this file first (see `AGENTS.md`).
+
+| Document | Purpose | Status | Last reviewed |
+|---|---|---|---|
+| [vision.md](vision.md) | Why the project exists, goals, non-goals | draft | 2026-11-04 |
+| [concept.md](concept.md) | Solution strategy and key ideas | draft | 2026-11-04 |
+| [architecture.md](architecture.md) | Context, containers, building blocks, runtime, deployment | draft | 2026-11-04 |
+| [data-model.md](data-model.md) | Entities, relationships, invariants | draft | 2026-11-04 |
+| [glossary.md](glossary.md) | Domain terms everyone uses the same way | draft | 2026-11-04 |
+| [risks.md](risks.md) | Known risks and technical debt | draft | 2026-11-04 |
+| [adr/](adr/README.md) | Architecture decision records (MADR 4.0) | - | - |
+
+<!-- groma: list optional and pre-existing docs below this line, one row each -->
+| [../README.md](../README.md) | User-facing overview, install, configuration | - | - |
+| [../CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute | - | - |
+| [../CHANGELOG.md](../CHANGELOG.md) | Release notes | - | - |
+| [../tests/manual/copilot.md](../tests/manual/copilot.md) | Manual Copilot test protocol | - | - |
+| [../openspec/](../openspec/) | OpenSpec changes and specs (change work) | - | - |
+
+Generated reports from groma live in `docs/_groma/` and are not part of the product docs.

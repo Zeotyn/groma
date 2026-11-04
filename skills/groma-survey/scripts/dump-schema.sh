@@ -52,7 +52,7 @@ case "$ENGINE" in
     ;;
   sqlite)
     need sqlite3 SQLite
-    [ -n "$ARG" ] && [ -f "$ARG" ] || { echo "usage: $0 sqlite <file.db>" >&2; exit 2; }
+    if [ -z "$ARG" ] || [ ! -f "$ARG" ]; then echo "usage: $0 sqlite <file.db>" >&2; exit 2; fi
     sqlite3 "$ARG" .schema > "$TMP" 2>/dev/null || { echo "error: sqlite3 failed." >&2; exit 4; }
     ;;
   *)

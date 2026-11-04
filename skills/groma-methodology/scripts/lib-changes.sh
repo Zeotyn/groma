@@ -50,7 +50,7 @@ config_digits() {
 # Each line: <name><TAB><location: active|archive><TAB><path>
 list_changes() {
   dir=$1
-  [ -n "$dir" ] && [ -d "$dir" ] || return 0
+  if [ -z "$dir" ] || [ ! -d "$dir" ]; then return 0; fi
   for p in "$dir"/*/; do
     [ -d "$p" ] || continue
     p=${p%/}; n=${p##*/}

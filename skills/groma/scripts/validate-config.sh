@@ -120,7 +120,7 @@ for k in initialized_with project_type methodology agents skills docs convention
   has "$k" || report error "$k" "missing required key '$k'"
 done
 for k in $(printf '%s\n' "$FLAT" | cut -f1 | awk -F. '{ print $1 }' | sort -u); do
-  in_set "$k" "schema initialized_with project project_type project_type_override methodology workflow agents skills docs conventions review reminders steps" \
+  in_set "$k" "schema initialized_with project project_type project_type_override methodology workflow agents agents_via_plugin skills docs conventions review reminders steps" \
     || report warning "$k" "unknown top-level key '$k'"
 done
 v=$(get project_type); [ -z "$v" ] || in_set "$v" "greenfield brownfield" || report error project_type "project_type must be greenfield or brownfield, got '$v'"
@@ -128,6 +128,9 @@ v=$(get project_type_override); [ -z "$v" ] || in_set "$v" "none greenfield brow
 v=$(get methodology); [ -z "$v" ] || in_set "$v" "openspec spec-kit bmad gsd none" || report error methodology "unknown methodology '$v' (allowed: openspec, spec-kit, bmad, gsd, none)$(c=$(closest "$v" "openspec spec-kit bmad gsd"); [ -z "$c" ] || printf ', did you mean %s?' "$c")"
 for a in $(get agents | tr ',' ' '); do
   in_set "$a" "claude copilot gemini cursor codex" || report error agents "unknown agent '$a' (allowed: claude, copilot, gemini, cursor, codex)$(c=$(closest "$a" "claude copilot gemini cursor codex"); [ -z "$c" ] || printf ', did you mean %s?' "$c")"
+done
+for a in $(get agents_via_plugin | tr ',' ' '); do
+  in_set "$a" "claude copilot gemini cursor codex" || report error agents_via_plugin "unknown agent '$a' in agents_via_plugin (allowed: claude, copilot, gemini, cursor, codex)"
 done
 v=$(get initialized_with); [ -z "$v" ] || echo "$v" | grep -Eq '^groma@[0-9]+\.[0-9]+\.[0-9]+' || report error initialized_with "initialized_with must look like groma@1.2.3, got '$v'"
 for s in $(printf '%s\n' "$FLAT" | cut -f1 | grep '^steps\.' || true); do

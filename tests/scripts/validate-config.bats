@@ -204,3 +204,17 @@ YAML
   run sh "$V" "$C"
   assert_output_contains "reminders.untested_tasks must be true or false"
 }
+
+@test "agents_via_plugin is a known key" {
+  echo "agents_via_plugin: [claude]" >> "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "summary	errors=0	warnings=0"
+}
+
+@test "agents_via_plugin rejects unknown agents" {
+  echo "agents_via_plugin: [claud]" >> "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "unknown agent 'claud' in agents_via_plugin"
+}

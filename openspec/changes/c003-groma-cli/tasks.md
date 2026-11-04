@@ -16,7 +16,7 @@
 - [x] 3.2 Answer resolution: flags, interactive prompts (readline), `--yes`, no-TTY fallback, agent detection
 - [x] 3.3 Recipe rendering: methodology init and catalog installs per agent from the data files
 - [x] 3.4 Skill materialization with `generatedBy` and `.groma/generated.json`; conflict handling
-- [ ] 3.5 Config writing from the template with step states; `agents_via_plugin` accepted by the validator
+- [x] 3.5 Config writing from the template with step states; `agents_via_plugin` accepted by the validator
 - [ ] 3.6 Command execution with ask-before-touching-existing-files, `--print`, `--dry-run`, `.groma/install.sh`
 
 ## 4. Commands

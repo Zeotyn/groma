@@ -15,7 +15,9 @@ Sibling skills live next to this folder (`../groma-detect/`, `../groma-survey/`,
 ## Mode
 
 - `<project>/.groma/config.yaml` absent: **init mode**, all steps.
-- Present: run `sh scripts/validate-config.sh <project>/.groma/config.yaml --catalog ../groma-skills/catalog.yaml` (drop `--catalog` if groma-skills is missing). Exit 3: stop and print the update command. Errors: show them with line numbers and ask the user to fix or let you reconfigure. Valid: **update mode**: resume at the first step whose `steps.<name>` is `pending`; when all are `done`, run steps 6 to 8 again (missing docs, freshness, summary) and offer to reconfigure skills or agents. Compare `initialized_with` with [VERSION](VERSION) and apply the rows of [references/upgrades.md](references/upgrades.md) in between, naming the version that introduced each addition.
+- Present: run `sh scripts/validate-config.sh <project>/.groma/config.yaml --catalog ../groma-skills/catalog.yaml` (drop `--catalog` if groma-skills is missing). Exit 3: stop and print the update command. Errors: show them with line numbers and ask the user to fix or let you reconfigure. Valid: **update mode**: resume at the first step whose `steps.<name>` is `pending`; when all are `done`, run steps 6 to 8 again (missing docs, freshness, summary) and offer to reconfigure skills or agents. Compare `initialized_with` with [VERSION](VERSION) and apply the rows of [references/upgrades.md](references/upgrades.md) in between, naming the version that introduced each addition. To refresh the copied skill files, tell the user to run `npx groma update` in a terminal.
+
+**CLI hand-off.** `npx groma init` may already have done the config, methodology and skills steps. When `steps.config`, `steps.methodology` and `steps.skills` are all `done`, do not repeat them or ask their questions (agents, methodology, skills); go on with detect, the content interview (purpose, users, vision, UI only if unknown), docs and agents. When `steps.methodology` or `steps.skills` is `pending`, do not install yourself: recommend `npx groma update` in a terminal (or `npx groma init` when no config exists and the user prefers the terminal), and make the summary's Next action "Run `npx groma update` in a terminal". Agents listed in `agents_via_plugin` get their skills from the plugin, so no copies exist for them.
 
 ## Steps
 
@@ -30,7 +32,7 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
 
 3. **config**: create `<project>/.groma/config.yaml` from [templates/config.yaml](templates/config.yaml) (it carries the `review` and `reminders` defaults: autonomous loop, reviewer auto) with the answers so far (methodology and skills stay as placeholders filled by steps 4 and 5; write `none` where still unknown), `initialized_with: groma@<VERSION>`. Run `sh scripts/check-prereqs.sh` and report missing required tools with their install hint.
 
-4. **methodology**: follow `../groma-methodology/SKILL.md`.
+4. **methodology**: follow `../groma-methodology/SKILL.md`. When the CLI already ran the methodology init, still run that skill's step 4 (Convention: conventions baseline and check-conventions) if not done.
 
 5. **skills**: follow `../groma-skills/SKILL.md`.
 

@@ -32,6 +32,14 @@ Re-run `/groma` at any time. It only adds what is missing and reports what went 
 
 ## Install
 
+Recommended: run the CLI in your project (Node.js 22+). It copies the groma skills into each agent's skill folder, sets up the methodology and catalog skills, writes `.groma/config.yaml` and then hands over to `/groma`.
+
+```sh
+npx groma init
+```
+
+Other paths:
+
 | Agent | Command | Status |
 |---|---|---|
 | Claude Code | `claude plugin marketplace add Zeotyn/groma` then `claude plugin install groma@groma` | tested (local `--plugin-dir`, evals) |
@@ -42,6 +50,19 @@ Re-run `/groma` at any time. It only adds what is missing and reports what went 
 | Cursor | Customize → Plugins → From GitHub Repository → `Zeotyn/groma` | best effort |
 | Fallback | `curl -fsSL https://raw.githubusercontent.com/Zeotyn/groma/main/install.sh \| sh` | tested (local checkout) |
 
+
+## CLI
+
+Node.js 22+. Commands:
+
+| Command | What it does |
+|---|---|
+| `npx groma init [path]` | Copies the skills for each agent, runs the methodology init and catalog installs, writes `.groma/config.yaml` and `.groma/generated.json` |
+| `npx groma update` | Refreshes generated skill copies, re-runs pending steps, bumps `initialized_with` |
+| `npx groma status` | Prints the change status (same as `status.sh`) |
+| `npx groma doctor` | Checks prerequisites, config and generated files |
+
+Main `init` flags: `--agents`, `--methodology`, `--workflow`, `--skills`, `--review`, `--ui`, `--yes` (recommended answers, no questions), `--print` (write install commands to `.groma/install.sh` instead of running them), `--dry-run` (show the plan, write nothing), `--force` (`update` only: replace generated files you edited). Skills for agents covered by an installed Claude plugin are not copied; the config lists them in `agents_via_plugin`. Exit codes: 0 ok, 1 failure, 2 usage error, 3 prerequisites missing (for example Node older than 22).
 
 ## Skills
 
@@ -131,6 +152,7 @@ The full template with comments: [skills/groma/templates/config.yaml](skills/gro
 |---|---|
 | Claude Code plugin | `claude plugin update groma` |
 | npx skills | `npx skills update` |
+| `npx groma init` | `npx groma update` (refreshes copied skills, keeps files you edited unless `--force`, re-runs pending steps) |
 | install.sh | `sh install.sh --ref vX.Y.Z` |
 
 Then run `/groma` in a project: it compares `initialized_with` in the config with the new version and adds only what the new version requires.

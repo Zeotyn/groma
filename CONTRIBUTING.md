@@ -40,6 +40,16 @@ Fixtures are generated, not committed as git repositories. Extend `tests/fixture
 
 Reviewer commands live in `skills/groma-loop/scripts/review.sh` (`call()`), the auto order in `resolve-reviewer.sh`. Add the agent to both, to the validator's reviewer list in `skills/groma/scripts/validate-config.sh`, and a stub test in `tests/scripts/review.bats`. Reviewers must run headless and read-only.
 
+## CLI development
+
+The CLI lives in `bin/` and `cli/`. It is ESM, needs Node >= 22 and has one runtime dependency, `yaml` (pinned). The data files `skills/groma/agents.yaml` and `skills/groma-methodology/methodologies.yaml` are shared with the skills; edit them there, not in `cli/`.
+
+```sh
+node --test 'cli/test/*.test.js'     # CLI tests
+scripts/test.sh cli                  # same, plus npm pack contents check
+node bin/groma.js init --dry-run --yes <dir>
+```
+
 ## Change workflow
 
 groma is built with [OpenSpec](https://github.com/Fission-AI/OpenSpec) and follows its own naming convention: `<type><NNN>-<slug>` with types `m` milestone, `c` change, `f` fix, `s` spike, `r` refactor, `d` docs.

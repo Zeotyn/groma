@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runStep, writeInstallScript, existingTouches } from '../exec.js';
+import { spawnSync } from 'node:child_process';
 import { tmp, write } from './helpers.js';
 
 function ctx(over = {}) {
@@ -103,4 +104,15 @@ test("a bare '*' ignores groma's own skill folders", () => {
   assert.deepEqual(existingTouches(p, ['.claude/skills/*']), []);
   write(p, '.claude/skills/brainstorming/SKILL.md');
   assert.deepEqual(existingTouches(p, ['.claude/skills/*']), ['.claude/skills/*']);
+});
+
+test('install script runs from the project and never overwrites an earlier one', () => {
+  const p = tmp();
+  writeInstallScript(p, [{ label: 'a', reason: 'r', commands: ['pwd > where.txt'] }], '2026-11-04');
+  assert.match(readFileSync(join(p, '.groma/install.sh'), 'utf8'), /\ncd "\$\(dirname "\$0"\)\/\.\."\n/);
+  writeInstallScript(p, [{ label: 'b', reason: 'r', commands: ['echo b'] }], '2026-11-04');
+  const third = writeInstallScript(p, [{ label: 'c', reason: 'r', commands: ['echo c'] }], '2026-11-04');
+  assert.equal(third, '.groma/install-2026-11-04-2.sh');
+  spawnSync('sh', [join(p, '.groma/install.sh')], { cwd: tmp() });
+  assert.ok(existsSync(join(p, 'where.txt')));
 });

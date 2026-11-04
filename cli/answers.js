@@ -26,7 +26,7 @@ function skillsFromFlag(flag, categories, workflowIds) {
   const picks = {};
   const ids = flag === 'recommended' || flag === 'none' ? [] : list(flag);
   if (!ids.length && flag !== 'recommended' && flag !== 'none') throw new UsageError('--skills needs recommended, none or a list of ids');
-  const known = Object.values(categories).flatMap((c) => c.options);
+  const known = [...new Set(Object.values(categories).flatMap((c) => c.options))];
   for (const id of ids) {
     if (workflowIds.includes(id) && !known.includes(id)) throw new UsageError(`'${id}' is a workflow layer: use --workflow ${id}`);
     oneOf(id, known, 'skill');
@@ -122,22 +122,27 @@ export async function resolveAnswers({ flags, data, project, home, projectType, 
 }
 
 // Interactive prompt on the terminal. Enter takes the recommended option.
+// The interface lives only for one question: an open readline keeps the
+// terminal in raw mode, which would break Ctrl-C and echo in installers.
 export function terminalAsk(io) {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
   const ask = async (q) => {
-    const rec = [q.recommended].flat();
-    const lines = q.options.map((o, i) => `  ${i + 1}. ${o.id}${rec.includes(o.id) ? ' (recommended)' : ''}${o.hint ? `: ${o.hint}` : ''}`);
-    const how = q.select === 'multi' ? 'numbers or ids, comma-separated' : 'number or id';
-    for (;;) {
-      const input = (await rl.question(`\n${q.text}\n${lines.join('\n')}\n(${how}; Enter = recommended) > `)).trim();
-      if (!input) return q.recommended;
-      const picks = list(input).map((x) => (/^\d+$/.test(x) ? q.options[Number(x) - 1]?.id : x));
-      if (picks.every((p) => q.options.some((o) => o.id === p)) && (q.select === 'multi' || picks.length === 1)) {
-        return q.select === 'multi' ? picks : picks[0];
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    try {
+      const rec = [q.recommended].flat();
+      const lines = q.options.map((o, i) => `  ${i + 1}. ${o.id}${rec.includes(o.id) ? ' (recommended)' : ''}${o.hint ? `: ${o.hint}` : ''}`);
+      const how = q.select === 'multi' ? 'numbers or ids, comma-separated' : 'number or id';
+      for (;;) {
+        const input = (await rl.question(`\n${q.text}\n${lines.join('\n')}\n(${how}; Enter = recommended) > `)).trim();
+        if (!input) return q.recommended;
+        const picks = list(input).map((x) => (/^\d+$/.test(x) ? q.options[Number(x) - 1]?.id : x));
+        if (picks.every((p) => q.options.some((o) => o.id === p)) && (q.select === 'multi' || picks.length === 1)) {
+          return q.select === 'multi' ? picks : picks[0];
+        }
+        io.stdout.write(`Please answer with ${how} from the list.\n`);
       }
-      io.stdout.write(`Please answer with ${how} from the list.\n`);
+    } finally {
+      rl.close();
     }
   };
-  ask.close = () => rl.close();
   return ask;
 }

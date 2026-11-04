@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, chmodSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
+import { spawnSync } from 'node:child_process';
 import { run, tmp, write } from './helpers.js';
 import { version } from '../data.js';
 
@@ -141,4 +142,34 @@ test('docs link is appended only to a config the init created', async () => {
   const cfg = readFileSync(join(p, 'openspec/config.yaml'), 'utf8');
   assert.match(cfg, /Product truth lives in docs\//);
   assert.equal(parse(cfg).schema, 'spec-driven');
+});
+
+test('folders the methodology init creates do not block catalog installs', async () => {
+  const p = tmp();
+  const bin = tmp();
+  const log = join(bin, 'calls.log');
+  write(bin, 'npx', `#!/bin/sh\necho "npx $*" >> "${log}"\ncase "$*" in *openspec*) mkdir -p .claude/skills/openspec-propose .agents/skills/openspec-propose ;; esac\n`);
+  chmodSync(join(bin, 'npx'), 0o755);
+  const r = await run(['init', p, '--agents', 'claude', '--methodology', 'openspec', '--skills', 'anti-ai-slop-writing', '--workflow', 'none', '--yes'], { env: { PATH: `${bin}:/usr/bin:/bin` } });
+  assert.equal(r.code, 0, r.err);
+  assert.match(readFileSync(log, 'utf8'), /skills@1\.7\.6 add .*anti-ai-slop-writing/);
+  assert.equal(parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8')).steps.skills, 'done');
+  assert.match(r.out, /Installed: +anti-ai-slop-writing \(npx skills for claude\)/);
+});
+
+test('a plugin step without claude on PATH is pending with a clear reason', async () => {
+  const p = tmp();
+  const r = await run(['init', p, '--agents', 'claude', '--methodology', 'none', '--skills', 'none', '--workflow', 'superpowers', '--yes'], { env: { PATH: '/usr/bin:/bin' } });
+  assert.equal(r.code, 0, r.err);
+  assert.match(r.out, /Pending: +superpowers \(plugin for claude\) \(claude not found\)/);
+});
+
+test('a pending methodology init carries the docs link into install.sh', async () => {
+  const p = tmp();
+  const r = await run(['init', p, '--agents', 'copilot', '--methodology', 'openspec', '--skills', 'none', '--yes', '--print'], { env: stubs().env });
+  assert.equal(r.code, 0, r.err);
+  const sh = readFileSync(join(p, '.groma/install.sh'), 'utf8');
+  assert.match(sh, /if \[ ! -e openspec\/config\.yaml \]; then\n  npx --yes @fission-ai\/openspec/);
+  assert.match(sh, /Product truth lives in docs\//);
+  assert.equal(spawnSync('sh', ['-n', join(p, '.groma/install.sh')]).status, 0);
 });

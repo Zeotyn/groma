@@ -29,7 +29,7 @@ export function skillSteps(answers, data) {
     const e = data.catalog.skills[id];
     const postInstall = e.post_install;
     if (e.install) {
-      steps.push({ skill: id, commands: [e.install], touches: [], askAlways: true, postInstall });
+      steps.push({ skill: id, label: id, commands: [e.install], touches: [], askAlways: true, postInstall });
       continue;
     }
     const viaPlugin = e.claude_plugin ? answers.agents.filter((a) => table[a].plugins) : [];
@@ -37,7 +37,7 @@ export function skillSteps(answers, data) {
       const cmds = [];
       if (!builtin.includes(e.marketplace)) cmds.push(fill(commands.plugin_marketplace, { marketplace: e.marketplace }));
       cmds.push(fill(commands.plugin_install, { claude_plugin: e.claude_plugin }));
-      steps.push({ skill: id, commands: cmds, touches: touches.claude_plugin ?? [], askAlways: false, postInstall });
+      steps.push({ skill: id, label: `${id} (plugin for ${viaPlugin.join(', ')})`, requires: ['claude'], commands: cmds, touches: touches.claude_plugin ?? [], askAlways: false, postInstall });
     }
     const rest = answers.agents.filter((a) => !viaPlugin.includes(a));
     if (rest.length) {
@@ -48,7 +48,7 @@ export function skillSteps(answers, data) {
       const paths = (touches.npx_skills ?? [])
         .filter((p) => rest.includes('claude') || !p.startsWith(`${table.claude.skills_dir}/`))
         .flatMap((p) => (p.includes('{skill}') ? names.map((n) => p.replace('{skill}', n)) : [p]));
-      steps.push({ skill: id, commands: [fill(commands.npx_skills, { source: e.source, ref: e.ref, skills, agents })], touches: paths, askAlways: false, postInstall });
+      steps.push({ skill: id, label: `${id} (npx skills for ${rest.join(', ')})`, commands: [fill(commands.npx_skills, { source: e.source, ref: e.ref, skills, agents })], touches: paths, askAlways: false, postInstall });
     }
   }
   return steps;

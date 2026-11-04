@@ -89,3 +89,22 @@ test('update --dry-run changes nothing', async () => {
   assert.equal(readFileSync(join(p, '.groma/generated.json'), 'utf8'), before);
   assert.match(r.out, /\.claude\/skills\/groma\/SKILL\.md/);
 });
+
+test('update retries only the catalog steps that stayed pending', async () => {
+  const p = tmp();
+  const bin = tmp();
+  const log = join(bin, 'calls.log');
+  // ponytail's npx install fails once, archify's succeeds
+  write(bin, 'npx', `#!/bin/sh\necho "npx $*" >> "${log}"\ncase "$*" in *ponytail*) [ -f "${bin}/ok" ] || exit 1 ;; esac\n`);
+  chmodSync(join(bin, 'npx'), 0o755);
+  const env = { PATH: `${bin}:/usr/bin:/bin` };
+  await run(['init', p, '--agents', 'copilot', '--methodology', 'none', '--skills', 'ponytail,archify', '--workflow', 'none', '--yes'], { env });
+  assert.equal(cfg(p).steps.skills, 'pending');
+  writeFileSync(join(bin, 'ok'), '');
+  writeFileSync(log, '');
+  const r = await run(['update', p, '--yes'], { env });
+  assert.equal(r.code, 0, r.err);
+  assert.match(readFileSync(log, 'utf8'), /ponytail/);
+  assert.doesNotMatch(readFileSync(log, 'utf8'), /archify/);
+  assert.equal(cfg(p).steps.skills, 'done');
+});

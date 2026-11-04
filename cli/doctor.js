@@ -12,6 +12,7 @@ export default function doctor({ project, io, say }) {
   let errors = 0;
 
   const pre = sh('groma/scripts/check-prereqs.sh', [], io.env);
+  if (pre.error) { say(`prerequisites: cannot run sh (${pre.error.message})`); return EXIT.prereq; }
   const missing = pre.stdout.split('\n').filter((l) => /\t(missing|too_old)\t/.test(l));
   for (const l of missing) say(`tool: ${l.split('\t').join(' · ')}`);
   say(`prerequisites: ${pre.status ? 'missing required tools' : 'ok'}`);

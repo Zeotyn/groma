@@ -6,7 +6,7 @@ import { loadData } from './data.js';
 import { planSkills, applySkills, readGenerated } from './skills.js';
 import { setInConfig } from './config.js';
 import { writeInstallScript } from './exec.js';
-import { prompts, runSetup, skillSummary, pendingSummary, today } from './init.js';
+import { prompts, runSetup, skillSummary, pendingSummary, today, readPending, savePending } from './init.js';
 import { EXIT } from './main.js';
 
 const CONFIG = '.groma/config.yaml';
@@ -39,11 +39,12 @@ export default async function update({ project, flags, io, say }) {
   const p = prompts(io, flags);
   let setup = { pending: [], notes: [], installed: [], postInstall: new Set() };
   try {
-    if (pendingSteps.length) setup = await runSetup({ project, answers, data, flags, io, p, only: pendingSteps });
+    if (pendingSteps.length) setup = await runSetup({ project, answers, data, flags, io, p, only: pendingSteps, retry: readPending(project) });
   } finally {
     p.close();
   }
   const script = writeInstallScript(project, setup.pending, today());
+  if (pendingSteps.includes('skills')) savePending(project, setup);
 
   let next = setInConfig(text, 'initialized_with', `groma@${data.version}`);
   for (const s of pendingSteps) next = setInConfig(next, `steps.${s}`, setup[s]);
@@ -55,6 +56,6 @@ export default async function update({ project, flags, io, say }) {
   for (const n of setup.notes) say(n);
   skillSummary(say, plan);
   pendingSummary(say, setup, script);
-  say(`\nNext: ${script ? `review and run sh ${script}` : 'review the changes (git diff) and commit them'}`);
+  say(`\nNext: ${script ? `review and run sh ${script}` : 'review the changes (git diff), commit them, and run /groma in your agent for anything still open'}`);
   return EXIT.ok;
 }

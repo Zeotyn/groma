@@ -2,13 +2,13 @@
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { loadData, SKILLS_SRC } from './data.js';
 import { resolveAnswers, terminalAsk } from './answers.js';
 import { methodologyStep, skillSteps } from './recipes.js';
 import { planSkills, applySkills, readGenerated } from './skills.js';
 import { renderConfig } from './config.js';
-import { onPath, runStep, writeInstallScript } from './exec.js';
+import { existingTouches, onPath, runStep, writeInstallScript } from './exec.js';
 import { EXIT } from './main.js';
 
 const CONFIG = '.groma/config.yaml';
@@ -35,9 +35,17 @@ export function prompts(io, flags) {
 }
 
 // Run the methodology and catalog steps. Returns { methodology, skills, pending, notes }.
-export async function runSetup({ project, answers, data, flags, io, p, only = ['methodology', 'skills'] }) {
+// `retry`: labels of catalog steps still pending from an earlier run (update);
+// steps that already ran are not repeated.
+export async function runSetup({ project, answers, data, flags, io, p, only = ['methodology', 'skills'], retry }) {
   const ctx = { project, print: !!flags.print, yes: !!flags.yes, tty: p.tty, env: io.env, confirm: p.confirm };
   const out = { methodology: 'done', skills: 'done', pending: [], notes: [], installed: [], postInstall: new Set() };
+
+  // Judge catalog installs by the project as it was before this run:
+  // folders the methodology init creates (openspec-*) do not count.
+  const catalog = only.includes('skills')
+    ? skillSteps(answers, data).filter((s) => !retry || retry.includes(s.label)).map((s) => ({ ...s, existing: existingTouches(project, s.touches) }))
+    : [];
 
   if (only.includes('methodology')) {
     const m = methodologyStep(answers.methodology, answers.agents, data);
@@ -62,24 +70,40 @@ export async function runSetup({ project, answers, data, flags, io, p, only = ['
         }
       } else {
         out.methodology = 'pending';
-        out.pending.push({ label: `methodology ${m.id}`, reason: r.reason, commands: [m.command] });
+        // install.sh also adds the docs link, only when the init creates the file
+        const f = m.docsLink?.file;
+        const script = f && !linkExisted
+          ? `if [ ! -e ${f} ]; then\n  ${m.command}\n  cat >> ${f} <<'GROMA_EOF'\n${m.docsLink.append}GROMA_EOF\nfi`
+          : m.command;
+        out.pending.push({ label: `methodology ${m.id}`, reason: r.reason, commands: [m.command], script });
         out.notes.push(`Methodology: ${m.id} pending (${r.reason})`);
       }
     }
   }
 
   if (only.includes('skills')) {
-    for (const step of skillSteps(answers, data)) {
+    for (const step of catalog) {
       const r = await runStep(step, ctx);
       if (step.postInstall) out.postInstall.add(step.postInstall);
-      if (r.state === 'done') out.installed.push(step.skill);
+      if (r.state === 'done') out.installed.push(step.label);
       else {
         out.skills = 'pending';
-        out.pending.push({ label: step.skill, reason: r.reason, commands: step.commands });
+        out.pending.push({ label: step.label, reason: r.reason, commands: step.commands });
       }
     }
   }
   return out;
+}
+
+// Catalog steps that did not run, so update retries only those.
+export const PENDING = '.groma/pending.json';
+export function savePending(project, setup) {
+  const labels = setup.pending.filter((e) => !e.label.startsWith('methodology ')).map((e) => e.label);
+  writeFileSync(join(project, PENDING), JSON.stringify(labels, null, 2) + '\n');
+}
+export function readPending(project) {
+  const f = join(project, PENDING);
+  return existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : undefined;
 }
 
 export function skillSummary(say, plan) {
@@ -93,7 +117,7 @@ export function pendingSummary(say, setup, script) {
   const byReason = new Map();
   for (const e of setup.pending) byReason.set(e.reason, new Set([...(byReason.get(e.reason) ?? []), e.label]));
   for (const [reason, labels] of byReason) say(`Pending:     ${[...labels].join(', ')} (${reason})`);
-  if (script) say(`Pending:     review and run: sh ${script}`);
+  if (script) say(`Pending:     review and run sh ${script}, or let npx groma update run them`);
   for (const c of setup.postInstall) say(`Then:        run ${c} inside your agent`);
 }
 
@@ -135,8 +159,9 @@ export default async function init({ project, flags, io, say }) {
     const setup = await runSetup({ project, answers, data, flags, io, p });
     const script = writeInstallScript(project, setup.pending, today());
     mkdirSync(join(project, '.groma'), { recursive: true });
+    savePending(project, setup);
     writeFileSync(join(project, CONFIG), renderConfig(data, {
-      name: project.split(/[\\/]/).pop(), projectType: type, answers, agentsViaPlugin: viaPlugin,
+      name: basename(project), projectType: type, answers, agentsViaPlugin: viaPlugin,
       steps: { config: 'done', methodology: setup.methodology, skills: setup.skills },
     }));
 

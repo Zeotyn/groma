@@ -83,7 +83,7 @@ tasks() { # change done open
   tasks c004-b 1 1
   commit_at "$P" 2026-09-01 old
   mkdir -p "$P/.groma"
-  printf 'reminders:\n  archive_when_done: false\n  stale_change_days: 0\n  untested_tasks: false\n' > "$P/.groma/config.yaml"
+  printf 'reminders:\n  archive_when_done: false\n  stale_change_days: 0\n  untested_tasks: false\n  uncommitted: false\n' > "$P/.groma/config.yaml"
   run sh "$ST" --root "$P" --today 2026-11-04
   [ "$output" = "groma status: nothing open" ]
 }
@@ -109,7 +109,7 @@ tasks() { # change done open
   tasks d001-adrs 1 1
   commit_at "$P" 2026-11-03 x
   run sh "$ST" --root "$P" --today 2026-11-04
-  [ "$output" = "groma status: nothing open" ]
+  assert_output_not_contains "add or run tests"
 }
 
 # --- living docs (C004) -------------------------------------------------------------
@@ -175,4 +175,110 @@ docs_setup() { # doc with sources [src/], change c007-cache proposed later, then
   printf -- '---\nstatus: "proposed"\norigin: "c006-old#D1"\n---\n' > "$P/docs/adr/0003-x.md"
   run sh "$ST" --root "$P" --today 2026-11-04
   assert_output_contains "ADR 0003 still proposed (c006-old archived)"
+}
+
+# --- milestone gates and repository state (F002) ------------------------------------
+
+milestone() { # change done open: open tasks are the gate tasks
+  tasks "$1" "$2" 0
+  i=0; while [ "$i" -lt "$3" ]; do echo "- [ ] 2.$((i + 1)) Test levels 1–4 green" >> "$C/$1/tasks.md"; i=$((i + 1)); done
+}
+
+@test "milestone without active children: gate reminder with the first open task" {
+  milestone m002-v0-2 3 4
+  echo t > "$P/tests/a.test.js"
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "m002-v0-2  3/7 tasks → gate: 2.1 Test levels 1–4 green" ]
+}
+
+@test "gate text loses backticks and is cut to 60 characters" {
+  tasks m002-v0-2 1 0
+  echo '- [ ] 2.1 Run `scripts/test.sh` and then a very long explanation that goes on and on' >> "$C/m002-v0-2/tasks.md"
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "m002-v0-2  1/2 tasks → gate: 2.1 Run scripts/test.sh and then a very long explanation tha" ]
+}
+
+@test "milestone with an active child: no gate reminder" {
+  milestone m003-v0-3 1 2
+  tasks c005-code-style 0 2
+  printf 'Milestone: m003\n\n## Why\n' > "$C/c005-code-style/proposal.md"
+  echo t > "$P/tests/a.test.js"
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "groma status: nothing open" ]
+}
+
+@test "gate replaces the stale reminder" {
+  milestone m002-v0-2 3 4
+  commit_at "$P" 2026-09-01 old
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "m002-v0-2  3/7 tasks → gate: 2.1 Test levels 1–4 green" ]
+}
+
+@test "uncommitted files are counted" {
+  commit_at "$P" 2026-11-03 x
+  echo y > "$P/src/a.js"; echo n > "$P/src/b.js"; echo n > "$P/src/c.js"; echo n > "$P/tests/d.test.js"
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "working tree: 4 files uncommitted → commit or stash" ]
+}
+
+upstream() { # bare remote with main pushed and tracked
+  git init -q --bare "$BATS_TEST_TMPDIR/r.git"
+  git -C "$P" remote add origin "$BATS_TEST_TMPDIR/r.git"
+  git -C "$P" push -q -u origin main 2>/dev/null
+}
+
+@test "local commits on main that its upstream lacks are counted" {
+  commit_at "$P" 2026-11-01 base
+  upstream
+  echo 1 > "$P/src/a.js"; commit_at "$P" 2026-11-02 one
+  echo 2 > "$P/src/a.js"; commit_at "$P" 2026-11-03 two
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "main: 2 commits not pushed → git push" ]
+}
+
+@test "unpushed counts main, not the current branch" {
+  commit_at "$P" 2026-11-01 base
+  upstream
+  echo 1 > "$P/src/a.js"; commit_at "$P" 2026-11-02 one
+  git -C "$P" checkout -q -b c009-work
+  echo 2 > "$P/src/a.js"; commit_at "$P" 2026-11-03 two
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "main: 1 commits not pushed → git push" ]
+}
+
+@test "no upstream: no unpushed line" {
+  commit_at "$P" 2026-11-01 base
+  echo 1 > "$P/src/a.js"; commit_at "$P" 2026-11-02 one
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "groma status: nothing open" ]
+}
+
+@test "repository reminders can be disabled" {
+  mkdir -p "$P/.groma"
+  printf 'reminders:\n  uncommitted: false\n  unpushed: false\n' > "$P/.groma/config.yaml"
+  commit_at "$P" 2026-11-01 base
+  upstream
+  echo 1 > "$P/src/a.js"; commit_at "$P" 2026-11-02 one
+  echo 2 > "$P/src/a.js"
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "groma status: nothing open" ]
+}
+
+@test "repository lines come after change lines, without the nothing-open line" {
+  tasks c001-a 2 0
+  echo t > "$P/tests/a.test.js"
+  commit_at "$P" 2026-11-01 x
+  echo y > "$P/src/a.js"
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "c001-a  2/2 tasks → verify, then archive
+working tree: 1 files uncommitted → commit or stash" ]
+}
+
+@test "outside git: no repository lines" {
+  rm -rf "$P/.git"
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "groma status: nothing open" ]
 }

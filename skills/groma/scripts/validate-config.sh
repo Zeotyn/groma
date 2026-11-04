@@ -160,7 +160,7 @@ done
 v=$(get review.apply.per); [ -z "$v" ] || in_set "$v" "task task-group change" || report error review.apply.per "review.apply.per must be task, task-group or change, got '$v'"
 v=$(get review.apply.test_retries)
 if [ -n "$v" ] && { ! is_int "$v" || [ "$v" -gt 10 ]; }; then report error review.apply.test_retries "review.apply.test_retries must be a number from 0 to 10, got '$v'"; fi
-for b in archive_when_done untested_tasks; do
+for b in archive_when_done untested_tasks uncommitted unpushed; do
   v=$(get "reminders.$b"); [ -z "$v" ] || in_set "$v" "true false" || report error "reminders.$b" "reminders.$b must be true or false, got '$v'"
 done
 v=$(get reminders.stale_change_days)

@@ -8,13 +8,18 @@
 #   all tasks done, docs impact open        -> update the docs or add a Docs: task line
 #   all tasks done                         -> verify, then archive
 #   tasks ticked after the last test change -> add or run tests (not for m/d changes)
+#   milestone with open tasks that no active
+#   change references (Milestone: mNNN)    -> gate: <first open task>
 #   no commit for stale_change_days        -> continue or close
 # Then one line per ADR with status: proposed whose origin change is archived.
+# Then, from local git state only (no fetch): uncommitted files in the working
+# tree, and commits on the main branch that its upstream does not have.
 # Nothing to report: "groma status: nothing open".
 # Toggles: reminders.archive_when_done, reminders.untested_tasks,
-#          reminders.stale_change_days (0 disables), docs.gate (off disables
-#          both docs reminders) in .groma/config.yaml. The docs impact report
-#          comes from groma-lay-out's docs-impact.sh when it is installed.
+#          reminders.stale_change_days (0 disables), reminders.uncommitted,
+#          reminders.unpushed, docs.gate (off disables both docs reminders)
+#          in .groma/config.yaml. The docs impact report comes from
+#          groma-lay-out's docs-impact.sh when it is installed.
 set -eu
 
 HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
@@ -45,6 +50,8 @@ cfg_value() { # key default [section]
 ARCHIVE_WHEN_DONE=$(cfg_value archive_when_done true)
 UNTESTED=$(cfg_value untested_tasks true)
 STALE_DAYS=$(cfg_value stale_change_days 14)
+UNCOMMITTED=$(cfg_value uncommitted true)
+UNPUSHED=$(cfg_value unpushed true)
 DOCS_GATE=$(cfg_value gate review docs)
 DOCS_IMPACT="$HERE/../../groma-lay-out/scripts/docs-impact.sh"
 [ "$DOCS_GATE" != off ] && [ -f "$DOCS_IMPACT" ] || DOCS_IMPACT=""
@@ -84,6 +91,9 @@ fi
 DIR=$(changes_dir "$ROOT")
 reported=0
 TAB=$(printf '\t')
+ACTIVE=$(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $3 }')
+# milestones referenced by active changes through "Milestone: mNNN" near the top of proposal.md
+REFERENCED=" $(for p in $ACTIVE; do [ -f "$p/proposal.md" ] && sed -n '1,5s/^Milestone:[[:space:]]*\(m[0-9]*\).*/\1/p' "$p/proposal.md"; done | tr '\n' ' ')"
 for line in $(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $1 "|" $3 }'); do
   name=${line%%|*}; path=${line#*|}
   tf="$path/tasks.md"
@@ -112,6 +122,15 @@ for line in $(list_changes "$DIR" | awk -F "$TAB" '$2 == "active" { print $1 "|"
       msg="tasks ticked since the last test change, add or run tests"
     fi
   fi
+  case "$name" in
+    m[0-9]*-*)
+      case "$REFERENCED" in *" ${name%%-*} "*) ;; *)
+        if [ -z "$msg" ] && [ "$done_n" -lt "$total" ]; then
+          gate=$(sed -n 's/^[[:space:]]*- \[ \][[:space:]]*//p' "$tf" | head -n 1 | tr -d '`' | awk '{ print substr($0, 1, 60) }')
+          msg="gate: $gate"
+        fi ;;
+      esac ;;
+  esac
   if [ -z "$msg" ] && [ "$STALE_DAYS" -gt 0 ]; then
     t=$(last_commit "$rel")
     if [ "$t" -gt 0 ] && ! dirty "$rel"; then
@@ -138,6 +157,27 @@ if [ "$DOCS_GATE" != off ] && [ -d "$ROOT/docs/adr" ]; then
     echo "ADR $n still proposed ($origin archived) → accept or reject"
     reported=$((reported + 1))
   done
+fi
+
+if [ "$in_git" -eq 1 ] && [ "$UNCOMMITTED" = true ]; then
+  n=$(git -C "$ROOT" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$n" -gt 0 ]; then
+    echo "working tree: $n files uncommitted → commit or stash"
+    reported=$((reported + 1))
+  fi
+fi
+if [ "$in_git" -eq 1 ] && [ "$UNPUSHED" = true ]; then
+  main=$(git -C "$ROOT" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null || true)
+  main=${main#origin/}
+  if [ -z "$main" ]; then
+    main=master
+    git -C "$ROOT" rev-parse -q --verify refs/heads/main >/dev/null 2>&1 && main=main
+  fi
+  n=$(git -C "$ROOT" rev-list --count "$main@{upstream}..$main" 2>/dev/null || true)
+  if [ "${n:-0}" -gt 0 ]; then
+    echo "$main: $n commits not pushed → git push"
+    reported=$((reported + 1))
+  fi
 fi
 
 [ "$reported" -gt 0 ] || echo "groma status: nothing open"

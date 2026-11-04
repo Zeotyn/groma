@@ -164,6 +164,8 @@ reminders:
   archive_when_done: true
   stale_change_days: 14
   untested_tasks: true
+  uncommitted: true
+  unpushed: false
 YAML
 }
 
@@ -203,6 +205,16 @@ YAML
   sed -i.bak 's/untested_tasks: true/untested_tasks: sometimes/' "$C"
   run sh "$V" "$C"
   assert_output_contains "reminders.untested_tasks must be true or false"
+}
+
+@test "repository reminder toggles must be booleans, with line number" {
+  add_review
+  sed -i.bak -e 's/uncommitted: true/uncommitted: yes/' -e 's/unpushed: false/unpushed: sometimes/' "$C"
+  ln=$(grep -n 'unpushed:' "$C" | cut -d: -f1)
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "reminders.uncommitted must be true or false"
+  assert_output_contains "line $ln	reminders.unpushed must be true or false, got 'sometimes'"
 }
 
 @test "agents_via_plugin is a known key" {

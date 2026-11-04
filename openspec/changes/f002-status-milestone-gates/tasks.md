@@ -1,14 +1,14 @@
 ## 1. Tests first
 
-- [ ] 1.1 `tests/scripts/status.bats`: milestone at gate (first open task, 60-char cut), milestone with active child (no gate line), gate replaces stale, uncommitted count, unpushed count against a local bare upstream, no upstream → no line, toggles off, "nothing open" only without any line
-- [ ] 1.2 `tests/scripts/validate-config.bats`: `reminders.uncommitted` and `reminders.unpushed` accept true/false, reject other values with line number
+- [x] 1.1 `tests/scripts/status.bats`: milestone at gate (first open task, 60-char cut), milestone with active child (no gate line), gate replaces stale, uncommitted count, unpushed count against a local bare upstream, no upstream → no line, toggles off, "nothing open" only without any line
+- [x] 1.2 `tests/scripts/validate-config.bats`: `reminders.uncommitted` and `reminders.unpushed` accept true/false, reject other values with line number
 
 ## 2. Implementation
 
-- [ ] 2.1 `status.sh`: milestone references and gate reminder per D1; header comment updated
-- [ ] 2.2 `status.sh`: repository lines per D2, toggles per D3
-- [ ] 2.3 `config.yaml` template and `validate-config.sh`; runtime on this repository under 300 ms, else note the measurement here
-- [ ] 2.4 `shellcheck -s sh` and `scripts/test.sh` green
+- [x] 2.1 `status.sh`: milestone references and gate reminder per D1; header comment updated
+- [x] 2.2 `status.sh`: repository lines per D2, toggles per D3
+- [x] 2.3 `config.yaml` template and `validate-config.sh`; runtime on this repository under 300 ms, else note the measurement here. Measured: 0.70 s (3 runs, 0.70–0.73 s); the unchanged script took 0.56–0.64 s, so F002 adds about 0.1 s. The base cost was already over the target before this change.
+- [x] 2.4 `shellcheck -s sh` and `scripts/test.sh` green
 
 ## 3. Docs
 

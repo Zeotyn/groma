@@ -61,6 +61,8 @@ reminders:
   archive_when_done: true
   stale_change_days: 14           # 0 disables
   untested_tasks: true
+  uncommitted: true
+  unpushed: true
 
 # Progress of the last run, used to resume. Values: done | pending | skipped
 steps:

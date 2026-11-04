@@ -286,3 +286,66 @@ FRESH="$ROOT/skills/groma-survey/scripts/freshness.sh"
   run sh "$FRESH" "$D" --today 2025-01-02
   assert_output_contains "fresh	docs/a.md"
 }
+
+# Commit everything in <dir> at a full ISO timestamp.
+commit_ts() {
+  git -C "$1" add -A
+  GIT_AUTHOR_DATE="$2" GIT_COMMITTER_DATE="$2" git -C "$1" commit -q -m "$3"
+}
+
+@test "doc reviewed on the day of a later source commit is fresh" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs" "$D/skills"
+  printf -- '---\nlast_reviewed: 2026-11-04\nreview_after_days: 90\nsources: [skills/]\n---\n' > "$D/docs/architecture.md"
+  echo 1 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T10:00:00Z docs
+  echo 2 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T15:00:00Z fix
+  run sh "$FRESH" "$D" --today 2026-11-04
+  assert_output_contains "fresh	docs/architecture.md"
+}
+
+@test "source commit the day after last_reviewed is stale and names last_reviewed" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs" "$D/skills"
+  printf -- '---\nlast_reviewed: 2026-11-04\nreview_after_days: 90\nsources: [skills/]\n---\n' > "$D/docs/architecture.md"
+  echo 1 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T10:00:00Z docs
+  echo 2 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-05T09:00:00Z fix
+  run sh "$FRESH" "$D" --today 2026-11-05
+  assert_output_contains "stale	docs/architecture.md	code changed: skills/ on 2026-11-05, doc last changed 2026-11-04, last_reviewed 2026-11-04"
+}
+
+@test "doc without last_reviewed is stale after a same-day source commit" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs" "$D/skills"
+  printf -- '---\nsources: [skills/]\n---\n' > "$D/docs/architecture.md"
+  echo 1 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T10:00:00Z docs
+  echo 2 > "$D/skills/a.sh"
+  commit_ts "$D" 2026-11-04T15:00:00Z fix
+  run sh "$FRESH" "$D" --today 2026-11-04
+  assert_output_contains "stale	docs/architecture.md	code changed: skills/ on 2026-11-04, doc last changed 2026-11-04"
+  assert_output_not_contains "last_reviewed"
+}
+
+@test "doc without sources honors last_reviewed for repository code" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs"
+  printf -- '---\nlast_reviewed: 2026-11-04\n---\n' > "$D/docs/a.md"
+  echo 1 > "$D/app.py"
+  commit_ts "$D" 2026-11-04T10:00:00Z docs
+  echo 2 > "$D/app.py"
+  commit_ts "$D" 2026-11-04T15:00:00Z fix
+  run sh "$FRESH" "$D" --today 2026-11-04
+  assert_output_contains "fresh	docs/a.md"
+  echo 3 > "$D/app.py"
+  commit_ts "$D" 2026-11-05T09:00:00Z later
+  run sh "$FRESH" "$D" --today 2026-11-05
+  assert_output_contains "stale	docs/a.md	repository code changed on 2026-11-05, doc last changed 2026-11-04 (no sources in frontmatter), last_reviewed 2026-11-04"
+}

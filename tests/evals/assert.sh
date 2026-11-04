@@ -20,6 +20,34 @@ any_has() { # pattern files...
   return 1
 }
 
+# --- review loop fixture: its own checks, the loop edits code on purpose ----------
+if [ "$FX" = loop-openspec ]; then
+  arch=""
+  for d in "$P"/openspec/changes/archive/*-c001-add-farewell; do [ -d "$d" ] && arch=$d; done
+  check "change archived" test -n "$arch"
+  check "change no longer active" test ! -d "$P/openspec/changes/c001-add-farewell"
+  check "spec synced to openspec/specs/farewell" test -f "$P/openspec/specs/farewell/spec.md"
+  n=0
+  for f in "$arch"/reviews/*-round-*.md; do [ -f "$f" ] && n=$((n + 1)); done
+  if [ "$n" -ge 2 ]; then ok "review records for apply and verify ($n)"; else no "review records for apply and verify (found $n)"; fi
+  unanswered=0
+  for f in "$arch"/reviews/*-round-*.md; do
+    [ -f "$f" ] || continue
+    u=$(awk -F'|' '/^\| *R[0-9]+ *\|/ { r = $7; gsub(/^ +| +$/, "", r); if (r !~ /^(fixed|rejected)/) c++ } END { print c + 0 }' "$f")
+    unanswered=$((unanswered + u))
+  done
+  if [ "$unanswered" -eq 0 ]; then ok "every finding answered"; else no "$unanswered finding(s) without fixed/rejected"; fi
+  leftovers=0
+  for f in "$arch"/reviews/.prompt-* "$arch"/reviews/.raw-*; do [ -e "$f" ] && leftovers=$((leftovers + 1)); done
+  if [ "$leftovers" -eq 0 ]; then ok "no prompt/raw leftovers"; else no "$leftovers prompt/raw leftovers"; fi
+  check "farewell implemented" grep -rq "Goodbye" "$P/src"
+  check "tests pass" sh -c "cd '$P' && node --test >/dev/null 2>&1"
+  check "all tasks ticked" sh -c "! grep -q '^- \[ \]' '$arch/tasks.md'"
+  check "reviewer recorded" grep -rqi "reviewer: claude:sonnet" "$arch/reviews"
+  [ "$fails" -eq 0 ]
+  exit
+fi
+
 # --- every fixture ---------------------------------------------------------------
 check "never-overwrite invariant" sh "$ROOT/tests/invariant/checksum.sh" verify "$P" "$M"
 check "config exists" test -f "$P/.groma/config.yaml"

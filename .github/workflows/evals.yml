@@ -23,8 +23,8 @@ jobs:
         with:
           node-version: 22
       - uses: astral-sh/setup-uv@v6
-      - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Claude Code and OpenSpec
+        run: npm install -g @anthropic-ai/claude-code @fission-ai/openspec@1.16.0
       - name: Run evals
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

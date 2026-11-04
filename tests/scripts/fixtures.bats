@@ -4,10 +4,10 @@ load helpers
 
 GEN="$ROOT/tests/fixtures/generate.sh"
 
-@test "generates all five required fixtures" {
+@test "generates all required fixtures" {
   run sh "$GEN" "$BATS_TEST_TMPDIR/f"
   [ "$status" -eq 0 ]
-  for name in empty node-prisma java-flyway python-django-stale-docs go-no-db; do
+  for name in empty node-prisma java-flyway python-django-stale-docs go-no-db loop-openspec; do
     [ -d "$BATS_TEST_TMPDIR/f/$name/.git" ]
   done
 }

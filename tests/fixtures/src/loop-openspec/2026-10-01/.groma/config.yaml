@@ -1,0 +1,42 @@
+schema: 1
+initialized_with: groma@0.1.0
+project:
+  name: greeter
+  has_ui: false
+project_type: brownfield
+project_type_override: none
+methodology: openspec
+workflow: none
+agents: [claude]
+skills:
+  design: none
+  writing: [none]
+  pragmatism: none
+  diagrams: none
+  discovery: none
+docs:
+  review_after_days: 90
+  optional: []
+conventions:
+  changes:
+    enabled: true
+    digits: 3
+    types:
+      m: milestone
+      c: change
+      f: fix
+review:
+  mode: autonomous
+  stop_when: no-high
+  propose:
+    reviewer: claude:sonnet
+    max_rounds: 1
+  apply:
+    reviewer: claude:sonnet
+    per: change
+    max_rounds: 1
+    test_retries: 2
+reminders:
+  archive_when_done: true
+  stale_change_days: 14
+  untested_tasks: true

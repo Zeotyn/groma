@@ -18,7 +18,7 @@ BUDGET=${GROMA_EVAL_BUDGET:-3}
 command -v claude >/dev/null 2>&1 || { echo "claude CLI not found" >&2; exit 3; }
 
 if [ $# -eq 0 ]; then
-  set -- empty node-prisma java-flyway python-django-stale-docs go-no-db
+  set -- empty node-prisma java-flyway python-django-stale-docs go-no-db loop-openspec
 fi
 
 rm -rf "$WORK"
@@ -28,10 +28,16 @@ sh "$ROOT/tests/fixtures/generate.sh" "$WORK" "$@" >/dev/null
 failed=0
 for fx in "$@"; do
   P="$WORK/$fx"
+  sh "$ROOT/tests/invariant/checksum.sh" snapshot "$P" "$WORK/$fx.manifest" >/dev/null
+  tools="Bash(sh:*) Bash(grep:*) Bash(find:*) Bash(ls:*) Bash(cat:*) Bash(git log:*) Bash(git config:*) Bash(mkdir:*) Read Write Edit Glob Grep Skill Edit(.groma/**)"
+
+  if [ -f "$HERE/prompts/$fx.md" ]; then
+    # fixture with its own task (for example the review loop)
+    prompt=$(cat "$HERE/prompts/$fx.md")
+    tools="$tools Bash(node:*) Bash(npm test:*) Bash(openspec:*) Bash(git diff:*) Bash(git rev-parse:*) Bash(git status:*) Bash(git add:*) Bash(git commit:*) Bash(rm:*) Bash(claude:*)"
+  else
   answers="$HERE/answers/$fx.md"
   [ -f "$answers" ] || { echo "missing answers file: $answers" >&2; exit 2; }
-  sh "$ROOT/tests/invariant/checksum.sh" snapshot "$P" "$WORK/$fx.manifest" >/dev/null
-
   prompt="Run the groma skill (/groma) in the current directory, in init mode.
 This is an automated evaluation: nobody can answer questions. Use the answers
 below whenever groma would ask; for anything not covered, take groma's
@@ -41,6 +47,7 @@ network: write every install command to .groma/install.sh instead and mark the
 step pending. Today is 2026-11-04.
 
 $(cat "$answers")"
+  fi
 
   echo "== eval $fx"
   set +e
@@ -48,7 +55,7 @@ $(cat "$answers")"
   (cd "$P" && claude -p "$prompt" \
       --plugin-dir "$ROOT" \
       --permission-mode acceptEdits \
-      --allowedTools "Bash(sh:*) Bash(grep:*) Bash(find:*) Bash(ls:*) Bash(cat:*) Bash(git log:*) Bash(git config:*) Bash(mkdir:*) Read Write Edit Glob Grep Skill Edit(.groma/**)" \
+      --allowedTools "$tools" \
       --max-budget-usd "$BUDGET" \
       ${GROMA_EVAL_MODEL:+--model "$GROMA_EVAL_MODEL"} \
       --output-format text > "$WORK/$fx.log" 2>&1)

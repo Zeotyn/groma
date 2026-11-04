@@ -24,3 +24,10 @@ If an agent instruction file exists, groma SHALL NOT edit it and SHALL put a sug
 - **WHEN** `CLAUDE.md` exists without a reference to AGENTS.md
 - **THEN** the file is unchanged, and the findings report contains the line to add
 
+### Requirement: Living-docs instruction
+The generated AGENTS.md SHALL tell agents to update the docs a change affects and to record design decisions with alternatives as ADRs in the same change, and SHALL name the docs impact command.
+
+#### Scenario: Generated AGENTS.md
+- **WHEN** groma writes AGENTS.md for a project with `docs.gate: review`
+- **THEN** it contains the living-docs line with the `docs-impact.sh` command
+

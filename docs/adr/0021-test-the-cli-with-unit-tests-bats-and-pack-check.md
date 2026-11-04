@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-04
 decision-makers: Eugen Waldschmidt
 evidence: [cli/test/main.test.js, tests/scripts/cli.bats, scripts/test.sh]

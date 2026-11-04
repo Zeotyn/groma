@@ -40,7 +40,7 @@ while [ $# -gt 0 ]; do
 done
 [ -d "$DIR" ] || { echo "not a directory: $DIR" >&2; exit 2; }
 case "$ADR_DAYS" in '' | *[!0-9]*) echo "--adr-days needs a number: $ADR_DAYS" >&2; exit 2 ;; esac
-DOCS=${DOCS#./}; DOCS=${DOCS%/}
+DOCS=${DOCS#./}; DOCS=${DOCS%/}; DOCS=${DOCS:-.}
 cd "$DIR"
 
 TAB=$(printf '\t')
@@ -142,7 +142,7 @@ while IFS= read -r doc; do
         bad=${bad:+"$bad; "}"source missing: $s"
       else
         case "$s" in
-          "$CHANGE_DIRS"archive/*) srcs="$srcs $s" ;;
+          "$CHANGE_DIRS"archive | "$CHANGE_DIRS"archive/*) srcs="$srcs $s" ;;
           "$CHANGE_DIRS"?*) bad=${bad:+"$bad; "}"source in change folder: $s" ;;
           *) srcs="$srcs $s" ;;
         esac

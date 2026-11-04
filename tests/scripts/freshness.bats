@@ -266,3 +266,23 @@ FRESH="$ROOT/skills/groma-survey/scripts/freshness.sh"
   assert_output_contains "fresh	docs/a.md"
   assert_output_contains "broken	docs/b.md	source in change folder: openspec/changes/c002-y/design.md"
 }
+
+@test "--docs ./ still scans the project root" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  echo "# a" > "$D/a.md"
+  commit_at "$D" 2025-01-01 init
+  run sh "$FRESH" "$D" --docs ./ --today 2025-01-02
+  assert_output_contains "fresh	./a.md"
+}
+
+@test "bare archive folder is a valid source" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs" "$D/openspec/changes/archive/c001-x"
+  echo d > "$D/openspec/changes/archive/c001-x/design.md"
+  printf -- '---\nsources: [openspec/changes/archive]\n---\n' > "$D/docs/a.md"
+  commit_at "$D" 2025-01-01 init
+  run sh "$FRESH" "$D" --today 2025-01-02
+  assert_output_contains "fresh	docs/a.md"
+}

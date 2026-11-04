@@ -1,6 +1,6 @@
 {
   "name": "groma",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Lays out a project for AI-assisted work: methodology, skill catalog, docs/ and agent files",
   "license": "MIT",
   "author": "groma contributors",

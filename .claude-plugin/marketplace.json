@@ -7,7 +7,7 @@
       "name": "groma",
       "source": "./",
       "description": "Lays out a project before you build: greenfield/brownfield detection, methodology setup, skill catalog, docs/ with ADRs, read-only survey, AGENTS.md.",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }

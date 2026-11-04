@@ -9,14 +9,16 @@ Milestone only; behavior is specified in the child changes.
 **Goal:** `npx groma@0.2.0 init` works in an empty and in an existing project for Claude Code and Copilot, `groma` is published on npm, all test levels green.
 
 **Scope:**
-- In: everything specified in `c003-groma-cli`.
+- In: everything specified in `c003-groma-cli`, `f001-freshness-adrs` and `c004-living-docs`.
 - Out: porting skill logic to Node, a global install requirement, Node < 22.
 
 **Child changes:**
 
 | Id | Change | Status |
 |---|---|---|
+| F001 | `f001-freshness-adrs` | active |
 | C003 | `c003-groma-cli` | active |
+| C004 | `c004-living-docs` | active (after F001) |
 
 ## Capabilities
 

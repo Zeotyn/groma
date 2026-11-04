@@ -1,6 +1,8 @@
 ## 1. Child changes
 
-- [ ] 1.1 C003 `c003-groma-cli` implemented, verified and archived
+- [ ] 1.1 F001 `f001-freshness-adrs` implemented, verified and archived
+- [ ] 1.2 C003 `c003-groma-cli` implemented, verified and archived
+- [ ] 1.3 C004 `c004-living-docs` implemented, verified and archived
 
 ## 2. Release gate
 

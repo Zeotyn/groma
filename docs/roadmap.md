@@ -27,7 +27,7 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 
 - Goal: `npx groma-cli@0.2.1 init` works in an empty and in an existing project for Claude Code and Copilot, `groma-cli` is published on npm, all test levels green.
 - Status: active
-- Progress: 3/6 done
+- Progress: 4/6 done
 
 | Id | Change | Status |
 |---|---|---|
@@ -36,7 +36,7 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 | F001 | `f001-freshness-adrs` | done |
 | F002 | `f002-status-milestone-gates` | active |
 | F003 | `f003-freshness-reviewed` | active |
-| F004 | `f004-npm-package-name` | active |
+| F004 | `f004-npm-package-name` | done |
 
 ## M003 v0-3
 

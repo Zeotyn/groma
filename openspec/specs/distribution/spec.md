@@ -36,14 +36,14 @@ The repository SHALL ship manifests for GitHub Copilot (via the Claude manifest)
 - **THEN** the second run reports "already installed" for every skill and changes nothing
 
 ### Requirement: Versioning and updates
-The suite SHALL follow SemVer with git tags and a `CHANGELOG.md` (Keep a Changelog). Plugin manifests, `package.json` and `skills/groma/VERSION` SHALL carry the same version. Updates SHALL work via `npx groma update`, `npx skills update`, the Claude plugin update mechanism, and `install.sh --ref`.
+The suite SHALL follow SemVer with git tags and a `CHANGELOG.md` (Keep a Changelog). Plugin manifests, `package.json` and `skills/groma/VERSION` SHALL carry the same version. Updates SHALL work via `npx groma-cli update`, `npx skills update`, the Claude plugin update mechanism, and `install.sh --ref`.
 
 #### Scenario: Version consistency
 - **WHEN** a release tag `v0.2.0` is created
 - **THEN** all manifests, `package.json` and `skills/groma/VERSION` declare `0.2.0`, and CI fails if any differs
 
 #### Scenario: Project update through the CLI
-- **WHEN** a project was initialized with groma 0.2.0 and the user runs `npx groma@0.3.0 update`
+- **WHEN** a project was initialized with groma 0.2.0 and the user runs `npx groma-cli@0.3.0 update`
 - **THEN** the generated skill copies move to 0.3.0 and `initialized_with` reads `groma@0.3.0`
 
 ### Requirement: Open-source essentials
@@ -54,9 +54,9 @@ The repository SHALL contain `LICENSE` (MIT), `README.md` with an install matrix
 - **THEN** the change is a single table row plus an optional fixture, and CI validates it
 
 ### Requirement: npm package
-groma SHALL be published to npm as `groma`, runnable as `npx groma <command>` without a global install, containing the CLI and the skill folders. The Claude plugin, `npx skills add` and `install.sh` SHALL stay supported install paths.
+groma SHALL be published to npm as `groma-cli`, runnable as `npx groma-cli <command>` without a global install and installing the binary `groma`, containing the CLI and the skill folders. The Claude plugin, `npx skills add` and `install.sh` SHALL stay supported install paths.
 
 #### Scenario: Run without installing
-- **WHEN** a user runs `npx groma@0.2.0 init` in a fresh folder
+- **WHEN** a user runs `npx groma-cli@0.2.1 init` in a fresh folder
 - **THEN** npm fetches the package and the init starts, with no global install
 

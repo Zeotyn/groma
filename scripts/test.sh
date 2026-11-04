@@ -1,8 +1,9 @@
 #!/bin/sh
 # Run groma's test suite.
-#   scripts/test.sh            levels 1-3: structure, script tests, invariant
+#   scripts/test.sh            levels 1-3: structure, CLI, script tests, invariant
 #   scripts/test.sh structure  level 1 only
 #   scripts/test.sh scripts    level 2+3 only (bats)
+#   scripts/test.sh cli        CLI unit tests (node --test) and package contents
 #   scripts/test.sh evals      level 4: headless agent evals (costs tokens)
 set -eu
 
@@ -41,6 +42,21 @@ run_scripts() {
   bats_cmd -r tests/scripts tests/invariant
 }
 
+run_cli() {
+  echo "== cli: unit tests and package contents"
+  [ -d node_modules ] || npm ci --silent
+  node --test 'cli/test/*.test.js'
+  npm pack --dry-run --json --silent | node -e '
+    let s = ""; process.stdin.on("data", d => s += d).on("end", () => {
+      const files = JSON.parse(s)[0].files.map(f => f.path);
+      const need = ["bin/groma.js", "cli/main.js", "skills/groma/SKILL.md", "skills/groma/agents.yaml", "package.json"];
+      const bad = need.filter(f => !files.includes(f))
+        .concat(files.filter(f => /^(tests|openspec|scripts|docs|cli\/test)\//.test(f)));
+      if (bad.length) { console.error("package contents wrong:", bad.join(", ")); process.exit(1); }
+      console.log("[pack] ok (" + files.length + " files)");
+    });'
+}
+
 run_evals() {
   echo "== level 4: evals"
   sh tests/evals/run.sh "$@"
@@ -49,7 +65,8 @@ run_evals() {
 case "${1:-all}" in
   structure) run_structure ;;
   scripts) run_scripts ;;
+  cli) run_cli ;;
   evals) shift; run_evals "$@" ;;
-  all) run_structure; run_scripts ;;
-  *) echo "usage: $0 [structure|scripts|evals|all]" >&2; exit 2 ;;
+  all) run_structure; run_cli; run_scripts ;;
+  *) echo "usage: $0 [structure|scripts|cli|evals|all]" >&2; exit 2 ;;
 esac

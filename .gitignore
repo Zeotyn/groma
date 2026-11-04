@@ -8,3 +8,4 @@ tests/.work/
 .github/skills/openspec-*/
 __pycache__/
 *.pyc
+node_modules/

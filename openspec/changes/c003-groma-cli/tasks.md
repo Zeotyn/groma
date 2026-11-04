@@ -6,13 +6,13 @@
 
 ## 2. Package and test harness
 
-- [ ] 2.1 `package.json` (name `groma`, bin, `files`, engines node >= 22, dependency `yaml` pinned), version check covers it
-- [ ] 2.2 `node --test` setup under `cli/test/` and wiring into `scripts/test.sh` and CI
-- [ ] 2.3 CI step `npm pack --dry-run` asserting package contents
+- [x] 2.1 `package.json` (name `groma`, bin, `files`, engines node >= 22, dependency `yaml` pinned), version check covers it
+- [x] 2.2 `node --test` setup under `cli/test/` and wiring into `scripts/test.sh` and CI
+- [x] 2.3 CI step `npm pack --dry-run` asserting package contents
 
 ## 3. CLI core (tests with each task)
 
-- [ ] 3.1 Argument parsing, `--help`, `--version`, exit codes, Node version check
+- [x] 3.1 Argument parsing, `--help`, `--version`, exit codes, Node version check
 - [ ] 3.2 Answer resolution: flags, interactive prompts (readline), `--yes`, no-TTY fallback, agent detection
 - [ ] 3.3 Recipe rendering: methodology init and catalog installs per agent from the data files
 - [ ] 3.4 Skill materialization with `generatedBy` and `.groma/generated.json`; conflict handling

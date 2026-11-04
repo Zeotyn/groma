@@ -9,6 +9,8 @@
 #       than the newest commit touching the doc, or
 #   (c) without `sources`: the newest commit touching any non-Markdown file
 #       outside the docs dir is newer than the doc.
+# With last_reviewed set, (b) and (c) also need that commit's UTC day to lie
+# after last_reviewed: a review covers source commits up to the end of its day.
 # Sources inside the docs dir are ignored; if none remain, only (a) applies.
 # ADRs (<docs>/adr/*) skip (b) and (c): an ADR with `status: proposed` whose
 # `date` (else last commit) is more than --adr-days (default 30) old is stale.
@@ -79,6 +81,11 @@ ymd() { # epoch -> YYYY-MM-DD
   }'
 }
 
+# true when commit epoch $1 is newer than the doc and, if set, on a day after last_reviewed
+code_newer() {
+  [ "$1" -gt "$doc_t" ] && { [ -z "$lr_day" ] || [ $(($1 / 86400)) -gt "$lr_day" ]; }
+}
+
 # frontmatter value for key (scalar), empty if absent
 fm_get() {
   awk -v k="$2" '
@@ -132,6 +139,8 @@ while IFS= read -r doc; do
   fi
 
   doc_t=$(last_commit "$doc")
+  lr_day="" lr_note=""
+  case "$lr" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) lr_day=$(days "$lr") lr_note=", last_reviewed $lr" ;; esac
   bad="" has_src=0 srcs=""
   case "$doc" in "$DOCS"/adr/*) is_adr=1 ;; *) is_adr=0 ;; esac
   if [ "$is_adr" -eq 0 ]; then
@@ -172,16 +181,16 @@ while IFS= read -r doc; do
         t=$(last_commit "$s")
         if [ "$t" -gt "$newest" ]; then newest=$t newest_src=$s; fi
       done
-      if [ "$newest" -gt "$doc_t" ]; then
-        r="code changed: $newest_src on $(ymd "$newest"), doc last changed $(ymd "$doc_t")"
+      if code_newer "$newest"; then
+        r="code changed: $newest_src on $(ymd "$newest"), doc last changed $(ymd "$doc_t")$lr_note"
         reasons=${reasons:+"$reasons; "}$r
       fi
     elif [ "$has_src" -eq 0 ]; then
       if [ -z "$code_epoch" ]; then
         code_epoch=$(last_commit . ":(exclude)$DOCS" ":(exclude)*.md")
       fi
-      if [ "$code_epoch" -gt "$doc_t" ]; then
-        r="repository code changed on $(ymd "$code_epoch"), doc last changed $(ymd "$doc_t") (no sources in frontmatter)"
+      if code_newer "$code_epoch"; then
+        r="repository code changed on $(ymd "$code_epoch"), doc last changed $(ymd "$doc_t") (no sources in frontmatter)$lr_note"
         reasons=${reasons:+"$reasons; "}$r
       fi
     fi

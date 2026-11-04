@@ -1,11 +1,11 @@
 ## 1. Tests first
 
-- [ ] 1.1 `tests/scripts/freshness.bats`: reviewed same day → fresh; source commit the next day → stale with `last_reviewed` in the reason; no `last_reviewed` → old behavior; existing cases unchanged
+- [x] 1.1 `tests/scripts/freshness.bats`: reviewed same day → fresh; source commit the next day → stale with `last_reviewed` in the reason; no `last_reviewed` → old behavior; existing cases unchanged
 
 ## 2. Implementation
 
-- [ ] 2.1 `freshness.sh` rule (b) per D1, header comment updated
-- [ ] 2.2 `shellcheck -s sh` and `scripts/test.sh` green
+- [x] 2.1 `freshness.sh` rule (b) per D1, header comment updated
+- [x] 2.2 `shellcheck -s sh` and `scripts/test.sh` green
 
 ## 3. Docs
 

@@ -21,7 +21,7 @@ origin: f003-freshness-reviewed#D1
 
 ## Decision Outcome
 
-Chosen option: "A source commit counts only when its UTC day is after `last_reviewed`", because it removes the false reports with the date the docs already carry. Matching commits to changes needs a methodology the script cannot assume. A strictly later date keeps the same-day case stale. `git log -L` is slow, and the archive sync often leaves the value unchanged. A doc without `last_reviewed` is still compared by commits only.
+Chosen option: "A source commit counts only when its UTC day is after `last_reviewed`", because it removes the false reports with the date the docs already carry. Matching commits to changes needs a methodology the script cannot assume. A strictly later date keeps the same-day case stale. `git log -L` is slow, and the archive sync often leaves the value unchanged. The same day check applies to the rule for docs without `sources`, which compares against the newest repository code commit. A doc without `last_reviewed` is still compared by commits only.
 
 ### Consequences
 
@@ -30,7 +30,7 @@ Chosen option: "A source commit counts only when its UTC day is after `last_revi
 
 ### Confirmation
 
-`tests/scripts/freshness.bats` covers a same-day source commit (fresh), a next-day commit (stale, reason names `last_reviewed`) and a doc without `last_reviewed` (stale as before).
+`tests/scripts/freshness.bats` covers a same-day source commit (fresh), a next-day commit (stale, reason names `last_reviewed`), the UTC midnight boundary, a doc without `last_reviewed` or with a malformed one (stale as before) and a doc without `sources` against repository code.
 
 ## More Information
 

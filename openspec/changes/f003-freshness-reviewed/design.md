@@ -15,7 +15,7 @@
 ## Decisions
 
 ### D1: `last_reviewed` covers source commits up to the end of that day
-Rule (b) becomes: stale when `newest_source_commit > doc_commit` and `day(newest_source_commit) > last_reviewed`. The day uses the same UTC day arithmetic as rule (a) (`ymd`).
+Rules (b) and (c) share one day check: stale when `newest_source_commit > doc_commit` and `day(newest_source_commit) > last_reviewed`, where rule (c) uses the newest repository code commit. The day uses the same UTC day arithmetic as rule (a) (`ymd`). A `last_reviewed` that is not shaped `YYYY-MM-DD` is ignored, so the doc is compared by commits only.
 
 Alternatives:
 - Ignore source commits that belong to the same change as the doc commit. Rejected: the script would need to know about changes, and that does not work without a methodology.

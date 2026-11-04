@@ -1,0 +1,26 @@
+## Purpose
+
+Gives every supported coding agent the same project instructions from one canonical `AGENTS.md`, so Claude Code, Copilot, Gemini CLI, Cursor and Codex start from the same docs.
+
+## ADDED Requirements
+
+### Requirement: Canonical AGENTS.md
+groma SHALL create `AGENTS.md` at the project root when absent. It SHALL contain build/test commands, conventions, the active methodology and skills, and a pointer to `docs/README.md`. It SHALL NOT duplicate architecture or directory listings.
+
+#### Scenario: New AGENTS.md
+- **WHEN** no AGENTS.md exists
+- **THEN** groma creates one under 150 lines that references `docs/README.md`
+
+### Requirement: Pointer files per configured agent
+For each configured agent, groma SHALL create the agent's instruction file as a pointer to AGENTS.md when the file is absent: `CLAUDE.md` (`@AGENTS.md`), `GEMINI.md` (`@AGENTS.md`), `.github/copilot-instructions.md` (plain pointer), `.cursor/rules/groma.mdc` (`alwaysApply: true`). Codex reads AGENTS.md directly.
+
+#### Scenario: Claude and Copilot configured
+- **WHEN** agents are `[claude, copilot]` and neither file exists
+- **THEN** `CLAUDE.md` and `.github/copilot-instructions.md` exist and point to AGENTS.md; no Gemini or Cursor files are created
+
+### Requirement: Existing instruction files untouched
+If an agent instruction file exists, groma SHALL NOT edit it and SHALL put a suggested pointer snippet in the findings report.
+
+#### Scenario: Existing CLAUDE.md
+- **WHEN** `CLAUDE.md` exists without a reference to AGENTS.md
+- **THEN** the file is unchanged, and the findings report contains the line to add

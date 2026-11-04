@@ -1,7 +1,7 @@
 ## 1. Child changes
 
 - [x] 1.1 C001 `c001-groma-suite` implemented, verified and archived
-- [ ] 1.2 C002 `c002-review-loop` implemented, verified and archived
+- [x] 1.2 C002 `c002-review-loop` implemented, verified and archived
 
 ## 2. Release gate
 

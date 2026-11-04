@@ -42,7 +42,7 @@ Apply reviews receive the task group's diff (`git diff` against the commit befor
 `status.sh` lives in `groma-methodology/scripts/` because it reads the change folders and conventions, which that skill owns. It is read-only and fast (git and file reads only), so it can run on every session start.
 
 ### D6 Optional Claude hook
-SessionStart hook in `.claude/settings.json` running `status.sh`. Only offered; written only when the file does not exist (additive) or after explicit approval for an existing file (same rule as D11 in C001).
+SessionStart hook in `.claude/settings.local.json` running `status.sh`. The hook needs the absolute path of the installed `status.sh`, which differs per machine, so it goes into the local, uncommitted settings file instead of the shared `.claude/settings.json`. Only offered; written only when the file does not exist (additive) or after explicit approval for an existing file (same rule as D11 in C001).
 
 ## Risks / Trade-offs
 

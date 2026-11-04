@@ -144,3 +144,63 @@ EOF
   echo "$output"
   [ "$status" -eq 0 ]
 }
+
+# --- review and reminders (C002) ---------------------------------------------------
+
+add_review() {
+  cat >> "$C" <<'YAML'
+review:
+  mode: autonomous
+  stop_when: no-high
+  propose:
+    reviewer: auto
+    max_rounds: 2
+  apply:
+    reviewer: claude:sonnet
+    per: task-group
+    max_rounds: 1
+    test_retries: 2
+reminders:
+  archive_when_done: true
+  stale_change_days: 14
+  untested_tasks: true
+YAML
+}
+
+@test "review and reminders defaults validate" {
+  add_review
+  run sh "$V" "$C" --catalog "$CAT"
+  [ "$status" -eq 0 ]
+  assert_output_contains "errors=0	warnings=0"
+}
+
+@test "config without review section is accepted" {
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+}
+
+@test "unknown reviewer agent suggests closest" {
+  add_review
+  sed -i.bak 's/reviewer: claude:sonnet/reviewer: codx/' "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "unknown reviewer 'codx'"
+  assert_output_contains "did you mean codex?"
+}
+
+@test "bad review mode, per and numbers fail" {
+  add_review
+  sed -i.bak -e 's/mode: autonomous/mode: yolo/' -e 's/per: task-group/per: file/' -e 's/max_rounds: 2/max_rounds: many/' -e 's/stale_change_days: 14/stale_change_days: -3/' "$C"
+  run sh "$V" "$C"
+  assert_output_contains "review.mode must be autonomous or gated"
+  assert_output_contains "review.apply.per must be task, task-group or change"
+  assert_output_contains "review.propose.max_rounds must be a number from 1 to 10"
+  assert_output_contains "reminders.stale_change_days must be a number >= 0"
+}
+
+@test "reminder flags must be booleans" {
+  add_review
+  sed -i.bak 's/untested_tasks: true/untested_tasks: sometimes/' "$C"
+  run sh "$V" "$C"
+  assert_output_contains "reminders.untested_tasks must be true or false"
+}

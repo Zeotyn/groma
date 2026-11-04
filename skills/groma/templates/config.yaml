@@ -41,6 +41,25 @@ conventions:
       r: refactor
       d: docs
 
+# Review loop for propose and apply (skill groma-loop).
+review:
+  mode: autonomous                # autonomous | gated (approval after propose and before archive)
+  stop_when: no-high              # no-high | no-findings
+  propose:
+    reviewer: auto                # auto | self | <agent>[:<model>], agents: claude, copilot, gemini, codex
+    max_rounds: 2
+  apply:
+    reviewer: auto
+    per: task-group               # task | task-group | change
+    max_rounds: 1
+    test_retries: 2
+
+# Lifecycle reminders (groma-methodology status.sh)
+reminders:
+  archive_when_done: true
+  stale_change_days: 14           # 0 disables
+  untested_tasks: true
+
 # Progress of the last run, used to resume. Values: done | pending | skipped
 steps:
   detect: pending

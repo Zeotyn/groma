@@ -120,7 +120,7 @@ for k in initialized_with project_type methodology agents skills docs convention
   has "$k" || report error "$k" "missing required key '$k'"
 done
 for k in $(printf '%s\n' "$FLAT" | cut -f1 | awk -F. '{ print $1 }' | sort -u); do
-  in_set "$k" "schema initialized_with project project_type project_type_override methodology workflow agents skills docs conventions steps" \
+  in_set "$k" "schema initialized_with project project_type project_type_override methodology workflow agents skills docs conventions review reminders steps" \
     || report warning "$k" "unknown top-level key '$k'"
 done
 v=$(get project_type); [ -z "$v" ] || in_set "$v" "greenfield brownfield" || report error project_type "project_type must be greenfield or brownfield, got '$v'"
@@ -136,6 +136,30 @@ done
 for o in $(get docs.optional | tr ',' ' '); do
   in_set "$o" "constraints quality security operations stakeholders" || report error docs.optional "unknown optional doc '$o'"
 done
+
+# --- review and reminders (optional sections) ----------------------------------------
+is_int() { case "$1" in ''|*[!0-9]*) return 1 ;; *) return 0 ;; esac; }
+v=$(get review.mode); [ -z "$v" ] || in_set "$v" "autonomous gated" || report error review.mode "review.mode must be autonomous or gated, got '$v'"
+v=$(get review.stop_when); [ -z "$v" ] || in_set "$v" "no-high no-findings" || report error review.stop_when "review.stop_when must be no-high or no-findings, got '$v'"
+for ph in propose apply; do
+  r=$(get "review.$ph.reviewer")
+  if [ -n "$r" ] && [ "$r" != auto ] && [ "$r" != self ]; then
+    ag=${r%%:*}
+    in_set "$ag" "claude copilot gemini codex" || report error "review.$ph.reviewer" "unknown reviewer '$r' in review.$ph.reviewer (auto, self or claude|copilot|gemini|codex[:model])$(c=$(closest "$ag" "claude copilot gemini codex"); [ -z "$c" ] || printf ', did you mean %s?' "$c")"
+  fi
+  m=$(get "review.$ph.max_rounds")
+  if [ -n "$m" ] && { ! is_int "$m" || [ "$m" -lt 1 ] || [ "$m" -gt 10 ]; }; then
+    report error "review.$ph.max_rounds" "review.$ph.max_rounds must be a number from 1 to 10, got '$m'"
+  fi
+done
+v=$(get review.apply.per); [ -z "$v" ] || in_set "$v" "task task-group change" || report error review.apply.per "review.apply.per must be task, task-group or change, got '$v'"
+v=$(get review.apply.test_retries)
+if [ -n "$v" ] && { ! is_int "$v" || [ "$v" -gt 10 ]; }; then report error review.apply.test_retries "review.apply.test_retries must be a number from 0 to 10, got '$v'"; fi
+for b in archive_when_done untested_tasks; do
+  v=$(get "reminders.$b"); [ -z "$v" ] || in_set "$v" "true false" || report error "reminders.$b" "reminders.$b must be true or false, got '$v'"
+done
+v=$(get reminders.stale_change_days)
+if [ -n "$v" ] && ! is_int "$v"; then report error reminders.stale_change_days "reminders.stale_change_days must be a number >= 0, got '$v'"; fi
 
 # --- skills against catalog --------------------------------------------------------
 if [ -n "$CATALOG" ]; then

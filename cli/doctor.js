@@ -19,7 +19,7 @@ export default function doctor({ project, io, say }) {
 
   const config = join(project, '.groma/config.yaml');
   if (!existsSync(config)) {
-    say('config: not initialized, run npx groma init');
+    say('config: not initialized, run npx groma-cli init');
     errors++;
   } else {
     const v = sh('groma/scripts/validate-config.sh', [config, '--catalog', join(SKILLS_SRC, 'groma-skills/catalog.yaml')], io.env);
@@ -31,7 +31,7 @@ export default function doctor({ project, io, say }) {
   const gen = readGenerated(project);
   let warnings = 0;
   if (gen.generatedBy && gen.generatedBy !== `groma@${version()}`) {
-    say(`warning: skill copies are ${gen.generatedBy}, this CLI is groma@${version()}: run npx groma update`);
+    say(`warning: skill copies are ${gen.generatedBy}, this CLI is groma@${version()}: run npx groma-cli update`);
     warnings++;
   }
   for (const [path, hash] of Object.entries(gen.files)) {

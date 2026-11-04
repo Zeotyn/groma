@@ -1,7 +1,7 @@
 # cli Specification
 
 ## Purpose
-Gives users one command, `npx groma init`, that sets up a project deterministically without an agent: groma skills in every agent's project folder, the chosen methodology, the chosen catalog skills and the project config, plus `update`, `status` and `doctor` for the rest of the project's life.
+Gives users one command, `npx groma-cli init`, that sets up a project deterministically without an agent: groma skills in every agent's project folder, the chosen methodology, the chosen catalog skills and the project config, plus `update`, `status` and `doctor` for the rest of the project's life.
 ## Requirements
 ### Requirement: Commands
 The `groma` CLI SHALL provide `init [path]`, `update [path]`, `status [path]` and `doctor [path]`, plus `--help` and `--version`. `[path]` defaults to the current directory.

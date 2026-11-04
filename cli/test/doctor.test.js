@@ -41,7 +41,7 @@ test('doctor reports an older generated version', async () => {
   const f = join(p, '.groma/generated.json');
   writeFileSync(f, readFileSync(f, 'utf8').replace(/"groma@[^"]+"/, '"groma@0.0.1"'));
   const r = await run(['doctor', p], { env });
-  assert.match(r.out, /groma@0\.0\.1.*npx groma update/);
+  assert.match(r.out, /groma@0\.0\.1.*npx groma-cli update/);
 });
 
 test('doctor fails on an invalid config', async () => {

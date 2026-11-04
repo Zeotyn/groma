@@ -6,6 +6,12 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-04
+
+### Fixed
+
+- The npm package is now `groma-cli`, because npm rejects the name `groma` as too similar to existing packages (fix F004). Run `npx groma-cli init`; the installed command stays `groma`. 0.2.0 was tagged but never published to npm.
+
 ## [0.2.0] - 2026-11-04
 
 ### Added

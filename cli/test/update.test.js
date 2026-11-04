@@ -28,7 +28,7 @@ const cfg = (p) => parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8'));
 test('update without config points to init', async () => {
   const r = await run(['update', tmp(), '--yes']);
   assert.equal(r.code, 1);
-  assert.match(r.err, /groma init/);
+  assert.match(r.err, /npx groma-cli init/);
 });
 
 test('an edited generated skill is kept and reported; --force replaces it', async () => {

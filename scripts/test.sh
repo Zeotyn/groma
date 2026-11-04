@@ -46,6 +46,10 @@ run_cli() {
   echo "== cli: unit tests and package contents"
   [ -d node_modules ] || npm ci --silent
   node --test 'cli/test/*.test.js'
+  # npm rejects the unscoped name "groma" (too similar to growl, from2)
+  node -e 'const p = require("./package.json");
+    if (p.name !== "groma-cli" || p.bin?.groma !== "bin/groma.js") {
+      console.error("package.json: need name groma-cli and bin groma"); process.exit(1); }'
   npm pack --dry-run --json --silent | node -e '
     let s = ""; process.stdin.on("data", d => s += d).on("end", () => {
       const files = JSON.parse(s)[0].files.map(f => f.path);

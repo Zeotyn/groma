@@ -100,7 +100,7 @@ test('init refuses an initialized project', async () => {
   write(p, '.groma/config.yaml', 'schema: 1\n');
   const r = await run(['init', p, '--yes'], { env: stubs().env });
   assert.equal(r.code, 1);
-  assert.match(r.err, /groma update/);
+  assert.match(r.err, /npx groma-cli update/);
 });
 
 test('Claude plugin installed: claude skills are skipped and recorded', async () => {

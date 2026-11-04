@@ -55,7 +55,7 @@ The orchestrator refers to siblings by relative path (`../groma-detect/`). A ski
 
 ## Deployment
 
-Distributed from GitHub (`Zeotyn/groma`) as a Claude Code / Copilot plugin marketplace, via `npx skills add`, as Codex, Cursor and Gemini manifests, and through `install.sh`. Nothing runs as a service.
+Distributed from GitHub (`Zeotyn/groma`) as a Claude Code / Copilot plugin marketplace, via `npx skills add`, as Codex, Cursor and Gemini manifests, through `install.sh`, and on npm as `groma-cli` (`npx groma-cli init`, command `groma`). Nothing runs as a service.
 
 ## Decisions
 

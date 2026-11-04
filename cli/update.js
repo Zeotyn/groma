@@ -15,7 +15,7 @@ export default async function update({ project, flags, io, say }) {
   const data = loadData();
   const file = join(project, CONFIG);
   if (!existsSync(file)) {
-    io.stderr.write(`${CONFIG} not found: run npx groma init first\n`);
+    io.stderr.write(`${CONFIG} not found: run npx groma-cli init first\n`);
     return EXIT.error;
   }
   const text = readFileSync(file, 'utf8');

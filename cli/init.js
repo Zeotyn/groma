@@ -117,14 +117,14 @@ export function pendingSummary(say, setup, script) {
   const byReason = new Map();
   for (const e of setup.pending) byReason.set(e.reason, new Set([...(byReason.get(e.reason) ?? []), e.label]));
   for (const [reason, labels] of byReason) say(`Pending:     ${[...labels].join(', ')} (${reason})`);
-  if (script) say(`Pending:     review and run sh ${script}, or let npx groma update run them`);
+  if (script) say(`Pending:     review and run sh ${script}, or let npx groma-cli update run them`);
   for (const c of setup.postInstall) say(`Then:        run ${c} inside your agent`);
 }
 
 export default async function init({ project, flags, io, say }) {
   const data = loadData();
   if (existsSync(join(project, CONFIG))) {
-    io.stderr.write(`${CONFIG} exists: this project is initialized. Run: npx groma update\n`);
+    io.stderr.write(`${CONFIG} exists: this project is initialized. Run: npx groma-cli update\n`);
     return EXIT.error;
   }
   const type = projectType(project);

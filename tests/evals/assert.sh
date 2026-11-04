@@ -109,7 +109,7 @@ case "$FX" in
     check "/groma installed nothing itself: steps.skills still pending" has "$P/.groma/config.yaml" '^  skills: *pending'
     check "/groma installed nothing itself: no second install script" sh -c "! ls '$P'/.groma/install-*.sh >/dev/null 2>&1"
     check "generated skill copies untouched" sh -c "node '$ROOT/bin/groma.js' doctor '$P' | grep -q 'generated files: ok'"
-    check "next action recommends npx groma update" sh -c "tail -n 20 '${M%.manifest}.log' | grep -q 'npx groma update'"
+    check "next action recommends npx groma-cli update" sh -c "tail -n 20 '${M%.manifest}.log' | grep -q 'npx groma-cli update'"
     ;;
   go-no-db)
     check "data model not applicable" has "$P/docs/data-model.md" 'not applicable'

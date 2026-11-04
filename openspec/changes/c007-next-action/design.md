@@ -65,7 +65,7 @@ Alternatives: hard-code per-agent logic in groma-agents (rejected: ADR 0004); su
 ## Risks / Trade-offs
 
 - [CLI hook formats change] → the adapter data in one table plus a structure check. `experimental` entries are marked untested.
-- [Short form loses detail] → the long form is one command away (`npx groma next`).
+- [Short form loses detail] → the long form is one command away (`npx groma-cli next`).
 - [Status-line refresh runs `git status` often] → the cache keeps hits cheap. `git status --porcelain` is the floor, measured on large repos in task 2.4.
 - [A wrong rung order annoys] → the order is a table, tested, and documented in the ADR for D2.
 

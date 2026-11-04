@@ -24,7 +24,7 @@ Users and agents lose track of what comes next. Examples: a change sits at "all 
   - `spike` (copilot)
   - `experimental` (gemini, codex)
   - `none` (cursor)
-- **Fallback everywhere:** an AGENTS.md line and the CLI command `npx groma next`.
+- **Fallback everywhere:** an AGENTS.md line and the CLI command `npx groma-cli next`.
 - **Spike first:** does Copilot CLI's `agentStop` output reach the user without starting another turn? The result sets copilot's adapter status.
 
 ## Capabilities

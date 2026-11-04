@@ -6,7 +6,7 @@ v0.2 makes setup deterministic: a terminal command installs everything a project
 
 Milestone only; behavior is specified in the child changes.
 
-**Goal:** `npx groma@0.2.0 init` works in an empty and in an existing project for Claude Code and Copilot, `groma` is published on npm, all test levels green.
+**Goal:** `npx groma-cli@0.2.1 init` works in an empty and in an existing project for Claude Code and Copilot, `groma-cli` is published on npm, all test levels green.
 
 **Scope:**
 - In: everything specified in `c003-groma-cli`, `f001-freshness-adrs`, `c004-living-docs`, `f002-status-milestone-gates` and `f003-freshness-reviewed`.

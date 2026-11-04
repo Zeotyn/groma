@@ -24,7 +24,7 @@ Use whatever is available, in this order: survey results (from groma-survey in t
    - architecture: from the survey's code map, with real paths as evidence and a Mermaid context diagram. If the diagrams skill from the config (for example archify) is installed, offer an interactive diagram in addition.
    - data-model: from the survey's data-model draft, tags kept. No persistent data: `Not applicable: <reason>`.
    - risks: high and medium survey findings that are real risks or debt.
-   Set frontmatter `last_reviewed` to today, `status: draft`, `review_after_days` from `docs.review_after_days` (default 90), and `sources` to the code paths the doc describes.
+   Set frontmatter `last_reviewed` to today, `status: draft`, `review_after_days` from `docs.review_after_days` (default 90), and `sources` to the code and config paths the doc describes. Never list other docs or paths inside change folders (`openspec/changes/`): they move on archive. Link the ADR instead.
 
 3. **ADRs.** When `<project>/docs/adr/` has no `0001-*` or `0002-*` and no ADR exists anywhere else, create `0001-record-architecture-decisions.md` and `0002-adopt-groma-docs-structure.md` from `templates/docs/adr/`. When ADRs exist elsewhere, keep them there and number new ones after the highest found. Write `<project>/docs/adr/README.md` if absent, listing **every** ADR (groma's, proposed ones from the survey, and found ones with their path).
 

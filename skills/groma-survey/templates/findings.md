@@ -19,14 +19,14 @@ Read-only survey of `{{project_name}}`. No pre-existing file was changed. Severi
 | Project type | {{project_type}} ({{signals}}) |
 | Code map | {{code_map: graphify / repomix / degraded (file tree only)}} |
 | ADRs | {{adr_count}} found, {{adr_proposed}} proposed |
-| Docs | {{docs_found}} found, {{docs_stale}} stale, {{docs_missing}} missing |
+| Docs | {{docs_found}} found, {{docs_stale}} stale, {{docs_broken}} broken sources, {{docs_missing}} missing |
 | Data model | {{data_model_level: highest source level used}}, {{drift_count}} drift findings |
 
 ## Findings
 
 | # | Severity | Area | Finding | Evidence | Suggested action |
 |---|---|---|---|---|---|
-| 1 | {{severity}} | {{area}} | {{finding}} | {{evidence: paths, dates}} | {{action}} |
+| 1 | {{severity}} | {{area}} | {{finding}} | {{evidence: paths, dates}} | {{action: for broken sources "fix `sources` in frontmatter"}} |
 
 ## ADRs found
 

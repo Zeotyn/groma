@@ -20,6 +20,6 @@ Optional slots (only when listed in `docs.optional` of `.groma/config.yaml`): `c
 - `{{today}}`: current date, `YYYY-MM-DD`.
 - `{{owner}}`: `git config user.name`, else `TBD`.
 - `{{project_name}}`: from config, else the folder name.
-- `{{sources}}`: comma-separated code paths the doc describes (from the survey), else leave the list empty.
+- `{{sources}}`: comma-separated code and config paths the doc describes (from the survey), else leave the list empty. Never docs paths or change folders such as `openspec/changes/`.
 - `{{name: hint}}`: replace with real content following the hint. Unknown content: write `Not yet documented.`; in tables, drop the placeholder row and add `| Not yet documented. | | |` only if the table would be empty.
 - `{{status:<slot>}}`, `{{reviewed:<slot>}}` in the index: the slot doc's frontmatter `status` and `last_reviewed`, or `-` for docs without frontmatter.

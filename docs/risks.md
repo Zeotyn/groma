@@ -4,7 +4,7 @@ status: draft
 last_reviewed: 2026-11-04
 review_after_days: 60
 owner: Eugen Waldschmidt
-sources: [openspec/changes/c001-groma-suite/design.md, skills/groma-skills/catalog.yaml, docs/_groma/findings-2026-11-04.md]
+sources: [skills/groma-skills/catalog.yaml, tests/invariant/, install.sh, gemini-extension.json, .claude-plugin/, .codex-plugin/, .cursor-plugin/, CHANGELOG.md]
 ---
 
 # Risks and technical debt

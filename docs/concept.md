@@ -4,7 +4,7 @@ status: draft
 last_reviewed: 2026-11-04
 review_after_days: 120
 owner: Eugen Waldschmidt
-sources: [skills/, openspec/changes/c001-groma-suite/design.md]
+sources: [skills/]
 ---
 
 # Concept

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Report stale documentation. Read-only.
 #
-# Usage: freshness.sh [dir] [--docs <docs-dir>] [--today YYYY-MM-DD]
+# Usage: freshness.sh [dir] [--docs <docs-dir>] [--today YYYY-MM-DD] [--adr-days <n>]
 #
 # A doc is stale when
 #   (a) frontmatter last_reviewed + review_after_days lies before today, or
@@ -9,22 +9,31 @@
 #       than the newest commit touching the doc, or
 #   (c) without `sources`: the newest commit touching any non-Markdown file
 #       outside the docs dir is newer than the doc.
+# Sources inside the docs dir are ignored; if none remain, only (a) applies.
+# ADRs (<docs>/adr/*) skip (b) and (c): an ADR with `status: proposed` whose
+# `date` (else last commit) is more than --adr-days (default 30) old is stale.
+# A doc is broken when a source does not exist or lies under a change folder
+# (CHANGE_DIRS below), which moves on archive.
 #
-# Output, one line per doc, tab-separated:
+# Output, one line per doc, tab-separated (priority broken > stale > fresh):
+#   broken<TAB><doc><TAB><broken paths>[; <stale reason>]
 #   stale<TAB><doc><TAB><reason>
 #   fresh<TAB><doc>
 #   unknown<TAB><doc><TAB><reason>
-# followed by: summary<TAB>stale=<n><TAB>fresh=<n><TAB>unknown=<n>
+# followed by: summary<TAB>stale=<n><TAB>fresh=<n><TAB>unknown=<n><TAB>broken=<n>
 # Exit code 0 even when stale docs exist (it is a report, not a gate).
 set -eu
 
 DIR=.
 DOCS=docs
 TODAY=$(date -u +%Y-%m-%d)
+ADR_DAYS=30
+CHANGE_DIRS=openspec/changes/
 while [ $# -gt 0 ]; do
   case "$1" in
     --docs) DOCS=$2; shift 2 ;;
     --today) TODAY=$2; shift 2 ;;
+    --adr-days) ADR_DAYS=$2; shift 2 ;;
     -*) echo "unknown option: $1" >&2; exit 2 ;;
     *) DIR=$1; shift ;;
   esac
@@ -97,12 +106,12 @@ fm_sources() {
     }' "$1"
 }
 
-stale=0 fresh=0 unknown=0
+stale=0 fresh=0 unknown=0 broken=0
 today_days=$(days "$TODAY")
 code_epoch=""
 
 if [ ! -d "$DOCS" ]; then
-  printf 'summary%sstale=0%sfresh=0%sunknown=0\n' "$TAB" "$TAB" "$TAB"
+  printf 'summary%sstale=0%sfresh=0%sunknown=0%sbroken=0\n' "$TAB" "$TAB" "$TAB" "$TAB"
   exit 0
 fi
 
@@ -121,14 +130,38 @@ while IFS= read -r doc; do
   fi
 
   doc_t=$(last_commit "$doc")
-  if [ "$in_git" -eq 1 ] && [ "$doc_t" -eq 0 ]; then
-    if [ -z "$reasons" ]; then
+  bad="" has_src=0 srcs=""
+  case "$doc" in "$DOCS"/adr/*) is_adr=1 ;; *) is_adr=0 ;; esac
+  if [ "$is_adr" -eq 0 ]; then
+    for s in $(fm_sources "$doc"); do
+      has_src=1
+      case "$s" in "$DOCS" | "$DOCS"/*) continue ;; esac
+      if [ ! -e "$s" ]; then
+        bad=${bad:+"$bad; "}"source missing: $s"
+      else
+        case "$s" in
+          "$CHANGE_DIRS"*) bad=${bad:+"$bad; "}"source in change folder: $s" ;;
+          *) srcs="$srcs $s" ;;
+        esac
+      fi
+    done
+  fi
+
+  if [ "$is_adr" -eq 1 ]; then
+    if [ "$(fm_get "$doc" status)" = proposed ]; then
+      since=$(fm_get "$doc" date)
+      [ -z "$since" ] && [ "$doc_t" -gt 0 ] && since=$(ymd "$doc_t")
+      if [ -n "$since" ] && [ $((today_days - $(days "$since"))) -gt "$ADR_DAYS" ]; then
+        reasons=${reasons:+"$reasons; "}"proposed since $since, accept or reject"
+      fi
+    fi
+  elif [ "$in_git" -eq 1 ] && [ "$doc_t" -eq 0 ]; then
+    if [ -z "$reasons" ] && [ -z "$bad" ]; then
       unknown=$((unknown + 1))
       printf 'unknown%s%s%snot committed yet\n' "$TAB" "$doc" "$TAB"
       continue
     fi
   elif [ "$in_git" -eq 1 ]; then
-    srcs=$(fm_sources "$doc")
     if [ -n "$srcs" ]; then
       newest=0 newest_src=""
       for s in $srcs; do
@@ -139,7 +172,7 @@ while IFS= read -r doc; do
         r="code changed: $newest_src on $(ymd "$newest"), doc last changed $(ymd "$doc_t")"
         reasons=${reasons:+"$reasons; "}$r
       fi
-    else
+    elif [ "$has_src" -eq 0 ]; then
       if [ -z "$code_epoch" ]; then
         code_epoch=$(last_commit . ":(exclude)$DOCS" ":(exclude)*.md")
       fi
@@ -150,7 +183,10 @@ while IFS= read -r doc; do
     fi
   fi
 
-  if [ -n "$reasons" ]; then
+  if [ -n "$bad" ]; then
+    broken=$((broken + 1))
+    printf 'broken%s%s%s%s\n' "$TAB" "$doc" "$TAB" "$bad${reasons:+; $reasons}"
+  elif [ -n "$reasons" ]; then
     stale=$((stale + 1))
     printf 'stale%s%s%s%s\n' "$TAB" "$doc" "$TAB" "$reasons"
   else
@@ -159,4 +195,4 @@ while IFS= read -r doc; do
   fi
 done < "${TMPDIR:-/tmp}/groma-fresh.$$"
 
-printf 'summary%sstale=%d%sfresh=%d%sunknown=%d\n' "$TAB" "$stale" "$TAB" "$fresh" "$TAB" "$unknown"
+printf 'summary%sstale=%d%sfresh=%d%sunknown=%d%sbroken=%d\n' "$TAB" "$stale" "$TAB" "$fresh" "$TAB" "$unknown" "$TAB" "$broken"

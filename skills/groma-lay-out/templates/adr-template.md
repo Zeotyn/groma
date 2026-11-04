@@ -7,7 +7,7 @@ consulted: {{consulted}}
 informed: {{informed}}
 # groma extension: files that show this decision in the code (required for retroactive ADRs)
 evidence: [{{evidence}}]
-# groma extension: the change decision this ADR records, <change>#D<n>; omit when none
+# groma extension: the change decision this ADR records, <change>#D<n>; delete this line when there is none
 origin: {{origin}}
 ---
 

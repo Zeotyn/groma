@@ -24,6 +24,6 @@ A skill suite (Markdown skills + POSIX shell scripts) that initializes other pro
 - Artifacts, skills and docs are written in English.
 - Skill folder names start with `groma-` (except the orchestrator `groma`), and the SKILL.md `name` equals the folder name.
 - Stack-specific knowledge goes into `references/*.md` tables, never into skill logic.
-- Never write code that edits or deletes existing files in a target project. Writes go to new paths, `.groma/` or `docs/_groma/` only.
+- Never write code that edits or deletes existing files in a target project. Writes go to new paths, `.groma/` or `docs/_groma/` only. Exception: doc and ADR edits that groma-loop and groma-lay-out make inside a user's change are authored work of that change (ADR 0025).
 - Scripts never connect to databases and never print credentials.
 - Keep every manifest version and `skills/groma/VERSION` equal. While a release is prepared, `CHANGELOG.md` collects it under `[Unreleased]`; the release renames that section to the version.

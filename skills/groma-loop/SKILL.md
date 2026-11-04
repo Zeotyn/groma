@@ -34,10 +34,10 @@ Announce each step as `<Phase> · <unit> · round N of M`.
 
 **Verify.** Run the methodology's verify step, then one review round on its report and the full diff. Critical verify issues count as high findings. **Docs gate** (`docs.gate` is `review` or `strict`, and groma-lay-out is installed): run `sh ../groma-lay-out/scripts/docs-impact.sh --root <project> <change-dir>` and add every `impact` and `adr` line as a high finding of that round. Answer an `impact` finding by updating the doc or by adding a task line `Docs: <path> unchanged, because <reason>`; answer an `adr` finding by writing the proposed ADR (groma-lay-out, "ADR candidates from a change").
 
-**Archive.** `gated`: wait for approval. `strict`: run `docs-impact.sh --gate` first; exit 4 → escalate with the report instead of archiving. Then archive with spec sync, followed by the **docs sync** (skip it when `docs.gate` is `off`), editing only docs that the change created or modified:
+**Archive.** `gated`: wait for approval. `strict`: run `docs-impact.sh --gate` first; exit 4 → escalate with the report instead of archiving (groma-lay-out missing: skip the check and say so). Before archiving, list the change's docs: `git diff --name-only <base> -- docs/` plus `git ls-files --others --exclude-standard -- docs/`, where `<base>` is the parent of the commit that added `<change-dir>/proposal.md` (`HEAD` when that commit does not exist). Then archive with spec sync, followed by the **docs sync** (skip it when `docs.gate` is `off`). These edits are authored work inside the user's change, like its code, not setup writes; they touch only the docs on that list:
 1. Every ADR in `<project>/docs/adr/` with `origin: <change>#…` and `status: proposed` → `status: accepted`.
-2. `last_reviewed` → today in every doc under `<project>/docs/` that the change modified (`git diff --name-only <base>`, base as in docs-impact.sh).
-3. Add missing ADRs to `docs/adr/README.md` with their status.
+2. `last_reviewed` → today in every listed doc that has the key.
+3. In `docs/adr/README.md`, set the status cell of each ADR accepted in step 1 to `accepted`, and add a row for every listed ADR still missing.
 4. Run `sh ../groma-methodology/scripts/roadmap.sh --root <project>` when groma-methodology is installed.
 
 ## Review round

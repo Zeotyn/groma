@@ -6,6 +6,10 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `freshness.sh` no longer reports docs as stale when their sources changed on the day of `last_reviewed` (fix F003). A source commit now counts only when it is newer than the doc and falls on a later day; the stale reason names `last_reviewed`. Docs without `last_reviewed` behave as before.
+
 ## [0.2.1] - 2026-11-04
 
 ### Fixed

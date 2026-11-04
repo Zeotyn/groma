@@ -30,7 +30,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 
 - **Additive writes.** groma creates files only at free paths plus `.groma/` and `docs/_groma/`. Proposed edits to existing files become snippets in the findings report.
 - **Pending instead of failing.** Installs that cannot run go into `.groma/install.sh` and the step is marked `pending`.
-- **Freshness.** Every generated doc has `last_reviewed`, `review_after_days` and `sources`; `freshness.sh` compares them with git history.
+- **Freshness.** Every generated doc has `last_reviewed`, `review_after_days` and `sources`; `freshness.sh` compares them with git history. A source commit makes a doc stale only when it is newer than the doc and falls on a day after `last_reviewed`, so a review covers the commits of its own day.
 - **Living docs.** Every change updates the docs whose `sources` it touches and records design decisions with alternatives as ADRs (`origin: <change>#D<n>`). `docs-impact.sh` reports what is missing; `docs.gate` (`off`, `remind`, `review`, `strict`) sets how hard groma-loop enforces it. A doc may be exempted with a task line `Docs: <path> unchanged, because <reason>`.
 - **No credentials.** Scripts never connect to databases and never print secrets.
 

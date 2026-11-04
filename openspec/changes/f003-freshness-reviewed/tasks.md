@@ -9,6 +9,8 @@
 
 ## 3. Docs
 
-- [ ] 3.1 `docs/concept.md` freshness paragraph; proposed ADR for D1 with `origin: f003-freshness-reviewed#D1`; ADR index
-- [ ] 3.2 CHANGELOG `[Unreleased]`: Fixed entry
+- [x] 3.1 `docs/concept.md` freshness paragraph; proposed ADR for D1 with `origin: f003-freshness-reviewed#D1`; ADR index
+- [x] 3.2 CHANGELOG `[Unreleased]`: Fixed entry
+- [x] Docs: docs/glossary.md unchanged, because its Freshness entry ("from frontmatter and git dates") still holds; the other paths come from F004 and release commits
+- [x] Docs: docs/vision.md unchanged, because README.md changed in F004 and release commits, not in this change
 - [ ] 3.3 Run `freshness.sh .` on this repository and record the result here; expected: architecture, concept, data-model and glossary fresh

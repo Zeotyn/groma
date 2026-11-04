@@ -44,6 +44,11 @@ if [ "$FX" = loop-openspec ]; then
   check "tests pass" sh -c "cd '$P' && node --test >/dev/null 2>&1"
   check "all tasks ticked" sh -c "! grep -q '^- \[ \]' '$arch/tasks.md'"
   check "reviewer recorded" grep -rqi "reviewer: claude:sonnet" "$arch/reviews"
+  # docs gate: the change adds src/farewell.js but plans no doc update
+  check "docs finding for docs/architecture.md in a review record" \
+    sh -c "grep -h '^| *R[0-9]' '$arch'/reviews/*-round-*.md | grep -q 'docs/architecture.md'"
+  check "docs impact closed (doc updated or Docs: task line)" \
+    sh -c "grep -qi farewell '$P/docs/architecture.md' || grep -q 'Docs: .*docs/architecture.md.* unchanged, because .' '$arch/tasks.md'"
   [ "$fails" -eq 0 ]
   exit
 fi

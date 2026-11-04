@@ -17,6 +17,8 @@ skills:
 docs:
   review_after_days: 90
   optional: []
+  gate: review
+  adr_from: design-alternatives
 conventions:
   changes:
     enabled: true

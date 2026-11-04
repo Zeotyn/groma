@@ -24,7 +24,7 @@
 - [x] 4.2 ADRs for C002 D1–D6 (`accepted`, `origin: c002-review-loop#Dn`), proposed ADRs for C003 D1–D7, ADRs for C004 D1–D5
 - [x] 4.3 `docs/architecture.md`, `docs/concept.md`, `docs/glossary.md`: groma-loop, lifecycle reminders, living docs; ADR index
 - [x] 4.4 `docs-impact.sh --gate openspec/changes/c004-living-docs` exits 0
-- [ ] 4.5 Eval: loop eval asserts a docs finding when a fixture change skips its doc update
+- [x] 4.5 Eval: loop eval asserts a docs finding when a fixture change skips its doc update
 
 ## 5. Docs
 

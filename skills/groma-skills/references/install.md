@@ -2,7 +2,7 @@
 
 All installs are **project scope**: the skill is active in this project only. Pin every install to the catalog `ref`.
 
-Command templates, agent ids and touched paths live in [../../groma/agents.yaml](../../groma/agents.yaml), shared with the `groma` CLI. The `groma` CLI (`npx groma init`) produces the same commands from the same data.
+Command templates, agent ids and touched paths live in [../../groma/agents.yaml](../../groma/agents.yaml), shared with the `groma` CLI. If that file is missing, the groma skill is not installed: tell the user to run `npx groma init` (or `npx skills add Zeotyn/groma --skill groma`) and stop the install step. The `groma` CLI (`npx groma init`) produces the same commands from the same data.
 
 ## Building the commands
 

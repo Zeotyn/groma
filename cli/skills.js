@@ -58,6 +58,8 @@ export function planSkills({ project, agents, data, generated, force = false }) 
         } else if (!(path in known)) {
           plan.conflicts.push(path);
           continue;
+        } else if (hashOf(project, path) === hash) {
+          // already the new content
         } else if (hashOf(project, path) !== known[path] && !force) {
           plan.edited.push(path);
           plan.records[path] = known[path];
@@ -70,10 +72,14 @@ export function planSkills({ project, agents, data, generated, force = false }) 
     }
   }
 
-  // generated files the suite no longer ships (or agents no longer selected)
+  // Generated files the suite no longer ships. Only paths inside a selected
+  // agent's groma* skill folders qualify; other records are carried over.
+  const dirs = agents.map((a) => `${data.agents.agents[a].skills_dir}/`);
+  const ours = (path) => !path.split('/').includes('..') && dirs.some((d) => path.startsWith(d) && /^groma[^/]*\/./.test(path.slice(d.length)));
   for (const [path, hash] of Object.entries(known)) {
     if (path in plan.records || !existsSync(join(project, path))) continue;
-    if (hashOf(project, path) === hash) plan.removals.push(path);
+    if (!ours(path)) plan.records[path] = hash;
+    else if (hashOf(project, path) === hash) plan.removals.push(path);
     else { plan.edited.push(path); plan.records[path] = hash; }
   }
   return plan;

@@ -88,7 +88,8 @@ export async function main(argv, io = defaultIo()) {
     return await mod.default(ctx);
   } catch (e) {
     if (e instanceof UsageError) { fail(e.message); return EXIT.usage; }
-    throw e;
+    fail(`groma: ${e.message}`);
+    return EXIT.error;
   }
 }
 

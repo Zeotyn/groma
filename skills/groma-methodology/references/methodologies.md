@@ -6,9 +6,9 @@ Commands, detection paths, prerequisites, agent-id mappings, touched paths and d
 
 1. **Already present:** any `detect` path exists → do not run init; the step is done.
 2. **Prerequisites:** every command in `requires` must be on PATH; otherwise the step is pending.
-3. **Command:** replace `{agents}` in `init` with the `agent_ids` of the configured agents (agents without an id are dropped), joined by `separator` (default `,`). `agents: first` uses only the first configured agent.
+3. **Command:** replace `{agents}` in `init` with the `agent_ids` of the configured agents (agents without an id are dropped), joined by `separator` (default `,`). `agents: first` uses only the first configured agent. When no agent maps to an id, do not run init: the step is pending and the summary says which agents are unsupported.
 4. **Ask first:** when a `touches` path already exists, ask the user once before running. `interactive: true` means the command needs a person at the terminal: hand it over via `.groma/install.sh`.
-5. **Link to docs:** only when this run created `docs_link.file`, append `docs_link.append` to it. For a file that existed before, put the text into the findings report as a snippet.
+5. **Link to docs:** only when this run created `docs_link.file`, append `docs_link.append` to it. When the file existed before, or already has a top-level key the text adds (`context:`, `rules:`), put the text into the findings report as a snippet instead.
 
 Never pass overwrite flags such as `--force`.
 

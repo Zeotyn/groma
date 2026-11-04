@@ -73,3 +73,21 @@ test('no agents: only custom installs remain', () => {
   const lines = skillSteps({ ...recommended, agents: [] }, data).flatMap((s) => s.commands);
   assert.deepEqual(lines, ['uv tool install graphifyy==0.9.102 && graphify install']);
 });
+
+test("agents: first takes the first configured agent, even without an id", () => {
+  assert.equal(methodologyStep('spec-kit', ['claude', 'cursor'], data).command.includes('--integration claude'), true);
+});
+
+test("'*' entries touch any existing skill folder; claude paths only for claude", () => {
+  const onlyCopilot = skillSteps({ ...recommended, agents: ['copilot'] }, data);
+  const ponytail = onlyCopilot.find((s) => s.skill === 'ponytail');
+  assert.deepEqual(ponytail.touches, ['skills-lock.json', '.agents/skills/*']);
+  const withClaude = skillSteps(recommended, data).find((s) => s.skill === 'anti-ai-slop-writing');
+  assert.deepEqual(withClaude.touches, ['skills-lock.json', '.agents/skills/*', '.claude/skills/*']);
+});
+
+test('a plugin entry without claude installs through npx only', () => {
+  const steps = skillSteps({ ...recommended, agents: ['copilot'] }, data).filter((s) => s.skill === 'superpowers');
+  assert.equal(steps.length, 1);
+  assert.match(steps[0].commands[0], /^npx --yes skills@1\.7\.6 add .*superpowers.* -a github-copilot -y$/);
+});

@@ -103,3 +103,18 @@ for (const [flags, msg] of [
     await assert.rejects(resolve({ ...flags, yes: true }), (e) => e instanceof UsageError && msg.test(e.message));
   });
 }
+
+test('an explicit skill in a category that does not apply is a usage error', async () => {
+  await assert.rejects(resolve({ skills: 'impeccable', yes: true }), /impeccable needs --ui yes/);
+  assert.equal((await resolve({ skills: 'impeccable', ui: 'yes', yes: true })).answers.skills.design, 'impeccable');
+});
+
+test('a workflow id in --skills points at --workflow', async () => {
+  await assert.rejects(resolve({ skills: 'superpowers', yes: true }), /use --workflow superpowers/);
+});
+
+for (const flags of [{ methodology: '' }, { workflow: '' }, { agents: '' }, { skills: '' }]) {
+  test(`empty flag value ${JSON.stringify(flags)} is a usage error`, async () => {
+    await assert.rejects(resolve({ ...flags, yes: true }), (e) => e instanceof UsageError);
+  });
+}

@@ -96,3 +96,11 @@ test('no pending commands, no install script', () => {
   assert.equal(writeInstallScript(p, [], '2026-11-04'), null);
   assert.ok(!existsSync(join(p, '.groma')));
 });
+
+test("a bare '*' ignores groma's own skill folders", () => {
+  const p = tmp();
+  write(p, '.claude/skills/groma-survey/SKILL.md');
+  assert.deepEqual(existingTouches(p, ['.claude/skills/*']), []);
+  write(p, '.claude/skills/brainstorming/SKILL.md');
+  assert.deepEqual(existingTouches(p, ['.claude/skills/*']), ['.claude/skills/*']);
+});

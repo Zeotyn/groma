@@ -102,3 +102,38 @@ test('an unchanged copy needs no write', () => {
   const plan = planSkills({ project: p, agents: ['claude'], data, generated: readGenerated(p) });
   assert.equal(plan.writes.length, 0);
 });
+
+test('deselecting an agent keeps its copies and their records', () => {
+  const p = tmp();
+  materialize(p, ['claude', 'copilot']);
+  const plan = materialize(p, ['claude']);
+  assert.deepEqual(plan.removals, []);
+  assert.ok(existsSync(join(p, '.github/skills/groma/SKILL.md')));
+  assert.ok('.github/skills/groma/SKILL.md' in readGenerated(p).files);
+});
+
+test('records outside groma skill folders are never deleted', () => {
+  const p = tmp();
+  materialize(p, ['claude']);
+  const gen = readGenerated(p);
+  write(p, 'package.json', '{}');
+  write(p, '.claude/skills/other/SKILL.md', 'x');
+  gen.files['package.json'] = sha256(Buffer.from('{}'));
+  gen.files['.claude/skills/other/SKILL.md'] = sha256(Buffer.from('x'));
+  gen.files['.claude/skills/groma/../../../package.json'] = sha256(Buffer.from('{}'));
+  write(p, '.groma/generated.json', JSON.stringify(gen));
+  const plan = materialize(p, ['claude']);
+  assert.deepEqual(plan.removals, []);
+  assert.ok(existsSync(join(p, 'package.json')) && existsSync(join(p, '.claude/skills/other/SKILL.md')));
+});
+
+test('a file already holding the new content is not reported as edited', () => {
+  const p = tmp();
+  materialize(p, ['claude']);
+  const gen = readGenerated(p);
+  gen.files['.claude/skills/groma/SKILL.md'] = sha256(Buffer.from('stale record'));
+  write(p, '.groma/generated.json', JSON.stringify(gen));
+  const plan = materialize(p, ['claude']);
+  assert.deepEqual(plan.edited, []);
+  assert.equal(readGenerated(p).files['.claude/skills/groma/SKILL.md'], sha256(readFileSync(join(p, '.claude/skills/groma/SKILL.md'))));
+});

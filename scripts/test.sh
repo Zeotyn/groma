@@ -49,7 +49,9 @@ run_cli() {
   npm pack --dry-run --json --silent | node -e '
     let s = ""; process.stdin.on("data", d => s += d).on("end", () => {
       const files = JSON.parse(s)[0].files.map(f => f.path);
-      const need = ["bin/groma.js", "cli/main.js", "skills/groma/SKILL.md", "skills/groma/agents.yaml", "package.json"];
+      const need = ["bin/groma.js", "cli/main.js", "package.json", "skills/groma/SKILL.md", "skills/groma/VERSION",
+        "skills/groma/agents.yaml", "skills/groma/templates/config.yaml", "skills/groma-skills/catalog.yaml",
+        "skills/groma-methodology/methodologies.yaml"];
       const bad = need.filter(f => !files.includes(f))
         .concat(files.filter(f => /^(tests|openspec|scripts|docs|cli\/test)\//.test(f)));
       if (bad.length) { console.error("package contents wrong:", bad.join(", ")); process.exit(1); }

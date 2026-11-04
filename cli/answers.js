@@ -22,11 +22,15 @@ function oneOf(value, allowed, what) {
 }
 
 // Category picks from --skills; returns { category: value } for every category given.
-function skillsFromFlag(flag, categories) {
+function skillsFromFlag(flag, categories, workflowIds) {
   const picks = {};
   const ids = flag === 'recommended' || flag === 'none' ? [] : list(flag);
+  if (!ids.length && flag !== 'recommended' && flag !== 'none') throw new UsageError('--skills needs recommended, none or a list of ids');
   const known = Object.values(categories).flatMap((c) => c.options);
-  for (const id of ids) oneOf(id, known, 'skill');
+  for (const id of ids) {
+    if (workflowIds.includes(id) && !known.includes(id)) throw new UsageError(`'${id}' is a workflow layer: use --workflow ${id}`);
+    oneOf(id, known, 'skill');
+  }
   for (const [cid, c] of Object.entries(categories)) {
     let v;
     if (flag === 'recommended') v = c.recommended;
@@ -61,6 +65,7 @@ export async function resolveAnswers({ flags, data, project, home, projectType, 
   let agentsFlag;
   if (flags.agents !== undefined) {
     agentsFlag = flags.agents === 'all' ? agentIds : flags.agents === 'none' ? [] : list(flags.agents).map((a) => oneOf(a, agentIds, 'agent'));
+    if (!agentsFlag.length && flags.agents !== 'none') throw new UsageError('--agents needs a list, all or none');
   }
   const agents = await answer({
     key: 'agents', text: 'Which agents does this project use?', select: 'multi',
@@ -73,12 +78,12 @@ export async function resolveAnswers({ flags, data, project, home, projectType, 
     key: 'methodology', text: 'Spec methodology?', select: 'single',
     options: methodologyIds.map((m) => opt(m, '')),
     recommended: detectMethodology(project, data.methodologies) ?? 'openspec',
-  }, flags.methodology && oneOf(flags.methodology, methodologyIds, 'methodology'));
+  }, flags.methodology === undefined ? undefined : oneOf(flags.methodology, methodologyIds, 'methodology'));
 
   const workflow = await answer({
     key: 'workflow', text: `Workflow layer? ${workflowCat.description}`, select: 'single',
     options: workflowCat.options.map((o) => opt(o)), recommended: workflowCat.recommended,
-  }, flags.workflow && oneOf(flags.workflow, workflowCat.options, 'workflow'));
+  }, flags.workflow === undefined ? undefined : oneOf(flags.workflow, workflowCat.options, 'workflow'));
 
   if (flags.ui !== undefined) oneOf(flags.ui, ['yes', 'no'], '--ui value');
   const ui = await answer({
@@ -87,11 +92,18 @@ export async function resolveAnswers({ flags, data, project, home, projectType, 
   }, flags.ui);
   const hasUi = ui === 'yes';
 
-  const fromFlag = flags.skills !== undefined ? skillsFromFlag(flags.skills, skillCats) : {};
+  const fromFlag = flags.skills !== undefined ? skillsFromFlag(flags.skills, skillCats, workflowCat.options) : {};
   const skills = {};
   for (const [cid, c] of Object.entries(skillCats)) {
     const applies = !c.condition || (c.condition === 'has_ui' ? hasUi : c.condition === projectType);
-    if (!applies) { skills[cid] = c.select === 'multi' ? ['none'] : 'none'; continue; }
+    if (!applies) {
+      const asked = [fromFlag[cid] ?? []].flat().filter((v) => v !== 'none');
+      if (asked.length && !['recommended', 'none'].includes(flags.skills)) {
+        throw new UsageError(`${asked.join(', ')} needs ${c.condition === 'has_ui' ? '--ui yes' : `a ${c.condition} project`}`);
+      }
+      skills[cid] = c.select === 'multi' ? ['none'] : 'none';
+      continue;
+    }
     skills[cid] = await answer({
       key: `skills.${cid}`, text: `${cid[0].toUpperCase()}${cid.slice(1)}: ${c.description}`, select: c.select,
       options: c.options.map((o) => opt(o)), recommended: c.recommended,

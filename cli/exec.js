@@ -14,8 +14,9 @@ export function existingTouches(project, touches = []) {
   return touches.filter((t) => {
     if (!t.endsWith('*')) return existsSync(join(project, t));
     const dir = join(project, dirname(t));
+    // a bare '*' means any entry except groma's own skill folders
     const prefix = basename(t).slice(0, -1);
-    return existsSync(dir) && readdirSync(dir).some((n) => n.startsWith(prefix));
+    return existsSync(dir) && readdirSync(dir).some((n) => n.startsWith(prefix) && (prefix || !n.startsWith('groma')));
   });
 }
 

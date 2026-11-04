@@ -9,7 +9,7 @@ Milestone only; behavior is specified in the child changes.
 **Goal:** On the node-prisma and python-django fixtures, `/groma` produces `docs/code-style.md` with tool table and inferred conventions; on a greenfield TypeScript project it creates `.editorconfig`, Prettier and ESLint configs after the interview; groma-loop runs the style checks before review and integrates by the configured git strategy without merge commits by default. `v0.3.0` tagged, all test levels green.
 
 **Scope:**
-- In: everything specified in `c005-code-style` and `c006-git-workflow`.
+- In: everything specified in `c005-code-style`, `c006-git-workflow` and `c007-next-action`.
 - Out: running project linters during the read-only survey; editing existing build files to add style tools; style rules for prose.
 
 **Child changes:**
@@ -18,6 +18,7 @@ Milestone only; behavior is specified in the child changes.
 |---|---|---|
 | C005 | `c005-code-style` | active |
 | C006 | `c006-git-workflow` | active (after C005) |
+| C007 | `c007-next-action` | active (after C006) |
 
 ## Capabilities
 

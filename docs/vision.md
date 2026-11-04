@@ -4,7 +4,7 @@ status: draft
 last_reviewed: 2026-11-04
 review_after_days: 180
 owner: Eugen Waldschmidt
-sources: [README.md, openspec/changes/c001-groma-suite/proposal.md]
+sources: [README.md]
 ---
 
 # Vision

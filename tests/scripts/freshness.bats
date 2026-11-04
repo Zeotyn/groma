@@ -205,3 +205,14 @@ FRESH="$ROOT/skills/groma-survey/scripts/freshness.sh"
   run sh "$FRESH" "$D" --today 2025-02-02
   assert_output_contains "broken	docs/a.md	source missing: gone.txt; code changed: src/ on 2025-02-01, doc last changed 2025-01-01"
 }
+
+@test "the change folder itself is a valid source" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs" "$D/openspec/changes/c002-y"
+  printf -- '---\nsources: [openspec/changes/]\n---\n' > "$D/docs/roadmap.md"
+  echo d > "$D/openspec/changes/c002-y/design.md"
+  commit_at "$D" 2025-01-01 init
+  run sh "$FRESH" "$D" --today 2025-01-02
+  assert_output_contains "fresh	docs/roadmap.md"
+}

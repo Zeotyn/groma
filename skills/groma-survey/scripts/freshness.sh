@@ -140,7 +140,7 @@ while IFS= read -r doc; do
         bad=${bad:+"$bad; "}"source missing: $s"
       else
         case "$s" in
-          "$CHANGE_DIRS"*) bad=${bad:+"$bad; "}"source in change folder: $s" ;;
+          "$CHANGE_DIRS"?*) bad=${bad:+"$bad; "}"source in change folder: $s" ;;
           *) srcs="$srcs $s" ;;
         esac
       fi

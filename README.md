@@ -1,4 +1,12 @@
-# groma
+<p align="center">
+  <img src="assets/groma-logo.svg" alt="groma: Survey. Align. Build." width="640">
+</p>
+
+<p align="center">
+  <a href="https://github.com/Zeotyn/groma/actions/workflows/test.yml"><img src="https://github.com/Zeotyn/groma/actions/workflows/test.yml/badge.svg" alt="test"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-D7AD69" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/agents-Claude%20Code%20%C2%B7%20Copilot%20%C2%B7%20Gemini%20%C2%B7%20Cursor%20%C2%B7%20Codex-8EC8C2" alt="agents">
+</p>
 
 > The Roman *groma* was the surveying instrument used to lay out a new town before anyone built on it. **groma** does the same for software projects: it surveys what is there, lays out the docs, and sets up your methodology and skills before the first line of new code.
 
@@ -13,6 +21,14 @@ groma is an open-source skill suite for AI coding agents. Run `/groma` in an emp
 7. Write one `AGENTS.md` that every agent reads.
 
 Re-run `/groma` at any time. It only adds what is missing and reports what went stale.
+
+**Survey. Align. Build.**
+
+| | groma does | with |
+|---|---|---|
+| **Survey** | reads what exists, changes nothing | `groma-detect`, `groma-survey` |
+| **Align** | lays out docs, ADRs, methodology, skills and one `AGENTS.md` | `groma-lay-out`, `groma-methodology`, `groma-skills`, `groma-agents` |
+| **Build** | runs every change through a review loop with a second model | `groma-loop` |
 
 ## Install
 

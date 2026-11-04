@@ -12,6 +12,7 @@ context: |
   Hard constraints: never modify, move or delete existing files in a target project;
   never connect to databases; stack-agnostic via reference tables, no per-language code.
   All artifacts are written in English.
+  Product truth lives in docs/ (start at docs/README.md). Read the relevant docs and ADRs before writing artifacts.
 
 rules:
   proposal:

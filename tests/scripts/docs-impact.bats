@@ -137,3 +137,45 @@ ADR: yes/' "$CH/design.md" && rm "$CH/design.md.bak"
   sh "$DI" --root "$P" openspec/changes/c007-cache >/dev/null
   [ -z "$(git -C "$P" status --porcelain)" ]
 }
+
+# --- review round 1 -----------------------------------------------------------------
+
+@test "unknown --base exits 2" {
+  di --base nosuchref --gate openspec/changes/c007-cache
+  [ "$status" -eq 2 ]
+}
+
+@test "project in a subfolder of the repository" {
+  M="$BATS_TEST_TMPDIR/mono"
+  make_repo "$M"
+  cp -R "$P/." "$M/app" && rm -rf "$M/app/.git"
+  commit_at "$M" 2026-10-20 import
+  echo "// more" >> "$M/app/src/cache.js"
+  printf -- '- [x] 1.1 x\n' > "$M/app/openspec/changes/c007-cache/tasks.md"
+  run sh "$DI" --root "$M/app" --base HEAD openspec/changes/c007-cache
+  assert_output_contains "impact	docs/architecture.md	src/cache.js"
+}
+
+@test "paths with spaces and glob characters" {
+  mkdir -p "$P/src/my dir"
+  echo x > "$P/src/my dir/a b.js"
+  echo x > "$P/src/*"
+  di openspec/changes/c007-cache
+  assert_output_contains "src/my dir/a b.js"
+  assert_output_not_contains "docs/data-model.md"
+}
+
+@test "a rename reports the old location too" {
+  git -C "$P" mv src/db/schema.sql src/schema.sql
+  di openspec/changes/c007-cache
+  assert_output_contains "impact	docs/data-model.md	src/db/schema.sql"
+}
+
+@test "Docs: lines count only as task lines" {
+  echo 'Docs: docs/architecture.md unchanged, because prose' >> "$CH/tasks.md"
+  di openspec/changes/c007-cache
+  assert_output_contains "impact	docs/architecture.md"
+  echo '- [ ] Docs: ./docs/architecture.md unchanged, because internal' >> "$CH/tasks.md"
+  di openspec/changes/c007-cache
+  assert_output_not_contains "impact	docs/architecture.md"
+}

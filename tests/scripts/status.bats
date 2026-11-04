@@ -154,3 +154,25 @@ docs_setup() { # doc with sources [src/], change c007-cache proposed later, then
   assert_output_not_contains "ADR 0010"
   assert_output_not_contains "ADR 0012"
 }
+
+@test "done, docs clean, decision without ADR: ADR reminder" {
+  docs_setup
+  echo "Updated." >> "$P/docs/architecture.md"
+  printf '### D1: Use Redis\nAlternatives: a map.\n' > "$C/c007-cache/design.md"
+  commit_at "$P" 2026-11-03 design
+  run sh "$ST" --root "$P" --today 2026-11-04
+  assert_output_contains "c007-cache  2/2 tasks → write a proposed ADR for c007-cache#D1"
+}
+
+@test "quoted values and trailing spaces in config and ADRs" {
+  docs_setup
+  mkdir -p "$P/.groma" "$P/docs/adr" "$C/archive/2026-10-01-c006-old"
+  printf 'docs:  \n  gate: "off"\n' > "$P/.groma/config.yaml"
+  run sh "$ST" --root "$P" --today 2026-11-04
+  assert_output_contains "c007-cache  2/2 tasks → verify, then archive"
+  printf 'docs:\n  gate: review\n' > "$P/.groma/config.yaml"
+  printf -- '- [x] 1\n' > "$C/archive/2026-10-01-c006-old/tasks.md"
+  printf -- '---\nstatus: "proposed"\norigin: "c006-old#D1"\n---\n' > "$P/docs/adr/0003-x.md"
+  run sh "$ST" --root "$P" --today 2026-11-04
+  assert_output_contains "ADR 0003 still proposed (c006-old archived)"
+}

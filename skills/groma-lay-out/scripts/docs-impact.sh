@@ -58,10 +58,18 @@ if [ -z "$BASE" ]; then
     # root commit has no parent: compare with the empty tree
     BASE=$(git rev-parse -q --verify "$added^" || git hash-object -t tree /dev/null)
   fi
+elif ! git rev-parse -q --verify "$BASE^{commit}" >/dev/null; then
+  echo "unknown base: $BASE" >&2; exit 2
 fi
 
-CHANGED=$( { git diff --name-only "$BASE" --; git ls-files --others --exclude-standard; } \
-  | grep -v "^$REL/" | LC_ALL=C sort -u || true)
+# newline-separated lists from here on: no word splitting on spaces, no globbing
+set -f
+NL='
+'
+IFS=$NL
+CHANGED=$( { git -c core.quotePath=false diff --relative --no-renames --name-only "$BASE" -- .
+  git -c core.quotePath=false ls-files --others --exclude-standard; } | LC_ALL=C sort -u)
+CHANGED=$(printf '%s\n' "$CHANGED" | grep -v "^$REL/" || true)
 
 # frontmatter value for key, empty if absent
 fm_get() {
@@ -103,10 +111,10 @@ cfg_docs() {
   echo "${v:-$2}"
 }
 
-# paths cleared by a justified Docs: line
+# paths cleared by a justified Docs: task line
 EXEMPT=""
 # shellcheck disable=SC2016 # backticks are literal: the path may be written as `path`
-[ -f "$CHANGE/tasks.md" ] && EXEMPT=$(sed -n 's/.*Docs: `\{0,1\}\([^ `]*\)`\{0,1\} unchanged, because ..*/\1/p' "$CHANGE/tasks.md")
+[ -f "$CHANGE/tasks.md" ] && EXEMPT=$(sed -n 's/^[[:space:]]*- \[[ xX]\] Docs: `\{0,1\}\([^ `]*\)`\{0,1\} unchanged, because ..*/\1/p' "$CHANGE/tasks.md" | sed 's#^\./##')
 
 impact=0 adr=0
 if [ -d "$DOCS" ] && [ -n "$CHANGED" ]; then
@@ -118,12 +126,12 @@ if [ -d "$DOCS" ] && [ -n "$CHANGED" ]; then
       s=${s#./}; s=${s%/}
       case "$s" in "$DOCS" | "$DOCS"/*) continue ;; esac
       for p in $CHANGED; do
-        case "$p" in "$s" | "$s"/*) case " $hits " in *" $p "*) ;; *) hits="${hits:+$hits }$p" ;; esac ;; esac
+        case "$p" in "$s" | "$s"/*) hits="$hits$p$NL" ;; esac
       done
     done
     if [ -n "$hits" ]; then
       impact=$((impact + 1))
-      printf 'impact%s%s%s%s\n' "$TAB" "$doc" "$TAB" "$(printf '%s\n' "$hits" | tr ' ' '\n' | LC_ALL=C sort | tr '\n' ' ' | sed 's/ $//')"
+      printf 'impact%s%s%s%s\n' "$TAB" "$doc" "$TAB" "$(printf '%s' "$hits" | LC_ALL=C sort -u | tr '\n' ' ' | sed 's/ $//')"
     fi
   done
 fi
@@ -133,7 +141,7 @@ if [ "$MODE" != off ] && [ -f "$CHANGE/design.md" ]; then
   # decisions that need an ADR: id<TAB>title
   needs=$(awk -v mode="$MODE" '
     function flush() { if (id != "" && need) printf "%s\t%s\n", id, title; id = ""; need = 0 }
-    /^#{1,3}[ \t]/ { flush() }
+    /^##?#?[ \t]/ { flush() }
     /^###[ \t]+D[0-9]+([:. \t]|$)/ {
       l = $0; sub(/^###[ \t]+/, "", l); match(l, /^D[0-9]+/); id = substr(l, 1, RLENGTH); title = substr(l, RLENGTH + 1)
       sub(/^[:. \t]+/, "", title); sub(/[ \t]+$/, "", title); next
@@ -142,7 +150,8 @@ if [ "$MODE" != off ] && [ -f "$CHANGE/design.md" ]; then
     id != "" && mode == "marked" && /^ADR:[ \t]*yes[ \t]*$/ { need = 1 }
     END { flush() }' "$CHANGE/design.md")
   origins=""
-  [ -d "$DOCS/adr" ] && for a in "$DOCS"/adr/*.md; do
+  # shellcheck disable=SC2044 # IFS is a newline and globbing is off
+  [ -d "$DOCS/adr" ] && for a in $(find "$DOCS/adr" -type f -name "*.md"); do
     [ -f "$a" ] && origins="$origins $(fm_get "$a" origin)"
   done
   while IFS="$TAB" read -r id title; do

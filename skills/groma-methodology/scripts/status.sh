@@ -36,10 +36,10 @@ cfg_value() { # key default [section]
   [ -f "$ROOT/.groma/config.yaml" ] && v=$(awk -v k="$1" -v sec="${3:-reminders}" '
     function ind(s) { match(s, /^ */); return RLENGTH }
     /^[ ]*#/ || /^[ ]*$/ { next }
-    { i = ind($0); l = $0; sub(/^ */, "", l); sub(/[ ]+#.*/, "", l)
+    { i = ind($0); l = $0; sub(/^ */, "", l); sub(/[ ]+#.*/, "", l); sub(/[ \t]+$/, "", l)
       if (inr && i == 0) inr = 0
       if (l == sec ":" && i == 0) { inr = 1; next }
-      if (inr && index(l, k ":") == 1) { sub(/^[^:]*:[ ]*/, "", l); print l; exit } }' "$ROOT/.groma/config.yaml")
+      if (inr && index(l, k ":") == 1) { sub(/^[^:]*:[ ]*/, "", l); gsub(/["\047]/, "", l); print l; exit } }' "$ROOT/.groma/config.yaml")
   echo "${v:-$2}"
 }
 ARCHIVE_WHEN_DONE=$(cfg_value archive_when_done true)
@@ -129,7 +129,7 @@ if [ "$DOCS_GATE" != off ] && [ -d "$ROOT/docs/adr" ]; then
   archived=" $(list_changes "$DIR" | awk -F "$TAB" '$2 == "archive" { printf "%s ", $1 }')"
   for adr in "$ROOT"/docs/adr/[0-9]*.md; do
     [ -f "$adr" ] || continue
-    fm=$(awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } NR > 1' "$adr")
+    fm=$(awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } NR > 1' "$adr" | tr -d "\"'")
     printf '%s\n' "$fm" | grep -q '^status:[[:space:]]*proposed[[:space:]]*$' || continue
     origin=$(printf '%s\n' "$fm" | sed -n 's/^origin:[[:space:]]*\([^#[:space:]]*\)#.*/\1/p')
     [ -n "$origin" ] || continue

@@ -22,7 +22,8 @@ inst() { sh "$ROOT/install.sh" --source "$ROOT" --home "$H" "$@"; }
   inst >/dev/null
   run inst
   [ "$status" -eq 0 ]
-  assert_output_contains "linked 0, copied 0, already installed 14, conflicts 0"
+  n=$(find "$ROOT/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
+  assert_output_contains "linked 0, copied 0, already installed $((n * 2)), conflicts 0"
 }
 
 @test "foreign skill with same name is a conflict, kept, exit non-zero" {

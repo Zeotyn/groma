@@ -25,7 +25,7 @@ Paths below are relative to this skill folder unless they start with `<project>`
 
 4. **Docs harvest.** List every Markdown doc outside code folders (README, `docs/`, `doc/`, wiki folders, arc42 folders). Map each to a groma doc slot (vision, concept, architecture, data model, glossary, risks, ADR) using `../groma-lay-out/references/doc-slots.md` when available.
 
-5. **Freshness.** Run `sh scripts/freshness.sh <project>` (add `--docs <dir>` for docs outside `docs/`). Every `stale` line becomes a finding with its reason (dates, or the open ADR proposal). Every `broken` line becomes a finding with the listed paths and the action "fix `sources` in frontmatter". Done when every doc from step 4 has fresh, stale, broken or unknown.
+5. **Freshness.** Run `sh scripts/freshness.sh <project>` (add `--docs <dir>` for docs outside `docs/`). Every `stale` line becomes a finding with its reason (dates, or the open ADR proposal). Every `broken` line becomes a finding with the listed paths and the action "fix `sources` in frontmatter"; a stale reason after `; ` on that line goes into the same finding. Done when every doc from step 4 has fresh, stale, broken or unknown.
 
 6. **Data model.** Apply [references/data-sources.md](references/data-sources.md) top-down. Draft entities and relationships with `EXTRACTED`/`INFERRED` tags and source paths; record every disagreement between levels as drift. No sources and the project has a database: offer the dump script, never connect yourself.
 

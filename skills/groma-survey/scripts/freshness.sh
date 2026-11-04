@@ -13,7 +13,7 @@
 # ADRs (<docs>/adr/*) skip (b) and (c): an ADR with `status: proposed` whose
 # `date` (else last commit) is more than --adr-days (default 30) old is stale.
 # A doc is broken when a source does not exist or lies under a change folder
-# (CHANGE_DIRS below), which moves on archive.
+# (CHANGE_DIRS below), which moves on archive; its archive/ folder is stable.
 #
 # Output, one line per doc, tab-separated (priority broken > stale > fresh):
 #   broken<TAB><doc><TAB><broken paths>[; <stale reason>]
@@ -39,6 +39,8 @@ while [ $# -gt 0 ]; do
   esac
 done
 [ -d "$DIR" ] || { echo "not a directory: $DIR" >&2; exit 2; }
+case "$ADR_DAYS" in '' | *[!0-9]*) echo "--adr-days needs a number: $ADR_DAYS" >&2; exit 2 ;; esac
+DOCS=${DOCS#./}; DOCS=${DOCS%/}
 cd "$DIR"
 
 TAB=$(printf '\t')
@@ -84,7 +86,7 @@ fm_get() {
     NR > 1 && $0 == "---" { exit }
     NR > 1 {
       if (index($0, k ":") == 1) {
-        v = substr($0, length(k) + 2); gsub(/^[ \t"]+|[ \t"]+$/, "", v); print v; exit
+        v = substr($0, length(k) + 2); gsub(/^[ \t"'\'']+|[ \t"'\'']+$/, "", v); print v; exit
       }
     }' "$1"
 }
@@ -134,12 +136,13 @@ while IFS= read -r doc; do
   case "$doc" in "$DOCS"/adr/*) is_adr=1 ;; *) is_adr=0 ;; esac
   if [ "$is_adr" -eq 0 ]; then
     for s in $(fm_sources "$doc"); do
-      has_src=1
+      has_src=1 s=${s#./}
       case "$s" in "$DOCS" | "$DOCS"/*) continue ;; esac
       if [ ! -e "$s" ]; then
         bad=${bad:+"$bad; "}"source missing: $s"
       else
         case "$s" in
+          "$CHANGE_DIRS"archive/*) srcs="$srcs $s" ;;
           "$CHANGE_DIRS"?*) bad=${bad:+"$bad; "}"source in change folder: $s" ;;
           *) srcs="$srcs $s" ;;
         esac
@@ -150,6 +153,7 @@ while IFS= read -r doc; do
   if [ "$is_adr" -eq 1 ]; then
     if [ "$(fm_get "$doc" status)" = proposed ]; then
       since=$(fm_get "$doc" date)
+      case "$since" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) since="" ;; esac
       [ -z "$since" ] && [ "$doc_t" -gt 0 ] && since=$(ymd "$doc_t")
       if [ -n "$since" ] && [ $((today_days - $(days "$since"))) -gt "$ADR_DAYS" ]; then
         reasons=${reasons:+"$reasons; "}"proposed since $since, accept or reject"

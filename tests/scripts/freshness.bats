@@ -216,3 +216,53 @@ FRESH="$ROOT/skills/groma-survey/scripts/freshness.sh"
   run sh "$FRESH" "$D" --today 2025-01-02
   assert_output_contains "fresh	docs/roadmap.md"
 }
+
+@test "--docs with trailing slash or ./ prefix keeps ADR and docs-source rules" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs/adr"
+  printf -- '---\nstatus: accepted\n---\n' > "$D/docs/adr/0001-a.md"
+  printf -- '---\nsources: [docs/]\n---\n' > "$D/docs/README.md"
+  echo 1 > "$D/docs/vision.md"; echo 1 > "$D/app.py"
+  commit_at "$D" 2025-01-01 init
+  echo 2 > "$D/docs/vision.md"; echo 2 > "$D/app.py"
+  commit_at "$D" 2025-02-01 later
+  for opt in docs/ ./docs; do
+    run sh "$FRESH" "$D" --docs "$opt" --today 2025-02-02
+    assert_output_contains "fresh	docs/adr/0001-a.md"
+    assert_output_contains "fresh	docs/README.md"
+  done
+}
+
+@test "ADR date in single quotes and invalid date fall back correctly" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs/adr"
+  printf -- "---\nstatus: proposed\ndate: '2026-10-30'\n---\n" > "$D/docs/adr/0009-a.md"
+  printf -- '---\nstatus: proposed\ndate: TBD\n---\n' > "$D/docs/adr/0010-b.md"
+  commit_at "$D" 2026-10-30 init
+  run sh "$FRESH" "$D" --today 2026-11-04
+  assert_output_contains "fresh	docs/adr/0009-a.md"
+  assert_output_contains "fresh	docs/adr/0010-b.md"
+  run sh "$FRESH" "$D" --today 2026-12-31
+  assert_output_contains "stale	docs/adr/0009-a.md	proposed since 2026-10-30"
+  assert_output_contains "stale	docs/adr/0010-b.md	proposed since 2026-10-30"
+}
+
+@test "non-numeric --adr-days is rejected" {
+  run sh "$FRESH" "$BATS_TEST_TMPDIR" --adr-days abc
+  [ "$status" -eq 2 ]
+}
+
+@test "archived change paths are valid sources; ./ change paths are broken" {
+  D="$BATS_TEST_TMPDIR/p"
+  make_repo "$D"
+  mkdir -p "$D/docs" "$D/openspec/changes/archive/c001-x" "$D/openspec/changes/c002-y"
+  echo d > "$D/openspec/changes/archive/c001-x/design.md"; echo d > "$D/openspec/changes/c002-y/design.md"
+  printf -- '---\nsources: [openspec/changes/archive/c001-x/design.md]\n---\n' > "$D/docs/a.md"
+  printf -- '---\nsources: [./openspec/changes/c002-y/design.md]\n---\n' > "$D/docs/b.md"
+  commit_at "$D" 2025-01-01 init
+  run sh "$FRESH" "$D" --today 2025-01-02
+  assert_output_contains "fresh	docs/a.md"
+  assert_output_contains "broken	docs/b.md	source in change folder: openspec/changes/c002-y/design.md"
+}

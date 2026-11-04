@@ -195,6 +195,58 @@ def validate_catalog(data: dict, label: str) -> None:
                 err(f"{where}: recommended '{r}' is not an option")
 
 
+REQUIRED_FIELDS = {
+    ".claude-plugin/plugin.json": ["name", "version", "description"],
+    ".codex-plugin/plugin.json": ["name", "version", "description"],
+    ".cursor-plugin/plugin.json": ["name", "version", "description"],
+    "gemini-extension.json": ["name", "version", "description"],
+}
+
+
+def check_manifests(root: Path = ROOT) -> None:
+    """Required fields of every shipped manifest and the marketplace."""
+    names = set()
+    for rel, fields in REQUIRED_FIELDS.items():
+        p = root / rel
+        if not p.is_file():
+            err(f"{rel}: missing")
+            continue
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            err(f"{rel}: invalid JSON ({e})")
+            continue
+        for f in fields:
+            if not isinstance(data.get(f), str) or not data[f].strip():
+                err(f"{rel}: required field '{f}' missing or empty")
+        if data.get("name"):
+            names.add(data["name"])
+    if len(names) > 1:
+        err(f"manifests use different plugin names: {sorted(names)}")
+    mp = root / ".claude-plugin" / "marketplace.json"
+    if not mp.is_file():
+        err(".claude-plugin/marketplace.json: missing")
+        return
+    try:
+        data = json.loads(mp.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        err(f".claude-plugin/marketplace.json: invalid JSON ({e})")
+        return
+    if not data.get("name"):
+        err(".claude-plugin/marketplace.json: required field 'name' missing")
+    if not (data.get("owner") or {}).get("name"):
+        err(".claude-plugin/marketplace.json: required field 'owner.name' missing")
+    plugins = data.get("plugins") or []
+    if not plugins:
+        err(".claude-plugin/marketplace.json: 'plugins' must list at least one plugin")
+    for i, entry in enumerate(plugins):
+        for f in ("name", "source"):
+            if not entry.get(f):
+                err(f".claude-plugin/marketplace.json: plugins[{i}].{f} missing")
+        if names and entry.get("name") and entry["name"] not in names:
+            err(f".claude-plugin/marketplace.json: plugins[{i}].name '{entry['name']}' does not match plugin.json name")
+
+
 def check_versions(root: Path = ROOT) -> None:
     versions: dict[str, str] = {}
     for m in MANIFESTS:
@@ -236,6 +288,7 @@ CHECKS = {
     "links": check_links,
     "published": check_published_skills,
     "catalog": check_catalog,
+    "manifests": check_manifests,
     "versions": check_versions,
 }
 

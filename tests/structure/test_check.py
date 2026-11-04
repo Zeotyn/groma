@@ -120,3 +120,30 @@ def test_changelog_unreleased_only_is_fine(tmp_path):
     write(tmp_path / "CHANGELOG.md", "## [Unreleased]\n")
     check.check_versions(tmp_path)
     assert check.errors == []
+
+
+def write_manifests(root, **overrides):
+    base = {"name": "groma", "version": "0.1.0", "description": "d"}
+    for rel in check.REQUIRED_FIELDS:
+        write(root / rel, json.dumps({**base, **overrides.get(rel, {})}))
+    mp = overrides.get("marketplace", {"name": "groma", "owner": {"name": "o"}, "plugins": [{"name": "groma", "source": "./"}]})
+    write(root / ".claude-plugin/marketplace.json", json.dumps(mp))
+
+
+def test_valid_manifests_pass(tmp_path):
+    write_manifests(tmp_path)
+    check.check_manifests(tmp_path)
+    assert check.errors == []
+
+
+def test_manifest_missing_description(tmp_path):
+    write_manifests(tmp_path, **{"gemini-extension.json": {"description": ""}})
+    check.check_manifests(tmp_path)
+    assert any("gemini-extension.json: required field 'description'" in e for e in check.errors)
+
+
+def test_marketplace_plugin_needs_source_and_matching_name(tmp_path):
+    write_manifests(tmp_path, marketplace={"name": "groma", "owner": {"name": "o"}, "plugins": [{"name": "other"}]})
+    check.check_manifests(tmp_path)
+    assert any("plugins[0].source missing" in e for e in check.errors)
+    assert any("does not match plugin.json name" in e for e in check.errors)

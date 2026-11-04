@@ -80,10 +80,23 @@ EOF
   assert_output_contains "VIOLATION	add-dark-mode	suggest c001-dark-mode"
 }
 
-@test "check normalizes uppercase input" {
+@test "check normalizes uppercase input and keeps a free number" {
   change C4-Export
   run sh "$S/check-conventions.sh" --root "$P"
-  assert_output_contains "VIOLATION	C4-Export	suggest c001-export"
+  assert_output_contains "VIOLATION	C4-Export	suggest c004-export"
+}
+
+@test "check falls back to the next free number when the wanted one is taken" {
+  change c004-other; change c005-more; change C4-Export
+  run sh "$S/check-conventions.sh" --root "$P"
+  assert_output_contains "VIOLATION	C4-Export	suggest c006-export"
+}
+
+@test "two violations never get the same suggestion" {
+  change fix-login; change fix-logout
+  run sh "$S/check-conventions.sh" --root "$P"
+  assert_output_contains "suggest f001-login"
+  assert_output_contains "suggest f002-logout"
 }
 
 @test "baseline exempts pre-existing changes" {
@@ -98,7 +111,14 @@ EOF
   mkdir -p "$C/archive/2026-09-01-c005-beta"
   run sh "$S/check-conventions.sh" --root "$P"
   [ "$status" -eq 1 ]
-  assert_output_contains "DUPLICATE	c005	c005-alpha c005-beta"
+  assert_output_contains "DUPLICATE	c005	c005-alpha c005-beta	keep c005-beta, rename c005-alpha to c006-alpha"
+}
+
+@test "duplicate active changes: the later created one is renamed" {
+  change c005-first; printf 'created: 2026-01-01\n' > "$C/c005-first/.openspec.yaml"
+  change c005-second; printf 'created: 2026-02-01\n' > "$C/c005-second/.openspec.yaml"
+  run sh "$S/check-conventions.sh" --root "$P"
+  assert_output_contains "keep c005-first, rename c005-second to c006-second"
 }
 
 @test "roadmap shows milestone progress and children" {

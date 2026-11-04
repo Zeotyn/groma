@@ -1,6 +1,6 @@
 {
   "name": "groma",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Lays out a project before you build: greenfield/brownfield detection, methodology setup, skill catalog, docs/ with ADRs, read-only survey, AGENTS.md.",
   "author": { "name": "groma contributors" },
   "license": "MIT",

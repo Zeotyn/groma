@@ -6,6 +6,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-04
+
 ### Fixed
 
 - `status.sh` no longer says "nothing open" while work is open (fix F002): a milestone with open tasks and no active child gets `gate: <first open task>`, and uncommitted files and commits on the main branch not yet on its upstream get one line each, from local git state only. Turn the new lines off with `reminders.uncommitted` and `reminders.unpushed`.

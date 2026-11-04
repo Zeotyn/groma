@@ -27,8 +27,20 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 
 - Goal: `npx groma@0.2.0 init` works in an empty and in an existing project for Claude Code and Copilot, `groma` is published on npm, all test levels green.
 - Status: active
-- Progress: 0/1 done
+- Progress: 0/3 done
 
 | Id | Change | Status |
 |---|---|---|
 | C003 | `c003-groma-cli` | active |
+| C004 | `c004-living-docs` | active |
+| F001 | `f001-freshness-adrs` | active |
+
+## M003 v0-3
+
+- Goal: On the node-prisma and python-django fixtures, `/groma` produces `docs/code-style.md` with tool table and inferred conventions; on a greenfield TypeScript project it creates `.editorconfig`, Prettier and ESLint configs after the interview; groma-loop runs the style checks before review. `v0.3.0` tagged, all test levels green.
+- Status: active
+- Progress: 0/1 done
+
+| Id | Change | Status |
+|---|---|---|
+| C005 | `c005-code-style` | active |

@@ -179,3 +179,34 @@ ADR: yes/' "$CH/design.md" && rm "$CH/design.md.bak"
   di openspec/changes/c007-cache
   assert_output_not_contains "impact	docs/architecture.md"
 }
+
+# --- base on a change branch (C006) ---------------------------------------------------
+
+@test "on the change branch the base is the merge base with main" {
+  git -C "$P" switch -q -c c007-cache
+  git -C "$P" switch -q main
+  echo "-- on main" >> "$P/src/db/schema.sql"
+  commit_at "$P" 2026-10-20 "main schema"
+  git -C "$P" switch -q c007-cache
+  echo "// on the branch" >> "$P/src/cache.js"
+  commit_at "$P" 2026-10-21 "branch cache"
+  di openspec/changes/c007-cache
+  [ "$status" -eq 0 ]
+  assert_output_contains "note	on branch c007-cache, comparing with its merge base with main"
+  assert_output_contains "impact	docs/architecture.md	src/cache.js"
+  assert_output_not_contains "docs/data-model.md"
+}
+
+@test "a branch with another name falls back to the proposal commit" {
+  git -C "$P" switch -q -c wip
+  di openspec/changes/c007-cache
+  assert_output_not_contains "note	on branch"
+  assert_output_contains "impact	docs/architecture.md	src/cache.js"
+}
+
+@test "--base wins over the merge base" {
+  git -C "$P" switch -q -c c007-cache
+  di --base HEAD openspec/changes/c007-cache
+  assert_output_not_contains "note	on branch"
+  assert_output_contains "summary	impact=0"
+}

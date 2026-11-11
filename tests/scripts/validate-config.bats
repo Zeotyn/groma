@@ -257,3 +257,60 @@ YAML
   [ "$status" -eq 1 ]
   assert_output_contains "docs.adr_from must be design-alternatives, marked or off, got 'marke', did you mean marked?"
 }
+
+# --- git workflow (C006) -------------------------------------------------------------
+
+add_git() {
+  cat >> "$C" <<'YAML'
+git:
+  integrate: rebase
+  branch_per_change: true
+  commits: conventional
+  push: ask
+YAML
+}
+
+@test "git defaults validate" {
+  add_git
+  run sh "$V" "$C" --catalog "$CAT"
+  [ "$status" -eq 0 ]
+  assert_output_contains "summary	errors=0	warnings=0"
+}
+
+@test "typo in git.integrate reports line and closest value" {
+  add_git
+  sed -i.bak 's/integrate: rebase/integrate: rebsae/' "$C"
+  ln=$(grep -n 'integrate:' "$C" | cut -d: -f1)
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "error	line $ln	git.integrate must be rebase, merge or squash, got 'rebsae', did you mean rebase?"
+}
+
+@test "git.commits and git.push reject unknown values with the closest value" {
+  add_git
+  sed -i.bak -e 's/commits: conventional/commits: conventionl/' -e 's/push: ask/push: nevr/' "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "git.commits must be conventional or free, got 'conventionl', did you mean conventional?"
+  assert_output_contains "git.push must be ask, auto or never, got 'nevr', did you mean never?"
+}
+
+@test "git.branch_per_change must be a boolean" {
+  add_git
+  sed -i.bak 's/branch_per_change: true/branch_per_change: yes/' "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "git.branch_per_change must be true or false, got 'yes'"
+}
+
+@test "every git strategy and push policy validates" {
+  for s in rebase merge squash; do
+    for p in ask auto never; do
+      cp "$C" "$C.base"
+      printf 'git:\n  integrate: %s\n  push: %s\n  commits: free\n  branch_per_change: false\n' "$s" "$p" >> "$C"
+      run sh "$V" "$C"
+      [ "$status" -eq 0 ]
+      mv "$C.base" "$C"
+    done
+  done
+}

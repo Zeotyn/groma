@@ -242,3 +242,70 @@ def test_openspec_docs_link_has_living_docs_rules():
     assert any("## Docs impact" in r for r in rules["proposal"])
     assert any("Docs: <path> unchanged, because" in r for r in rules["tasks"])
     assert any("Alternatives" in r for r in rules["design"])
+
+
+def good_code_style_table() -> str:
+    return textwrap.dedent("""\
+        # Tools
+
+        | Stack | Tool | Role | Config patterns | Check | Fix | Install | Template | Default |
+        |---|---|---|---|---|---|---|---|---|
+        | all | EditorConfig | format | `.editorconfig` | | | | `editorconfig/.editorconfig` | yes |
+        | Python | Ruff | format, lint | `ruff.toml`, `pyproject.toml#[tool.ruff]` | `ruff check .` | `ruff format .` | `uv add --dev ruff` | `ruff/ruff.toml` | yes |
+        | Python | Black | format | `pyproject.toml#[tool.black]` | `black --check .` | `black .` | `uv add --dev black` | | no |
+
+        ## Where checks run
+
+        | Kind | Pattern |
+        |---|---|
+        | file | `.github/workflows/*.yml` |
+        | package-scripts | `package.json` |
+        """)
+
+
+def write_code_style_templates(tmp_path: Path) -> Path:
+    t = tmp_path / "templates"
+    write(t / "editorconfig/.editorconfig", "root = true\n")
+    write(t / "ruff/ruff.toml", "line-length = 100\n")
+    return t
+
+
+def test_valid_code_style_table_passes(tmp_path):
+    check.validate_code_style_table(good_code_style_table(), "t", write_code_style_templates(tmp_path))
+    assert check.errors == []
+
+
+def test_code_style_table_needs_exact_columns(tmp_path):
+    text = good_code_style_table().replace("| Install |", "| Installer |")
+    check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
+    assert any("columns must be" in e for e in check.errors)
+
+
+def test_code_style_two_defaults_per_stack_and_role(tmp_path):
+    text = good_code_style_table().replace("`uv add --dev black` | | no |", "`uv add --dev black` | | yes |")
+    check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
+    assert any("stack 'Python' role 'format' needs exactly one default" in e for e in check.errors)
+
+
+def test_code_style_missing_default_for_stack_and_role(tmp_path):
+    text = good_code_style_table().replace("`ruff/ruff.toml` | yes |", "`ruff/ruff.toml` | no |")
+    check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
+    assert any("role 'lint' needs exactly one default, has none" in e for e in check.errors)
+
+
+def test_code_style_template_must_exist(tmp_path):
+    text = good_code_style_table().replace("`ruff/ruff.toml`", "`ruff/missing.toml`")
+    check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
+    assert any("template 'ruff/missing.toml' not found" in e for e in check.errors)
+
+
+def test_code_style_unknown_role(tmp_path):
+    text = good_code_style_table().replace("| format, lint |", "| style |")
+    check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
+    assert any("role must be one or more of" in e for e in check.errors)
+
+
+def test_code_style_locations_table_required(tmp_path):
+    text = good_code_style_table().split("## Where checks run")[0]
+    check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
+    assert any("where checks run" in e for e in check.errors)

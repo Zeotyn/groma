@@ -20,7 +20,7 @@ F() { echo "$BATS_FILE_TMPDIR/f/$1"; }
 @test "node-prisma is brownfield with JavaScript and package.json" {
   run sh "$DETECT" "$(F node-prisma)"
   assert_output_contains "project_type=brownfield"
-  assert_output_contains "signal=source files: .js (JavaScript) x1"
+  assert_output_contains "signal=source files: .js (JavaScript) x2"
   assert_output_contains "signal=manifest: package.json (Node.js)"
 }
 

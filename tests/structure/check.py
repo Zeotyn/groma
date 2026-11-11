@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Structure checks for the groma repository (test level 1).
 
-Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|versions|all]
+Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|versions|code-style|all]
 Exit code 0 when all selected checks pass, 1 otherwise.
 """
 from __future__ import annotations
@@ -326,6 +326,89 @@ def check_manifests(root: Path = ROOT) -> None:
             err(f".claude-plugin/marketplace.json: plugins[{i}].name '{entry['name']}' does not match plugin.json name")
 
 
+CODE_STYLE_TABLE = "skills/groma-lay-out/references/code-style-tools.md"
+CODE_STYLE_TEMPLATES = "skills/groma-lay-out/templates/code-style"
+CODE_STYLE_COLUMNS = ["Stack", "Tool", "Role", "Config patterns", "Check", "Fix", "Install", "Template", "Default"]
+CODE_STYLE_ROLES = {"format", "lint"}
+CHECK_LOCATION_KINDS = {"file", "package-scripts"}
+
+
+def markdown_tables(text: str) -> list[list[list[str]]]:
+    """Every pipe table in `text` as rows of stripped cells (header first, separator dropped)."""
+    tables: list[list[list[str]]] = []
+    current: list[list[str]] = []
+    for line in text.splitlines():
+        if line.startswith("|"):
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if all(re.fullmatch(r":?-+:?", c) for c in cells):
+                continue
+            current.append(cells)
+        elif current:
+            tables.append(current)
+            current = []
+    if current:
+        tables.append(current)
+    return tables
+
+
+def check_code_style_table(root: Path = ROOT) -> None:
+    """Reference table of style tools: columns, roles, one default per stack and role, templates exist."""
+    path = root / CODE_STYLE_TABLE
+    if not path.is_file():
+        err(f"{CODE_STYLE_TABLE}: missing")
+        return
+    validate_code_style_table(path.read_text(encoding="utf-8"), CODE_STYLE_TABLE, root / CODE_STYLE_TEMPLATES)
+
+
+def validate_code_style_table(text: str, label: str, templates: Path) -> None:
+    tables = markdown_tables(text)
+    tools = next((t for t in tables if t and t[0][:1] == ["Stack"]), None)
+    if tools is None:
+        err(f"{label}: no table with the columns {CODE_STYLE_COLUMNS}")
+        return
+    if tools[0] != CODE_STYLE_COLUMNS:
+        err(f"{label}: columns must be {CODE_STYLE_COLUMNS}, got {tools[0]}")
+        return
+    defaults: dict[tuple[str, str], list[str]] = {}
+    seen: set[str] = set()
+    for row in tools[1:]:
+        if len(row) != len(CODE_STYLE_COLUMNS):
+            err(f"{label}: row {row[:2]} has {len(row)} cells, expected {len(CODE_STYLE_COLUMNS)}")
+            continue
+        stack, tool, role, patterns, _check, _fix, _install, template, default = row
+        where = f"{label}: {tool}"
+        if not tool:
+            err(f"{label}: row without a tool name")
+            continue
+        if tool.lower() in seen:
+            err(f"{where}: listed twice")
+        seen.add(tool.lower())
+        roles = [r.strip() for r in role.split(",") if r.strip()]
+        if not roles or not set(roles) <= CODE_STYLE_ROLES:
+            err(f"{where}: role must be one or more of {sorted(CODE_STYLE_ROLES)}, got '{role}'")
+        if not patterns.strip("` "):
+            err(f"{where}: config patterns missing")
+        if default not in ("yes", "no"):
+            err(f"{where}: default must be 'yes' or 'no', got '{default}'")
+        for r in roles:
+            defaults.setdefault((stack, r), [])
+            if default == "yes":
+                defaults[(stack, r)].append(tool)
+        template = template.strip("`")
+        if template and not (templates / template).is_file():
+            err(f"{where}: template '{template}' not found under {templates.name}/")
+    for (stack, r), names in sorted(defaults.items()):
+        if len(names) != 1:
+            err(f"{label}: stack '{stack}' role '{r}' needs exactly one default, has {names or 'none'}")
+    locations = next((t for t in tables if t and t[0][:1] == ["Kind"]), None)
+    if locations is None:
+        err(f"{label}: no table with the columns ['Kind', 'Pattern'] (where checks run)")
+        return
+    for row in locations[1:]:
+        if len(row) < 2 or row[0] not in CHECK_LOCATION_KINDS:
+            err(f"{label}: check location {row[:2]} needs a kind in {sorted(CHECK_LOCATION_KINDS)}")
+
+
 def check_versions(root: Path = ROOT) -> None:
     versions: dict[str, str] = {}
     for m in MANIFESTS:
@@ -377,6 +460,7 @@ CHECKS = {
     "methodologies": check_methodologies,
     "manifests": check_manifests,
     "versions": check_versions,
+    "code-style": check_code_style_table,
 }
 
 

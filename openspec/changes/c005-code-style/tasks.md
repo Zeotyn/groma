@@ -19,15 +19,15 @@
 - [x] 3.5 groma-agents AGENTS.md template: pointer line and check commands
 - [x] 3.6 groma-loop SKILL and `review-prompt.md`: checks in the tests gate, doc as project rules with severities
 - [x] 3.7 `methodologies.md`: code-style context line; `upgrades.md` row 0.3.0
-- [ ] 3.8 `scripts/test.sh` green
+- [x] 3.8 `scripts/test.sh` green
 
 ## 4. Evals
 
-- [ ] 4.1 Assertions: `docs/code-style.md` exists with tools table on node-prisma, drift finding on python-django, CONTRIBUTING fills the slot on java-flyway, invariant holds on all
-- [ ] 4.2 Greenfield eval with answers file choosing TypeScript: configs and ADRs created, install command in `.groma/install.sh`
+- [x] 4.1 Assertions: `docs/code-style.md` exists with tools table on node-prisma, drift finding on python-django, CONTRIBUTING fills the slot on java-flyway, invariant holds on all
+- [x] 4.2 Greenfield eval with answers file choosing TypeScript: configs and ADRs created, install command in `.groma/install.sh`
 
 ## 5. Docs
 
-- [ ] 5.1 groma's own `docs/code-style.md` (POSIX sh, shellcheck, SC2015 rule, Markdown tables, English) and AGENTS.md pointer
-- [ ] 5.2 `docs/architecture.md`, `docs/concept.md`, `docs/glossary.md`; ADRs for D1 and D3; ADR index
-- [ ] 5.3 README: code style in the Survey/Align/Build table; CHANGELOG `[Unreleased]`
+- [x] 5.1 groma's own `docs/code-style.md` (POSIX sh, shellcheck, SC2015 rule, Markdown tables, English) and AGENTS.md pointer
+- [x] 5.2 `docs/architecture.md`, `docs/concept.md`, `docs/glossary.md`; ADRs for D1 and D3; ADR index
+- [x] 5.3 README: code style in the Survey/Align/Build table; CHANGELOG `[Unreleased]`

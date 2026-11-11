@@ -1,7 +1,7 @@
 ---
 title: Glossary
 status: draft
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-11
 review_after_days: 180
 owner: Eugen Waldschmidt
 sources: [README.md, skills/]
@@ -18,7 +18,7 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Brownfield | A folder with existing code to survey | detection | a project that already ran groma |
 | Survey | Read-only analysis of an existing project, ending in a findings report | `groma-survey` | lay-out, which writes docs |
 | Lay out | Creating or completing the `docs/` tree | `groma-lay-out` | survey |
-| Doc slot | One of eight mandatory doc roles (index, vision, concept, architecture, data model, glossary, risks, ADR) | `groma-lay-out` | a file; one existing file can fill a slot |
+| Doc slot | One of nine mandatory doc roles (index, vision, concept, architecture, data model, glossary, risks, code style, ADR) | `groma-lay-out` | a file; one existing file can fill a slot |
 | Findings report | `docs/_groma/findings-<date>.md` with severities, evidence and snippets | survey | ADRs or risks |
 | Snippet | A proposed edit to an existing file, written to the findings report instead of the file | additive writes | a patch groma applies |
 | Additive write | Creating a file only at a free path, plus `.groma/` and `docs/_groma/` | all writing skills | editing existing files |
@@ -34,3 +34,8 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Docs impact | Docs whose `sources` changed in a change while the doc did not, plus decisions without an ADR | `docs-impact.sh` | stale docs |
 | Docs gate | `docs.gate` level: `off`, `remind`, `review` (default), `strict` | config | the tests gate |
 | ADR candidate | A design decision with alternatives (or `ADR: yes`) that needs an ADR with `origin: <change>#D<n>` | living docs | an accepted ADR |
+| Code style | `docs/code-style.md`: tools table (config, check, fix), conventions, decisions | `groma-lay-out`, `groma-loop` | the rules inside a tool config, which the doc links but never copies |
+| Style tool | A formatter or linter from `code-style-tools.md`, detected by its config file or chosen in the interview | `groma-survey`, `groma-lay-out` | a catalog skill |
+| Convention | A style rule no tool enforces, tagged `EXTRACTED` (from configuration) or `INFERRED` (from a code sample) with a path | code style | a tool rule |
+| Style drift | Tracked files that disagree with `.editorconfig` on indentation, line endings, final newline or trailing whitespace | `style-drift.sh` | data-model drift |
+| Unchecked tool | A style tool with a config file whose check command runs in no CI workflow or project script | `style-drift.sh` | a missing tool |

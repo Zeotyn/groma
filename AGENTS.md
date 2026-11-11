@@ -17,6 +17,10 @@ A skill suite (Markdown skills + POSIX shell scripts) that initializes other pro
 - `scripts/test.sh evals` runs headless agent evals on fixtures (costs tokens).
 - `shellcheck -s sh` must pass for every `*.sh` (scripts/, skills/*/scripts/, tests/, install.sh, uninstall.sh).
 
+## Code style
+
+Read `docs/code-style.md` before writing code and run its check commands after each task: `scripts/test.sh structure` (structure checks and shellcheck) and `sh skills/groma-survey/scripts/style-drift.sh .` (editorconfig drift, must print `drift=0`).
+
 ## Conventions
 
 - Work through OpenSpec changes in `openspec/changes/`. Change names follow `<type><NNN>-<slug>` (`m` milestone, `c` change, `f` fix, `s` spike, `r` refactor, `d` docs). Get the next id with `skills/groma-methodology/scripts/next-change-id.sh <type>`.

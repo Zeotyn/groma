@@ -26,9 +26,9 @@ Re-run `/groma` at any time. It only adds what is missing and reports what went 
 
 | | groma does | with |
 |---|---|---|
-| **Survey** | reads what exists, changes nothing | `groma-detect`, `groma-survey` |
-| **Align** | lays out docs, ADRs, methodology, skills and one `AGENTS.md` | `groma-lay-out`, `groma-methodology`, `groma-skills`, `groma-agents` |
-| **Build** | runs every change through a review loop with a second model | `groma-loop` |
+| **Survey** | reads what exists (code, docs, ADRs, style tools and drift), changes nothing | `groma-detect`, `groma-survey` |
+| **Align** | lays out docs, ADRs, code style, methodology, skills and one `AGENTS.md` | `groma-lay-out`, `groma-methodology`, `groma-skills`, `groma-agents` |
+| **Build** | runs every change through a review loop with a second model; tests and style checks gate every review | `groma-loop` |
 
 ## Install
 

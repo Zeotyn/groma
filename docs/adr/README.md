@@ -1,7 +1,7 @@
 ---
 title: Architecture decision records
 status: current
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-11
 review_after_days: 90
 owner: Eugen Waldschmidt
 sources: [docs/adr/]
@@ -45,5 +45,7 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0028](0028-let-last-reviewed-cover-source-commits-of-that-day.md) | Let last_reviewed cover source commits up to the end of that day | accepted | 2026-11-04 |
 | [0029](0029-report-repository-state-from-local-git-only.md) | Report uncommitted and unpushed work from local git state only | accepted | 2026-11-04 |
 | [0030](0030-toggle-uncommitted-and-unpushed-reminders-separately.md) | Toggle the uncommitted and unpushed reminders separately | accepted | 2026-11-04 |
+| [0031](0031-link-tool-configs-from-the-code-style-doc.md) | Link tool configs from the code-style doc instead of restating their rules | proposed | 2026-11-11 |
+| [0032](0032-report-style-drift-statically-without-running-project-tools.md) | Report style drift statically without running project tools | proposed | 2026-11-11 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

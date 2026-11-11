@@ -1,7 +1,7 @@
 ---
 title: Documentation index
 status: current
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-11
 review_after_days: 90
 owner: Eugen Waldschmidt
 sources: [docs/]
@@ -19,6 +19,7 @@ Start here. Agents read this file first (see `AGENTS.md`).
 | [data-model.md](data-model.md) | Entities, relationships, invariants | draft | 2026-11-04 |
 | [glossary.md](glossary.md) | Domain terms everyone uses the same way | draft | 2026-11-04 |
 | [risks.md](risks.md) | Known risks and technical debt | draft | 2026-11-04 |
+| [code-style.md](code-style.md) | Style tools, check commands, conventions | draft | 2026-11-11 |
 | [adr/](adr/README.md) | Architecture decision records (MADR 4.0) | - | - |
 
 <!-- groma: list optional and pre-existing docs below this line, one row each -->

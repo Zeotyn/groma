@@ -65,3 +65,16 @@ Alternatives: install a style skill per stack from the catalog (deferred: possib
 ## Open Questions
 
 - Should catalog skills (for example a stack-specific style skill) be offered alongside the doc? Deferred until the doc has been used on real projects.
+
+## Implementation notes
+
+Recorded at apply time; each note names the decision it refines.
+
+- D3: `style-drift.sh` also prints one `tool<TAB><id><TAB><config path><TAB><check command>` line per detected tool and a final `summary<TAB>tools=<n><TAB>drift=<n><TAB>unchecked=<n>` line, like the other survey scripts. The `tool` lines make detection deterministic for the survey and the interview (the `unchecked` lookup needs them anyway). The tool is "mentioned" when its lowercase name or the first two words of its check command (runner prefixes such as `npx`, `uvx`, `bundle exec` stripped) appear in a listed location.
+- D3: a Prettier config inside `package.json` is not detected, because a `"prettier"` key is not distinguishable from the devDependency by a text match; the table says so.
+- D2: EditorConfig has the role `format` in the table, so the structure check's "one default per stack and role" holds for the stack `all`.
+- D2 and D5: chosen templates that share a target file name (`.editorconfig` from EditorConfig and shfmt) are concatenated, in table order, into that one new file; the additive rule still holds because the file is new. Tools with an empty Template column and an Install command (golangci-lint, clippy, Biome) are set up by the install alone; Spotless stays a snippet.
+- D5: the interview's style answer is not stored in `.groma/config.yaml` (the validator would warn about an unknown key); the doc's tools table and the per-tool ADRs record the decision. Update mode therefore never creates configs on its own, as the migration plan says.
+- D6: the greenfield interview now asks for the main language or stack, because the recommendation needs it; brownfield takes the stack from detection.
+- Tests: the structure check also validates the "Where checks run" table (kinds `file` and `package-scripts`). The greenfield eval (task 4.2) reuses the `empty` fixture with TypeScript and "yes" for Prettier and ESLint in its answers file instead of a new fixture.
+- Open: `docs-impact.sh` lists D2, D4, D5 and D6 as decisions without an ADR, because every decision here has an "Alternatives" line. The proposal plans ADRs for D1 and D3 only; the other four need either an ADR each or a `Docs:` exemption before verify.

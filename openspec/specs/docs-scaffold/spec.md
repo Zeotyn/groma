@@ -4,11 +4,15 @@
 Guarantees that every project has the same living `docs/` structure (vision, concept, architecture, data model, glossary, risks, ADRs), created for new projects and completed for existing ones without touching existing files.
 ## Requirements
 ### Requirement: Mandatory docs tree
-Every project initialized by groma SHALL have `docs/README.md`, `docs/vision.md`, `docs/concept.md`, `docs/architecture.md`, `docs/data-model.md`, `docs/glossary.md`, `docs/risks.md` and `docs/adr/` with `docs/adr/README.md`.
+Every project initialized by groma SHALL have `docs/README.md`, `docs/vision.md`, `docs/concept.md`, `docs/architecture.md`, `docs/data-model.md`, `docs/glossary.md`, `docs/risks.md`, `docs/code-style.md` and `docs/adr/` with `docs/adr/README.md`.
 
 #### Scenario: Greenfield
 - **WHEN** groma runs in a greenfield project
 - **THEN** all mandatory docs exist afterwards, filled from the interview where answers exist and marked "Not yet documented" elsewhere
+
+#### Scenario: Update adds the code-style doc
+- **WHEN** a project initialized with groma 0.2 runs groma 0.3 in update mode and no file fills the code-style slot
+- **THEN** `docs/code-style.md` is created and added to the findings report as new, and no other doc changes
 
 ### Requirement: Complete, never overwrite
 If `docs/` exists, groma SHALL add only missing files and SHALL NOT modify, move or delete any existing file.

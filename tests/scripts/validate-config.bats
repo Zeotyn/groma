@@ -314,3 +314,12 @@ YAML
     done
   done
 }
+
+@test "unknown key under git is a warning with the line" {
+  add_git
+  printf '  force: true\n' >> "$C"
+  ln=$(grep -n 'force:' "$C" | cut -d: -f1)
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "warning	line $ln	unknown git key 'force' (known: integrate, branch_per_change, commits, push)"
+}

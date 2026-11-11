@@ -210,3 +210,28 @@ ADR: yes/' "$CH/design.md" && rm "$CH/design.md.bak"
   assert_output_not_contains "note	on branch"
   assert_output_contains "summary	impact=0"
 }
+
+@test "an orphan branch named after the change falls back to the proposal commit" {
+  git -C "$P" checkout -q --orphan c007-cache
+  commit_at "$P" 2026-10-22 "orphan"
+  di openspec/changes/c007-cache
+  [ "$status" -eq 0 ]
+  assert_output_not_contains "note	on branch"
+  assert_output_contains "summary	impact="
+}
+
+@test "a clone without a local main uses origin/main as the merge base" {
+  git -C "$P" branch -q c007-cache
+  git clone -q --bare "$P" "$BATS_TEST_TMPDIR/remote.git"
+  git clone -q -b c007-cache "$BATS_TEST_TMPDIR/remote.git" "$BATS_TEST_TMPDIR/clone"
+  C="$BATS_TEST_TMPDIR/clone"
+  git -C "$C" config user.name t; git -C "$C" config user.email t@t.invalid; git -C "$C" config commit.gpgsign false
+  ! git -C "$C" rev-parse -q --verify refs/heads/main >/dev/null
+  echo "// on the branch" >> "$C/src/cache.js"
+  commit_at "$C" 2026-10-21 "branch cache"
+  run sh "$DI" --root "$C" openspec/changes/c007-cache
+  [ "$status" -eq 0 ]
+  assert_output_contains "note	on branch c007-cache, comparing with its merge base with main"
+  assert_output_contains "impact	docs/architecture.md	src/cache.js"
+  assert_output_not_contains "docs/data-model.md"
+}

@@ -88,12 +88,41 @@ pr_repo() { # dir n
 }
 
 @test "fewer than 5 merges do not make a merge project" {
-  pr_repo "$BATS_TEST_TMPDIR/few" 4
-  run sh "$GP" "$BATS_TEST_TMPDIR/few"
-  assert_output_contains "integrate	rebase	4 merges in 5 commits, 0 subjects end in (#n)"
+  D="$BATS_TEST_TMPDIR/few"
+  pr_repo "$D" 4
+  for i in 1 2 3 4 5 6; do
+    echo "direct $i" >> "$D/notes.md"
+    commit_at "$D" "2025-05-0$i" "Direct commit $i"
+  done
+  run sh "$GP" "$D"
+  assert_output_contains "integrate	rebase	4 merges in 11 commits, 0 subjects end in (#n)"
+  pr_repo "$BATS_TEST_TMPDIR/nine" 9
+  run sh "$GP" "$BATS_TEST_TMPDIR/nine"
+  assert_output_contains "integrate	merge	9 of 9 merges are pull-request merges"
+}
+
+@test "fewer than 10 commits: the defaults, with the counts" {
   pr_repo "$BATS_TEST_TMPDIR/five" 5
   run sh "$GP" "$BATS_TEST_TMPDIR/five"
-  assert_output_contains "integrate	merge	5 of 5 merges are pull-request merges"
+  [ "$status" -eq 0 ]
+  assert_output_contains "integrate	rebase	5 merges in 6 commits, 0 subjects end in (#n), fewer than 10 commits: default"
+  assert_output_contains "commits	conventional	0 of 6 subjects are conventional, fewer than 10 commits: default"
+}
+
+@test "pull merges (Merge branch 'x' of <url>) are not pull-request merges" {
+  D="$BATS_TEST_TMPDIR/pulls"
+  pr_repo "$D" 4
+  for i in 1 2 3 4 5 6; do
+    git -C "$D" switch -q -c "remote-$i"
+    echo "remote $i" >> "$D/notes.md"
+    commit_at "$D" "2025-05-0$i" "Remote change $i"
+    git -C "$D" switch -q main
+    GIT_AUTHOR_DATE="2025-06-0${i}T12:00:00Z" GIT_COMMITTER_DATE="2025-06-0${i}T12:00:00Z" \
+      git -C "$D" merge -q --no-ff -m "Merge branch 'main' of https://example.invalid/team/repo" "remote-$i"
+  done
+  run sh "$GP" "$D"
+  assert_output_contains "integrate	rebase	10 merges in 11 commits"
+  assert_output_contains "merges=10	pr_merges=4"
 }
 
 @test "merges that are not pull-request merges do not make a merge project" {
@@ -203,4 +232,64 @@ pr_repo() { # dir n
   sh "$GP" "$(H pr-merge)" >/dev/null
   [ -z "$(git -C "$(H pr-merge)" status --porcelain)" ]
   [ "$(git -C "$(H pr-merge)" branch --show-current)" = main ]
+}
+
+# --- review round 1: main-branch rule, shallow clones, paths ---------------------------
+
+@test "main branch: a remote-only main is analyzed through origin/main" {
+  sh "$ROOT/tests/fixtures/histories.sh" "$BATS_TEST_TMPDIR/src" linear-conventional >/dev/null
+  D="$BATS_TEST_TMPDIR/feature-only"
+  mkdir -p "$D"
+  git -C "$D" init -q -b feature
+  git -C "$D" remote add origin "$BATS_TEST_TMPDIR/src/linear-conventional"
+  git -C "$D" fetch -q origin
+  run sh "$GP" "$D"
+  [ "$status" -eq 0 ]
+  assert_output_contains "main	main"
+  assert_output_contains "integrate	rebase	0 merges in 10 commits"
+  assert_output_contains "commits	conventional	9 of 10 subjects are conventional"
+}
+
+@test "main branch: without main, master or a remote the current branch is analyzed, HEAD when detached" {
+  D="$BATS_TEST_TMPDIR/trunk-only"
+  mkdir -p "$D"
+  git -C "$D" init -q -b trunk
+  git -C "$D" config user.name t; git -C "$D" config user.email t@t.invalid; git -C "$D" config commit.gpgsign false
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    echo "$i" > "$D/notes.md"
+    commit_at "$D" "2025-10-$(printf %02d "$i")" "feat: step $i"
+  done
+  run sh "$GP" "$D"
+  assert_output_contains "main	trunk"
+  assert_output_contains "commits	conventional	10 of 10 subjects are conventional"
+  git -C "$D" switch -q --detach trunk~2
+  run sh "$GP" "$D"
+  assert_output_contains "main	HEAD"
+  assert_output_contains "integrate	rebase	0 merges in 8 commits, 0 subjects end in (#n), fewer than 10 commits: default"
+}
+
+@test "detached HEAD on a repository with main still analyzes main" {
+  sh "$ROOT/tests/fixtures/histories.sh" "$BATS_TEST_TMPDIR/det" linear-conventional >/dev/null
+  D="$BATS_TEST_TMPDIR/det/linear-conventional"
+  git -C "$D" switch -q --detach main~4
+  run sh "$GP" "$D"
+  assert_output_contains "main	main"
+  assert_output_contains "integrate	rebase	0 merges in 10 commits"
+}
+
+@test "shallow clone is analyzed as far as it reaches" {
+  sh "$ROOT/tests/fixtures/histories.sh" "$BATS_TEST_TMPDIR/src" linear-conventional >/dev/null
+  git clone -q --depth 3 "file://$BATS_TEST_TMPDIR/src/linear-conventional" "$BATS_TEST_TMPDIR/shallow" 2>/dev/null
+  run sh "$GP" "$BATS_TEST_TMPDIR/shallow"
+  [ "$status" -eq 0 ]
+  assert_output_contains "main	main"
+  assert_output_contains "integrate	rebase	0 merges in 3 commits, 0 subjects end in (#n), fewer than 10 commits: default"
+}
+
+@test "paths with spaces" {
+  mkdir -p "$BATS_TEST_TMPDIR/sp ace"
+  cp -R "$(H squash)" "$BATS_TEST_TMPDIR/sp ace/re po"
+  run sh "$GP" "$BATS_TEST_TMPDIR/sp ace/re po"
+  [ "$status" -eq 0 ]
+  assert_output_contains "integrate	squash	8 of 10 subjects end in (#n)"
 }

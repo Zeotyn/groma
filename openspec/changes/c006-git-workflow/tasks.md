@@ -21,8 +21,8 @@
 
 ## 4. Evals
 
-- [ ] 4.1 Loop eval with `integrate: rebase`: branch exists after the run, `main` has no new merge commit, push asked
-- [ ] 4.2 Loop eval with a forced conflict: escalation names the file, refs unchanged
+- [x] 4.1 Loop eval with `integrate: rebase`: branch exists after the run, `main` has no new merge commit, push asked
+- [x] 4.2 Loop eval with a forced conflict: escalation names the file, refs unchanged
 
 ## 5. Docs
 

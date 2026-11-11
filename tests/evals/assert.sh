@@ -49,6 +49,31 @@ if [ "$FX" = loop-openspec ]; then
     sh -c "grep -h '^| *[A-Z][0-9]' '$arch'/reviews/*-round-*.md | grep -q 'docs/architecture.md'"
   check "docs impact closed (doc updated or Docs: task line)" \
     sh -c "grep -qi farewell '$P/docs/architecture.md' || grep -q 'Docs: .*docs/architecture.md.* unchanged, because .' '$arch/tasks.md'"
+  # git steps with the defaults: branch per change, rebase, push ask (the fixture has no remote)
+  check "change branch exists after the run" git -C "$P" rev-parse -q --verify refs/heads/c001-add-farewell
+  check "main was fast-forwarded to the branch" sh -c "[ \"\$(git -C '$P' rev-parse main)\" = \"\$(git -C '$P' rev-parse c001-add-farewell)\" ]"
+  check "main has no merge commit" sh -c "[ \"\$(git -C '$P' rev-list --merges --count main)\" -eq 0 ]"
+  check "unit commit in conventional style" sh -c "git -C '$P' log --format=%s main | grep -Eq '^feat\(c001-add-farewell\): '"
+  check "archive commit" sh -c "git -C '$P' log --format=%s main | grep -q '^docs(openspec): archive c001-add-farewell'"
+  check "working tree clean at the end" sh -c "[ -z \"\$(git -C '$P' status --porcelain)\" ]"
+  check "summary mentions the push (asked, or no remote)" grep -Eqi 'push' "${M%.manifest}.log"
+  [ "$fails" -eq 0 ]
+  exit
+fi
+
+# --- forced integration conflict: the loop aborts and escalates, refs unchanged ------
+if [ "$FX" = conflict-loop-openspec ]; then
+  LOG="${M%.manifest}.log"
+  main0=$(cat "${M%.manifest}.main" 2>/dev/null || true)
+  check "main points to the commit from before the run" sh -c "[ -n '$main0' ] && [ \"\$(git -C '$P' rev-parse main)\" = '$main0' ]"
+  check "no rebase or merge in progress" sh -c "[ ! -d '$P/.git/rebase-merge' ] && [ ! -d '$P/.git/rebase-apply' ] && [ ! -f '$P/.git/MERGE_HEAD' ]"
+  check "working tree clean after the abort" sh -c "[ -z \"\$(git -C '$P' status --porcelain)\" ]"
+  check "still on the change branch" sh -c "[ \"\$(git -C '$P' branch --show-current)\" = c001-add-farewell ]"
+  check "branch holds the unit and archive commits" sh -c "git -C '$P' log --format=%s c001-add-farewell | grep -q '^docs(openspec): archive c001-add-farewell'"
+  check "main has no merge commit" sh -c "[ \"\$(git -C '$P' rev-list --merges --count main)\" -eq 0 ]"
+  check "escalation message" grep -q "groma-loop stopped" "$LOG"
+  check "escalation names the conflicting file" grep -q "openspec/changes/c001-add-farewell/tasks.md" "$LOG"
+  check "no force push attempted" sh -c "! grep -Eq -- '--force' '$LOG'"
   [ "$fails" -eq 0 ]
   exit
 fi

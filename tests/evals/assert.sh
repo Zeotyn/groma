@@ -63,6 +63,9 @@ for d in README vision concept architecture data-model glossary risks; do
 done
 check "ADR index present" test -f "$P/docs/adr/README.md"
 check "AGENTS.md present" test -f "$P/AGENTS.md"
+# code-style slot: docs/code-style.md, or an existing style guide linked from the docs index
+check "code-style slot filled" sh -c "test -f '$P/docs/code-style.md' || grep -Eqi 'code.style|CONTRIBUTING|STYLEGUIDE' '$P/docs/README.md'"
+check "AGENTS.md points to the code-style doc" has "$P/AGENTS.md" 'code-style|CONTRIBUTING|STYLEGUIDE'
 new_files=$( (cd "$P" && find docs AGENTS.md .groma -type f 2>/dev/null) | while read -r f; do grep -q "  ./$f\$" "$M" || echo "$P/$f"; done)
 leftover=""
 for f in $new_files; do
@@ -80,6 +83,17 @@ case "$FX" in
     check "seed ADR 0001" test -f "$P/docs/adr/0001-record-architecture-decisions.md"
     check "seed ADR 0002" test -f "$P/docs/adr/0002-adopt-groma-docs-structure.md"
     check "vision uses interview answer" has "$P/docs/vision.md" 'recipe'
+    # greenfield TypeScript with Prettier and ESLint confirmed in the interview
+    check "code-style doc exists" test -f "$P/docs/code-style.md"
+    check ".editorconfig created" test -f "$P/.editorconfig"
+    check ".prettierrc.json created" test -f "$P/.prettierrc.json"
+    check "eslint.config.js created" test -f "$P/eslint.config.js"
+    check "tools table lists Prettier and ESLint" sh -c "grep -qi prettier '$P/docs/code-style.md' && grep -qi eslint '$P/docs/code-style.md'"
+    check "ADR Use Prettier accepted" sh -c "grep -li 'use prettier' '$P'/docs/adr/0*.md | xargs grep -lq '^status: *accepted'"
+    check "ADR Use ESLint accepted" sh -c "grep -li 'use eslint' '$P'/docs/adr/0*.md | xargs grep -lq '^status: *accepted'"
+    check "install command pending in .groma/install.sh" has "$P/.groma/install.sh" 'npm i -D .*prettier|npm i -D .*eslint'
+    check "AGENTS.md lists the check commands" sh -c "grep -q 'prettier --check' '$P/AGENTS.md' && grep -q 'eslint' '$P/AGENTS.md'"
+    check "openspec context has the code-style line" has "$P/openspec/config.yaml" 'Code style lives in docs/code-style.md'
     ;;
   node-prisma)
     check "project_type brownfield" has "$P/.groma/config.yaml" '^project_type: *brownfield'
@@ -88,17 +102,32 @@ case "$FX" in
     if [ "$n" -ge 2 ]; then ok "at least 2 proposed ADRs ($n)"; else no "at least 2 proposed ADRs (found $n)"; fi
     check "data model has User and Order" sh -c "grep -q User '$P/docs/data-model.md' && grep -q Order '$P/docs/data-model.md'"
     check "data model tagged EXTRACTED" has "$P/docs/data-model.md" 'EXTRACTED'
+    check "code-style doc created" test -f "$P/docs/code-style.md"
+    check "tools table has Prettier with .prettierrc" sh -c "grep -i prettier '$P/docs/code-style.md' | grep -q '\.prettierrc'"
+    check "tools table has ESLint with eslint.config.js and npm run lint" sh -c "grep -i eslint '$P/docs/code-style.md' | grep -q 'eslint.config.js' && grep -q 'npm run lint' '$P/docs/code-style.md'"
+    check "code-style sources list the config files" sh -c "grep -q '\.prettierrc' '$P/docs/code-style.md' && sed -n '/^---$/,/^---$/p' '$P/docs/code-style.md' | grep -q 'eslint.config.js'"
+    check "conventions tagged INFERRED or EXTRACTED" has "$P/docs/code-style.md" 'INFERRED|EXTRACTED'
+    check "prettier unchecked finding" any_has 'prettier.*(unchecked|CI|script)' "$findings"
+    check "no tool config created in brownfield" sh -c "! test -f '$P/.editorconfig'"
     ;;
   java-flyway)
     check "project_type brownfield" has "$P/.groma/config.yaml" '^project_type: *brownfield'
     check "harvested legacy ADR listed in index" has "$P/docs/adr/README.md" 'doc/architecture/decisions/0001-use-postgresql'
     check "new ADRs continue numbering (no second 0001)" sh -c "! ls '$P'/docs/adr/0001-* >/dev/null 2>&1 || grep -q 'record-architecture' '$P/docs/adr/README.md'"
     check "email drift reported" any_has 'email' "$findings" "$P/docs/data-model.md" "$P/docs/risks.md"
+    # CONTRIBUTING.md has a "Code style" section and fills the slot
+    check "no docs/code-style.md next to CONTRIBUTING.md" sh -c "! test -f '$P/docs/code-style.md'"
+    check "docs index links CONTRIBUTING.md as the code-style doc" has "$P/docs/README.md" 'CONTRIBUTING\.md'
+    check "tools table snippet in the findings" sh -c "grep -qi 'Spotless\|Enforced by tools\|tools table' '$findings'"
     ;;
   python-django-stale-docs)
     check "stale architecture doc reported" any_has 'architecture\.md.*stale|stale.*architecture\.md' "$findings"
     check "snippet for existing CLAUDE.md" any_has '@AGENTS\.md' "$findings"
     check "existing architecture.md kept as slot" has "$P/docs/README.md" 'architecture\.md'
+    check "indent_style drift finding with count" any_has 'indent_style.*3|3 files.*indent' "$findings"
+    check "drift finding names a tab-indented file" any_has 'shop/(admin|forms|urls)\.py' "$findings"
+    check "ruff unchecked finding suggests CI" any_has 'ruff.*(unchecked|CI|script)' "$findings"
+    check "code-style doc lists EditorConfig and Ruff" sh -c "grep -qi editorconfig '$P/docs/code-style.md' && grep -qi ruff '$P/docs/code-style.md'"
     ;;
   cli-node-prisma)
     # groma init --yes --print ran first; /groma must reuse its setup

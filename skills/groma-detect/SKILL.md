@@ -25,6 +25,14 @@ Decide whether the project is **greenfield** (nothing to survey, interview the u
    ```
    Then offer the override in one line: "Treat it as greenfield instead?" Record a chosen override as `project_type_override` in `.groma/config.yaml` when that file exists; otherwise hand it to the caller.
 
+## Git practice
+
+For the git questions of the `/groma` interview, run (read-only):
+```sh
+sh scripts/git-practice.sh <project-root>
+```
+It prints the main branch, a recommended `integrate` (`rebase`, `merge`, `squash`) and `commits` (`conventional`, `free`) value, each with its evidence from the last 200 commits of the main branch ("28 of 30 merges are pull-request merges", "34 of 40 subjects end in (#n)", "9 of 10 subjects are conventional"), and a `summary` line with the counts. Without commits it prints the defaults with "no history". Show the evidence with the recommendation; the user decides.
+
 ## Reading the verdict
 
 - `signal=docs present` on a greenfield project: existing Markdown is input for the interview. Read it before asking questions.

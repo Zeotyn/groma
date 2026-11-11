@@ -7,7 +7,7 @@ description: Runs one change through propose, apply, verify and archive with an 
 
 You are the **author** and the orchestrator. A different model is the **reviewer**. Every round: the reviewer finds, you answer each finding, the loop decides. The user is interrupted only on escalation (and, in `gated` mode, at the two gates).
 
-Paths are relative to this skill folder unless they start with `<project>`. Settings come from `review` in `<project>/.groma/config.yaml`; missing keys use these defaults: `mode: autonomous`, `stop_when: no-high`, propose `reviewer: auto, max_rounds: 2`, apply `reviewer: auto, per: task-group, max_rounds: 1, test_retries: 2`. The docs gate reads `docs.gate` (default `review`).
+Paths are relative to this skill folder unless they start with `<project>`. Settings come from `review` in `<project>/.groma/config.yaml`; missing keys use these defaults: `mode: autonomous`, `stop_when: no-high`, propose `reviewer: auto, max_rounds: 2`, apply `reviewer: auto, per: task-group, max_rounds: 1, test_retries: 2`. The docs gate reads `docs.gate` (default `review`). The git steps read `git` (defaults `integrate: rebase`, `branch_per_change: true`, `commits: conventional`, `push: ask`) and run only inside a git repository.
 
 ## Start
 
@@ -19,26 +19,33 @@ Paths are relative to this skill folder unless they start with `<project>`. Sett
    ```
    Say the result in one line, e.g. "Reviewer: gemini (other vendor)". `reviewer=self` means self-review: run each review as a fresh subagent or session that gets only the prompt file, and mark it `self-review` everywhere.
 4. **Tests and style checks.** Find the project's test command (AGENTS.md, `package.json`, `Makefile`, CI workflow). No test command: say so once; the apply gate then only checks that the build or lint step passes, if any. Then read the "Enforced by tools" table of the code-style doc (`<project>/docs/code-style.md`, or the file the docs index lists for code style); its check commands run in every tests gate.
+5. **Git.** Inside a git repository (`git rev-parse --is-inside-work-tree`): `git status --porcelain` must print nothing. Otherwise escalate before anything else, with the options "commit or stash the files yourself, then rerun" and "continue without git steps" (then skip every git step below and say so in the summary). Then name the main branch `<main>`: `git symbolic-ref --short refs/remotes/origin/HEAD` without `origin/`, else `main`, else `master`. When `branch_per_change` is true and the current branch is not `<change-id>`, switch: `git switch -c <change-id>` (`git switch <change-id>` when the branch exists). For a new idea this happens right after propose named the change. `branch_per_change: false`: stay on the current branch; the integration step is then skipped. The change base `<change-base>` is `git merge-base <main> HEAD` on the change branch, else the parent of the commit that added `<change-dir>/proposal.md` (`HEAD` when that commit does not exist).
 
 ## Phases
 
 Announce each step as `<Phase> · <unit> · round N of M`.
 
-**Propose.** Write the change artifacts with the methodology's propose workflow. Then review rounds (below) on the artifacts. `gated`: after the loop, show a five-line summary (goal, scope, open rejected findings) and wait for approval.
+**Propose.** Write the change artifacts with the methodology's propose workflow. Then review rounds (below) on the artifacts. `gated`: after the loop, show a five-line summary (goal, scope, open rejected findings) and wait for approval. Git steps on: create the change branch (Start, step 5) and commit the change folder: `docs(<scope>): propose <change-id>` (`<scope>` from [references/methodology-adapters.md](references/methodology-adapters.md)).
 
 **Apply.** Split the tasks into review units by `per` (task, task-group, change). For each unit:
 1. Record the base: `git rev-parse HEAD` (or note "working tree" when uncommitted work exists).
 2. Implement the unit's tasks, tick them.
 3. **Tests gate.** Run the tests, then every check command from the code-style doc. A failing check counts as red tests. Red: fix and rerun, at most `test_retries` times; still red → escalate with the failing output (test or check). No review on red tests.
 4. Review rounds on the unit's diff (`git diff <base>`), its tasks and the requirements they implement.
+5. **Commit** (git steps on, review stopped clean): stage the files `git status --porcelain` lists (all of them belong to the unit, because the tree was clean at start) and commit with the user's configured git identity; never set one, never `--amend`, never `--no-verify`. Subject by `commits`: `conventional` → `<type>(<change-id>): <unit title>` with `<type>` from the change type (`c` feat, `f` fix, `d` docs, `r` refactor, `m` and `s` chore; a unit that only adds tests: `test`); `free` → the unit title. The unit title is the task-group heading without its number, the task text for `per: task`, the proposal title for `per: change`. No git identity (`git config user.name` prints nothing) → escalate.
 
 **Verify.** Run the methodology's verify step, then one review round on its report and the full diff. Critical verify issues count as high findings. **Docs gate** (`docs.gate` is `review` or `strict`, and groma-lay-out is installed): run `sh ../groma-lay-out/scripts/docs-impact.sh --root <project> <change-dir>` and add every `impact` and `adr` line as a high finding of that round. Answer an `impact` finding by updating the doc or by adding a task line `Docs: <path> unchanged, because <reason>`; answer an `adr` finding by writing the proposed ADR (groma-lay-out, "ADR candidates from a change").
 
-**Archive.** `gated`: wait for approval. `strict`: run `docs-impact.sh --gate` first; exit 4 → escalate with the report instead of archiving (groma-lay-out missing: skip the check and say so). Before archiving, list the change's docs: `git diff --name-only <base> -- docs/` plus `git ls-files --others --exclude-standard -- docs/`, where `<base>` is the parent of the commit that added `<change-dir>/proposal.md` (`HEAD` when that commit does not exist). Then archive with spec sync, followed by the **docs sync** (skip it when `docs.gate` is `off`). These edits are authored work inside the user's change, like its code, not setup writes; they touch only the docs on that list:
+**Archive.** `gated`: wait for approval. `strict`: run `docs-impact.sh --gate` first; exit 4 → escalate with the report instead of archiving (groma-lay-out missing: skip the check and say so). Before archiving, list the change's docs: `git diff --name-only <change-base> -- docs/` plus `git ls-files --others --exclude-standard -- docs/` (`<change-base>` from Start, step 5). Then archive with spec sync, followed by the **docs sync** (skip it when `docs.gate` is `off`). These edits are authored work inside the user's change, like its code, not setup writes; they touch only the docs on that list:
 1. Every ADR in `<project>/docs/adr/` with `origin: <change>#…` and `status: proposed` → `status: accepted`.
 2. `last_reviewed` → today in every listed doc that has the key.
 3. In `docs/adr/README.md`, set the status cell of each ADR accepted in step 1 to `accepted`, and add a row for every listed ADR still missing.
 4. Run `sh ../groma-methodology/scripts/roadmap.sh --root <project>` when groma-methodology is installed.
+
+Then the **git steps** (git steps on). These git operations are authored work inside the user's change too:
+1. **Archive commit.** Stage the archive move, the spec sync and the docs sync and commit: `docs(<scope>): archive <change-id>`.
+2. **Integrate** (on the change branch). Take the row of `git.integrate` from `../groma-agents/references/git-strategies.md` (missing: the "Git workflow" section of `<project>/AGENTS.md`; neither: stop before integrating and say so). Run its commands in order with `<main>` and `<branch>` resolved; the squash subject is `<type>(<change-id>): <proposal title>` (`<change-id>: <proposal title>` with `commits: free`). A command fails with conflicts (`git diff --name-only --diff-filter=U` lists paths): note the paths, run the row's abort command, check that `<main>` and `<branch>` point to the commits they had before, and escalate with the paths. The branch stays after a successful integration; never delete it, never `--force`, never a merge commit when the strategy is `rebase`.
+3. **Push** `<main>` by `git.push`: `auto` → `git push`; `ask` → ask "Push `<main>` to its remote?" and push only on yes; `never` → do not push, the summary says "not pushed (git.push: never)". No remote: say so. A rejected push → escalate; never retry with `--force`. Only `<main>` is pushed: a change branch that was pushed earlier and diverged through the rebase stays as it is, and the summary mentions it.
 
 ## Review round
 
@@ -68,8 +75,11 @@ Options:
 3. <change the design / split the change>
 ```
 
-Escalate also before any destructive step outside the change: deleting files that existed before the change, rewriting git history, force-pushing.
+Escalate also before any destructive step outside the change: deleting files that existed before the change, rewriting git history, force-pushing. Git causes, each with its own options:
+- dirty working tree at start → "commit or stash the files yourself, then rerun" or "continue without git steps";
+- integration conflict (after the abort, naming the conflicting paths) → "resolve the conflict yourself and run the integration commands" or "leave the branch for a later integration";
+- rejected push → "pull, rerun the integration and push" or "push yourself"; groma never pushes with `--force`.
 
 ## Summary
 
-At the end print: phases run, rounds per phase, reviewer per phase (with `self-review` marked), findings fixed and rejected (list every rejected one with its reason), test result, archive location, and the next action.
+At the end print: phases run, rounds per phase, reviewer per phase (with `self-review` marked), findings fixed and rejected (list every rejected one with its reason), test result, archive location, git result (branch, commits made, how it was integrated into `<main>`, pushed or "not pushed (git.push: never)", or "git steps skipped"), and the next action.

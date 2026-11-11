@@ -13,11 +13,11 @@
 
 ## 3. Skills and templates
 
-- [ ] 3.1 groma SKILL interview: integration strategy and push questions with recommendation and evidence
-- [ ] 3.2 groma-agents AGENTS.md template: "Git workflow" section per strategy (D1, D2)
-- [ ] 3.3 groma-loop SKILL: branch at start, commit per unit, archive commit, integrate, push policy, escalations (D3, D5); `methodology-adapters.md` archive step
-- [ ] 3.4 `upgrades.md` row 0.3.0
-- [ ] 3.5 `scripts/test.sh` green
+- [x] 3.1 groma SKILL interview: integration strategy and push questions with recommendation and evidence
+- [x] 3.2 groma-agents AGENTS.md template: "Git workflow" section per strategy (D1, D2)
+- [x] 3.3 groma-loop SKILL: branch at start, commit per unit, archive commit, integrate, push policy, escalations (D3, D5); `methodology-adapters.md` archive step
+- [x] 3.4 `upgrades.md` row 0.3.0
+- [x] 3.5 `scripts/test.sh` green
 
 ## 4. Evals
 

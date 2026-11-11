@@ -4,9 +4,12 @@
 # Usage: docs-impact.sh [--root <project>] [--base <ref>] [--docs <docs-dir>] [--gate] <change-dir>
 #
 # Changed paths: `git diff <base>` (committed and uncommitted) plus untracked
-# files, without the change folder itself. The base defaults to the parent of
-# the commit that added <change-dir>/proposal.md; without that commit the
-# working tree is compared with HEAD (announced by a `note` line).
+# files, without the change folder itself. The base defaults to
+# `git merge-base <main> HEAD` when the current branch is named after the
+# change (the main branch: the remote's default branch, else main, else
+# master); otherwise to the parent of the commit that added
+# <change-dir>/proposal.md; without that commit the working tree is compared
+# with HEAD (both announced by a `note` line).
 #
 # (a) impact: a non-ADR doc whose frontmatter `sources` prefix-match a changed
 #     path while the doc itself is unchanged. Sources inside the docs dir are
@@ -49,6 +52,28 @@ NAME=${CHANGE##*/}
 DOCS=${DOCS#./}; DOCS=${DOCS%/}
 TAB=$(printf '\t')
 
+# main branch: the remote's default branch, else main, else master, else empty
+main_branch() {
+  m=$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null || true)
+  m=${m#origin/}
+  if [ -z "$m" ]; then
+    git rev-parse -q --verify refs/heads/main >/dev/null 2>&1 && m=main
+  fi
+  if [ -z "$m" ]; then
+    git rev-parse -q --verify refs/heads/master >/dev/null 2>&1 && m=master
+  fi
+  echo "$m"
+}
+
+if [ -z "$BASE" ]; then
+  branch=$(git symbolic-ref -q --short HEAD 2>/dev/null || true)
+  main=$(main_branch)
+  if [ "$branch" = "$NAME" ] && [ -n "$main" ] && [ "$main" != "$branch" ]; then
+    # on the change branch: everything since it left the main branch
+    BASE=$(git merge-base "refs/heads/$main" HEAD)
+    printf 'note%son branch %s, comparing with its merge base with %s (%s)\n' "$TAB" "$branch" "$main" "$(git rev-parse --short "$BASE")"
+  fi
+fi
 if [ -z "$BASE" ]; then
   added=$(git log --diff-filter=A --format=%H -- "$REL/proposal.md" | tail -n 1)
   if [ -z "$added" ]; then

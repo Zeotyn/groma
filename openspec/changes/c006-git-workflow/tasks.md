@@ -1,15 +1,15 @@
 ## 1. Tests and fixtures first
 
-- [ ] 1.1 Fixture histories in `tests/fixtures/`: PR-merge history, squash history, linear conventional history, empty repo
-- [ ] 1.2 `tests/scripts/git-practice.bats`: each recommendation rule with evidence lines, 70 percent threshold, main-branch detection, empty repo
-- [ ] 1.3 bats for `validate-config.sh`: `git` keys, closest match
-- [ ] 1.4 bats for the integration sequences in a temp repo: rebase leaves no merge commit, squash makes one commit, conflict aborts with refs unchanged
+- [x] 1.1 Fixture histories in `tests/fixtures/`: PR-merge history, squash history, linear conventional history, empty repo
+- [x] 1.2 `tests/scripts/git-practice.bats`: each recommendation rule with evidence lines, 70 percent threshold, main-branch detection, empty repo
+- [x] 1.3 bats for `validate-config.sh`: `git` keys, closest match
+- [x] 1.4 bats for the integration sequences in a temp repo: rebase leaves no merge commit, squash makes one commit, conflict aborts with refs unchanged
 
 ## 2. Scripts and config
 
-- [ ] 2.1 `skills/groma-detect/scripts/git-practice.sh` per D4; shellcheck clean
-- [ ] 2.2 `skills/groma/templates/config.yaml` `git` section; `validate-config.sh` support
-- [ ] 2.3 `docs-impact.sh`: base from `merge-base` on change branches, proposal-commit fallback
+- [x] 2.1 `skills/groma-detect/scripts/git-practice.sh` per D4; shellcheck clean
+- [x] 2.2 `skills/groma/templates/config.yaml` `git` section; `validate-config.sh` support
+- [x] 2.3 `docs-impact.sh`: base from `merge-base` on change branches, proposal-commit fallback
 
 ## 3. Skills and templates
 

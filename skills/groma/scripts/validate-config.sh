@@ -120,7 +120,7 @@ for k in initialized_with project_type methodology agents skills docs convention
   has "$k" || report error "$k" "missing required key '$k'"
 done
 for k in $(printf '%s\n' "$FLAT" | cut -f1 | awk -F. '{ print $1 }' | sort -u); do
-  in_set "$k" "schema initialized_with project project_type project_type_override methodology workflow agents agents_via_plugin skills docs conventions review reminders steps" \
+  in_set "$k" "schema initialized_with project project_type project_type_override methodology workflow agents agents_via_plugin skills docs conventions review reminders git steps" \
     || report warning "$k" "unknown top-level key '$k'"
 done
 v=$(get project_type); [ -z "$v" ] || in_set "$v" "greenfield brownfield" || report error project_type "project_type must be greenfield or brownfield, got '$v'"
@@ -165,6 +165,15 @@ for b in archive_when_done untested_tasks uncommitted unpushed; do
 done
 v=$(get reminders.stale_change_days)
 if [ -n "$v" ] && ! is_int "$v"; then report error reminders.stale_change_days "reminders.stale_change_days must be a number >= 0, got '$v'"; fi
+
+# --- git workflow (optional section; missing keys mean rebase, true, conventional, ask) ----
+enum() { # key "allowed values" "allowed, as text"
+  v=$(get "$1"); [ -z "$v" ] || in_set "$v" "$2" || report error "$1" "$1 must be $3, got '$v'$(c=$(closest "$v" "$2"); [ -z "$c" ] || printf ', did you mean %s?' "$c")"
+}
+enum git.integrate "rebase merge squash" "rebase, merge or squash"
+enum git.commits "conventional free" "conventional or free"
+enum git.push "ask auto never" "ask, auto or never"
+v=$(get git.branch_per_change); [ -z "$v" ] || in_set "$v" "true false" || report error git.branch_per_change "git.branch_per_change must be true or false, got '$v'"
 
 # --- skills against catalog --------------------------------------------------------
 if [ -n "$CATALOG" ]; then

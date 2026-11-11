@@ -25,8 +25,8 @@ Chosen option: "config as source, AGENTS.md as carrier", because AGENTS.md is th
 ### Consequences
 
 * Good, because one setting reaches every agent, and the sentence about "merge" requests removes the ambiguity that caused the problem.
-* Good, because the section is regenerated from the config, so the two cannot drift when groma owns the file.
-* Bad, because an AGENTS.md that groma did not create needs the section applied by hand from the findings report (ADR 0006).
+* Good, because the section is rendered from the config when groma creates AGENTS.md, so the two start out equal.
+* Bad, because an existing AGENTS.md is never edited (ADR 0006), whoever wrote it: after a config change, and in update mode, the rendered section arrives as a snippet in the findings report and a person applies it. groma does not try to recognize its own earlier output; a heuristic such as "the first paragraph is the template's" would make the additive rule depend on a guess.
 
 ### Confirmation
 

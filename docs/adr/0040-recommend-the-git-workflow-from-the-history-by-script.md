@@ -34,4 +34,4 @@ Chosen option: "a script with fixed rules", because it is repeatable, testable o
 
 ## More Information
 
-From design decision D4 of c006-git-workflow. The commit style counts the non-merge commits behind the merges, not only the first-parent line, so a pull-request project with conventional commits inside its branches is recognized (see the change's implementation notes). Related: ADR 0005, ADR 0007.
+From design decision D4 of c006-git-workflow. The commit style counts the non-merge commits behind the merges, not only the first-parent line, so a pull-request project with conventional commits inside its branches is recognized; "Merge branch 'x' of <url>" subjects are pulls, not pull-request merges; fewer than 10 commits give the defaults with the counts (see the change's implementation notes). The main branch follows the one rule in `git-strategies.md` (remote default, `main`, `master`, remote-only `origin/main`, current branch), shared with `docs-impact.sh` and groma-loop. Related: ADR 0005, ADR 0007.

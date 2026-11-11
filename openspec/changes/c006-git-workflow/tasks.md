@@ -21,8 +21,8 @@
 
 ## 4. Evals
 
-- [x] 4.1 Loop eval with `integrate: rebase`: branch exists after the run, `main` has no new merge commit, push asked
-- [x] 4.2 Loop eval with a forced conflict: escalation names the file, refs unchanged
+- [x] 4.1 Loop eval with `integrate: rebase`: branch exists after the run, `main` has no new merge commit, push asked (assertions written in `tests/evals/assert.sh`; the eval was not run, so it is not known to pass)
+- [x] 4.2 Loop eval with a forced conflict: escalation names the file, refs unchanged (fixture preparation and assertions written, `conflict-loop-openspec`; the eval was not run, so it is not known to pass)
 
 ## 5. Docs
 

@@ -1,7 +1,8 @@
 {
   "name": "groma-cli",
   "version": "0.2.2",
-  "description": "Lays out a project for AI-assisted work: methodology, skill catalog, docs/ and agent files",
+  "description": "Project setup skills for AI coding agents: spec-driven development, living docs with ADRs, code style, brownfield survey and one AGENTS.md for Claude Code, Copilot, Gemini CLI, Cursor and Codex",
+  "keywords": ["ai-agents", "claude-code", "github-copilot", "gemini-cli", "cursor", "codex", "agent-skills", "agents-md", "spec-driven-development", "openspec", "living-documentation", "adr", "brownfield", "developer-tools"],
   "license": "MIT",
   "author": "groma contributors",
   "homepage": "https://github.com/Zeotyn/groma",

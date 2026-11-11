@@ -8,9 +8,13 @@
   <img src="https://img.shields.io/badge/agents-Claude%20Code%20%C2%B7%20Copilot%20%C2%B7%20Gemini%20%C2%B7%20Cursor%20%C2%B7%20Codex-8EC8C2" alt="agents">
 </p>
 
+# groma: project setup skills for AI coding agents
+
+Spec-driven development, living docs with ADRs, code style and one `AGENTS.md` for Claude Code, GitHub Copilot, Gemini CLI, Cursor and Codex. npm package: [`groma-cli`](https://www.npmjs.com/package/groma-cli).
+
 > The Roman *groma* was the surveying instrument used to lay out a new town before anyone built on it. **groma** does the same for software projects: it surveys what is there, lays out the docs, and sets up your methodology and skills before the first line of new code.
 
-groma is an open-source skill suite for AI coding agents. Run `/groma` in an empty folder or an existing repository and it will:
+groma is an open-source skill suite (Agent Skills format) for AI coding agents. Run `/groma` in an empty folder or an existing repository and it will:
 
 1. Detect whether the project is greenfield or brownfield.
 2. Interview you only about what it cannot see.
@@ -29,6 +33,14 @@ Re-run `/groma` at any time. It only adds what is missing and reports what went 
 | **Survey** | reads what exists (code, docs, ADRs, style tools and drift), changes nothing | `groma-detect`, `groma-survey` |
 | **Align** | lays out docs, ADRs, code style, methodology, skills and one `AGENTS.md` | `groma-lay-out`, `groma-methodology`, `groma-skills`, `groma-agents` |
 | **Build** | runs every change through a review loop with a second model; tests and style checks gate every review | `groma-loop` |
+
+## When to use groma
+
+- **You want an `AGENTS.md` generator.** groma writes one canonical `AGENTS.md` plus `CLAUDE.md`, `.github/copilot-instructions.md`, `GEMINI.md` and `.cursor/rules/groma.mdc` pointers, under 150 lines, from what it found in the repo.
+- **You are onboarding an existing repository (brownfield) for Claude Code or Copilot.** The survey reads code, migrations, docs and ADRs without changing a file, and reports what is stale.
+- **You want spec-driven development with an AI agent.** groma installs OpenSpec, Spec Kit, BMAD or GSD non-interactively and wires it to the docs.
+- **You want living documentation and architecture decision records (ADRs)** that a change must update before it is archived.
+- **You want a second model to review every change** before it lands, with tests and code style checks as the gate.
 
 ## Install
 

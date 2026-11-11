@@ -174,6 +174,9 @@ enum git.integrate "rebase merge squash" "rebase, merge or squash"
 enum git.commits "conventional free" "conventional or free"
 enum git.push "ask auto never" "ask, auto or never"
 v=$(get git.branch_per_change); [ -z "$v" ] || in_set "$v" "true false" || report error git.branch_per_change "git.branch_per_change must be true or false, got '$v'"
+for k in $(printf '%s\n' "$FLAT" | cut -f1 | grep '^git\.' || true); do
+  in_set "${k#git.}" "integrate branch_per_change commits push" || report warning "$k" "unknown git key '${k#git.}' (known: integrate, branch_per_change, commits, push)"
+done
 
 # --- skills against catalog --------------------------------------------------------
 if [ -n "$CATALOG" ]; then

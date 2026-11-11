@@ -52,26 +52,33 @@ NAME=${CHANGE##*/}
 DOCS=${DOCS#./}; DOCS=${DOCS%/}
 TAB=$(printf '\t')
 
-# main branch: the remote's default branch, else main, else master, else empty
+has_ref() { git rev-parse -q --verify "$1^{commit}" >/dev/null 2>&1; }
+# main branch per groma-agents/references/git-strategies.md: the remote's default
+# branch, else main, else master, else a remote-only origin/main; empty when none
 main_branch() {
   m=$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null || true)
   m=${m#origin/}
-  if [ -z "$m" ]; then
-    git rev-parse -q --verify refs/heads/main >/dev/null 2>&1 && m=main
-  fi
-  if [ -z "$m" ]; then
-    git rev-parse -q --verify refs/heads/master >/dev/null 2>&1 && m=master
-  fi
+  [ -n "$m" ] || ! has_ref refs/heads/main || m=main
+  [ -n "$m" ] || ! has_ref refs/heads/master || m=master
+  [ -n "$m" ] || ! has_ref refs/remotes/origin/main || m=main
   echo "$m"
+}
+# the ref to read a branch name through: local first, else the remote's copy
+ref_of() {
+  if has_ref "refs/heads/$1"; then echo "refs/heads/$1"
+  elif has_ref "refs/remotes/origin/$1"; then echo "refs/remotes/origin/$1"
+  fi
 }
 
 if [ -z "$BASE" ]; then
   branch=$(git symbolic-ref -q --short HEAD 2>/dev/null || true)
   main=$(main_branch)
   if [ "$branch" = "$NAME" ] && [ -n "$main" ] && [ "$main" != "$branch" ]; then
-    # on the change branch: everything since it left the main branch
-    BASE=$(git merge-base "refs/heads/$main" HEAD)
-    printf 'note%son branch %s, comparing with its merge base with %s (%s)\n' "$TAB" "$branch" "$main" "$(git rev-parse --short "$BASE")"
+    # on the change branch: everything since it left the main branch; unrelated
+    # histories (an orphan branch) have no merge base and keep the fallback below
+    ref=$(ref_of "$main")
+    [ -z "$ref" ] || BASE=$(git merge-base "$ref" HEAD 2>/dev/null) || BASE=""
+    [ -z "$BASE" ] || printf 'note%son branch %s, comparing with its merge base with %s (%s)\n' "$TAB" "$branch" "$main" "$(git rev-parse --short "$BASE")"
   fi
 fi
 if [ -z "$BASE" ]; then

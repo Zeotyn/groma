@@ -94,7 +94,8 @@ EOF
 
 # a conflict is aborted, anything else is left for the escalation
 integrate_or_abort() { # strategy
-  integrate "$1"; rc=$?
+  rc=0
+  integrate "$1" || rc=$?
   [ "$rc" -eq 1 ] && abort "$1"
   return $rc
 }
@@ -272,7 +273,8 @@ on_branch() { # repo branch
   integrate rebase
   git -C "$R" switch -q "$BR"
   preflight
-  integrate squash; rc=$?
+  rc=0
+  integrate squash || rc=$?
   [ "$rc" -eq 2 ]
   [ -z "$UPATHS" ]
   case "$OUT" in *"nothing to commit"*|*"Already up to date"*) ;; *) echo "$OUT"; false ;; esac

@@ -26,6 +26,8 @@
 
 ## 5. Docs
 
-- [ ] 5.1 This repository: `.groma/config.yaml` `git` section (`rebase`, `push: ask`) and the AGENTS.md "Git workflow" section
-- [ ] 5.2 `docs/architecture.md`, `docs/concept.md`, `docs/glossary.md`; ADRs for D1 and D3; ADR index
-- [ ] 5.3 README: git workflow in the configuration section; CHANGELOG `[Unreleased]`
+- [x] 5.1 This repository: `.groma/config.yaml` `git` section (`rebase`, `push: ask`) and the AGENTS.md "Git workflow" section
+- [x] 5.2 `docs/architecture.md`, `docs/concept.md`, `docs/glossary.md`; ADRs for D1 and D3; ADR index
+- [x] 5.3 README: git workflow in the configuration section; CHANGELOG `[Unreleased]`
+- [x] Docs: `docs/vision.md` unchanged, because the README change documents configuration and the loop's git steps, not goals
+- [x] Docs: `docs/code-style.md` unchanged, because the new scripts and tests follow the documented conventions and add no new one

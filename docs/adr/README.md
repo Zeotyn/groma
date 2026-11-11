@@ -51,5 +51,10 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0034](0034-infer-conventions-by-the-agent-bounded-and-cited.md) | Infer conventions by the agent, bounded and cited | proposed | 2026-11-11 |
 | [0035](0035-write-style-configs-to-new-paths-and-ask-before-installs.md) | Write style configs to new paths and ask before installs | proposed | 2026-11-11 |
 | [0036](0036-reach-the-style-through-three-pointers.md) | Reach the style through three pointers | proposed | 2026-11-11 |
+| [0037](0037-carry-the-git-workflow-in-agents-md-from-the-config.md) | Carry the git workflow in AGENTS.md, sourced from the config | proposed | 2026-11-11 |
+| [0038](0038-integrate-with-three-fixed-command-sequences.md) | Integrate with three fixed command sequences | proposed | 2026-11-11 |
+| [0039](0039-abort-and-escalate-on-git-conflicts.md) | Abort and escalate on git conflicts, never force | proposed | 2026-11-11 |
+| [0040](0040-recommend-the-git-workflow-from-the-history-by-script.md) | Recommend the git workflow from the history by script | proposed | 2026-11-11 |
+| [0041](0041-commit-one-review-unit-at-a-time.md) | Commit one review unit at a time | proposed | 2026-11-11 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

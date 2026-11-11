@@ -21,6 +21,15 @@ A skill suite (Markdown skills + POSIX shell scripts) that initializes other pro
 
 Read `docs/code-style.md` before writing code and run its check commands after each task: `scripts/test.sh structure` (structure checks and shellcheck) and `sh skills/groma-survey/scripts/style-drift.sh .` (editorconfig drift, must print `drift=0`).
 
+## Git workflow
+
+- Branches: one branch per change, named after the change (`c007-cache`), branched from `main`. Branches stay after integration; nobody deletes them.
+- Commits: Conventional Commits, `<type>(<change-id>): <summary>`, one commit per reviewed task group; the archive is its own commit.
+- Integrate a finished change into `main` with `git rebase main <branch>` then `git switch main` then `git merge --ff-only <branch>`. A request to "merge" a branch means exactly this sequence (rebase), not another kind of merge.
+- On a conflict stop: run `git rebase --abort` so that `main` and the branch stay as they were, and ask a person with the conflicting paths. Never resolve a conflict silently.
+- Never `--force`, never delete branches, never rewrite commits that are already on `main`.
+- Push: push `main` only when the user agreed. A rejected push is reported, not forced.
+
 ## Conventions
 
 - Work through OpenSpec changes in `openspec/changes/`. Change names follow `<type><NNN>-<slug>` (`m` milestone, `c` change, `f` fix, `s` spike, `r` refactor, `d` docs). Get the next id with `skills/groma-methodology/scripts/next-change-id.sh <type>`.

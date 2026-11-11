@@ -39,3 +39,8 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Convention | A style rule no tool enforces, tagged `EXTRACTED` (from configuration) or `INFERRED` (from a code sample) with a path | code style | a tool rule |
 | Style drift | Tracked files that disagree with `.editorconfig` on indentation, line endings, final newline or trailing whitespace | `style-drift.sh` | data-model drift |
 | Unchecked tool | A style tool with a config file whose check command runs in no CI workflow or project script | `style-drift.sh` | a missing tool |
+| Integration strategy | `git.integrate`: how a change branch reaches the main branch, `rebase` (rebase, then fast-forward), `merge` (`--no-ff` merge commit) or `squash` (one commit named after the change); "merge" as a request means the configured strategy | git workflow | `git merge` the command |
+| Main branch | The branch changes are integrated into: the remote's default branch, else `main`, else `master` | git workflow | the checked-out branch |
+| Change branch | A branch named after the change id (`c007-cache`) that groma-loop creates when `branch_per_change` is true and never deletes | `groma-loop` | a feature branch with a free name |
+| Git practice | What `git-practice.sh` reads from the main branch's history: merge commits, pull-request merges, `(#n)` subjects, conventional subjects, with a recommended strategy and commit style | `groma-detect` | the configured strategy, which the user picks |
+| Push policy | `git.push`: `ask` (default), `auto` or `never`, for the main branch after integration | git workflow | the `unpushed` reminder of `status.sh` |

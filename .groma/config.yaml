@@ -41,6 +41,14 @@ conventions:
       r: refactor
       d: docs
 
+# Git workflow (skills groma-loop and groma-agents). The "Git workflow" section of AGENTS.md
+# is generated from these keys; re-run /groma after editing them.
+git:
+  integrate: rebase               # rebase | merge | squash, how a change branch reaches the main branch
+  branch_per_change: true         # true | false, groma-loop works on a branch named after the change
+  commits: conventional           # conventional | free
+  push: ask                       # ask | auto | never, push of the main branch after integration
+
 # Progress of the last run, used to resume. Values: done | pending | skipped
 steps:
   detect: done

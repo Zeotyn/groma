@@ -27,7 +27,7 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 | Container | Technology | Responsibility | Evidence |
 |---|---|---|---|
 | Skills | Markdown (Agent Skills format) | Procedure for each step | `skills/*/SKILL.md` |
-| Runtime scripts | POSIX sh | Detection, freshness, style drift, docs impact, config validation, change ids, lifecycle status, reviewer calls, schema dump | `skills/*/scripts/` |
+| Runtime scripts | POSIX sh | Detection, git practice, freshness, style drift, docs impact, config validation, change ids, lifecycle status, reviewer calls, schema dump | `skills/*/scripts/` |
 | Templates and references | Markdown, YAML | Docs, agent file and style config templates, stack tables (signals, data sources, ADR sources, style tools), skill catalog | `skills/*/templates/`, `skills/*/references/`, `skills/groma-skills/catalog.yaml` |
 | Distribution manifests | JSON | Plugin and extension metadata per agent | `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/`, `gemini-extension.json`, `install.sh` |
 | Test suite (not shipped) | sh, bats, Python via uv | Structure checks, script tests, invariant, evals | `scripts/test.sh`, `tests/` |
@@ -35,21 +35,21 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 ## Building blocks
 
 - `groma`: orchestrator, owns `config.yaml` template, `check-prereqs.sh`, `validate-config.sh`.
-- `groma-detect`: `detect.sh` plus `references/signals.md`.
+- `groma-detect`: `detect.sh` plus `references/signals.md`; `git-practice.sh` recommends the integration strategy and commit style from the main branch's history.
 - `groma-survey`: `freshness.sh`, `style-drift.sh` (tools from the lay-out table, `.editorconfig` drift, unchecked tools), `dump-schema.sh`, ADR and data-source tables, findings template.
-- `groma-lay-out`: doc templates, `doc-slots.md`, `code-style-tools.md` with `templates/code-style/` (style setup) and `docs-impact.sh` (docs impact and ADR candidates of a change).
+- `groma-lay-out`: doc templates, `doc-slots.md`, `code-style-tools.md` with `templates/code-style/` (style setup) and `docs-impact.sh` (docs impact and ADR candidates of a change; on a change branch the base is the merge base with the main branch).
 - `groma-methodology`: `next-change-id.sh`, `check-conventions.sh`, `roadmap.sh`, `status.sh` (lifecycle reminders; share `lib-changes.sh`).
 - `groma-loop`: runs one change through propose, apply, verify and archive with an independent reviewer; `resolve-reviewer.sh`, `review.sh`, review prompt and record templates.
 - `groma-skills`: `catalog.yaml` and `references/install.md`.
-- `groma-agents`: templates for `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `copilot-instructions.md`, `groma.mdc`.
+- `groma-agents`: templates for `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `copilot-instructions.md`, `groma.mdc`; `references/git-strategies.md` holds the command sequences of the three integration strategies.
 
-The orchestrator refers to siblings by relative path (`../groma-detect/`). A skill never calls another skill's scripts except through that documented sibling path, and every skill works alone. groma-survey reads groma-lay-out's `code-style-tools.md` the same way and degrades to "style tools not detected" when it is missing.
+The orchestrator refers to siblings by relative path (`../groma-detect/`). A skill never calls another skill's scripts except through that documented sibling path, and every skill works alone. groma-survey reads groma-lay-out's `code-style-tools.md` the same way and degrades to "style tools not detected" when it is missing; groma-loop reads groma-agents' `git-strategies.md` and falls back to the "Git workflow" section of the project's AGENTS.md.
 
 ## Runtime view
 
-`/groma` in init mode: detect → interview (style tools asked only when `style-drift.sh` finds none) → write `.groma/config.yaml` → methodology → skills → docs (survey first on brownfield; style setup from the interview, then the docs tree with `docs/code-style.md`) → agents → summary. After each step `steps.<name>` becomes `done`, `pending` or `skipped`. A later run validates the config and resumes at the first `pending` step.
+`/groma` in init mode: detect → interview (style tools asked only when `style-drift.sh` finds none; integration strategy and push policy asked in git repositories, brownfield with the recommendation and evidence of `git-practice.sh`) → write `.groma/config.yaml` → methodology → skills → docs (survey first on brownfield; style setup from the interview, then the docs tree with `docs/code-style.md`) → agents → summary. After each step `steps.<name>` becomes `done`, `pending` or `skipped`. A later run validates the config and resumes at the first `pending` step.
 
-`groma-loop` per change: propose → review rounds → apply per task group (tests gate with the code-style check commands, then review rounds on the diff with the code-style doc as project rules) → verify (plus the docs gate: every `docs-impact.sh` line is a high finding) → archive with spec sync and docs sync (proposed ADRs with this change's `origin` become accepted, `last_reviewed` of touched docs set, ADR index and roadmap updated). With `docs.gate: strict` archive waits until the report is empty.
+`groma-loop` per change: propose → review rounds → apply per task group (tests gate with the code-style check commands, then review rounds on the diff with the code-style doc as project rules) → verify (plus the docs gate: every `docs-impact.sh` line is a high finding) → archive with spec sync and docs sync (proposed ADRs with this change's `origin` become accepted, `last_reviewed` of touched docs set, ADR index and roadmap updated). With `docs.gate: strict` archive waits until the report is empty. In a git repository the loop first requires a clean working tree, works on a branch named after the change, commits each review unit after its clean review, commits the archive, integrates with the configured strategy (rebase, merge or squash, the command sequence from `git-strategies.md`) and pushes the main branch by `git.push`. A conflicting integration is aborted, so both branches stay as they were, and escalated with the conflicting paths; the loop never force-pushes and never deletes branches.
 
 `status.sh` at session start prints at most one reminder per active change (docs impact open, verify and archive, untested ticks, milestone gate, stale change), one line per ADR still `proposed` after its origin change was archived, and from local git state one line each for uncommitted files and for commits on the main branch not yet on its upstream. A milestone is at its gate when it has open tasks and no active change names it in a `Milestone:` line.
 

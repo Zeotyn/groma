@@ -17,13 +17,13 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 
 | Capability | What it gives the user |
 |---|---|
-| Detect (`groma-detect`) | Greenfield or brownfield verdict with evidence |
+| Detect (`groma-detect`) | Greenfield or brownfield verdict with evidence; integration strategy and commit style recommended from the git history |
 | Survey (`groma-survey`) | Read-only code map, ADR and docs harvest, stale-doc check, style tools, conventions and editorconfig drift, findings report |
 | Lay out (`groma-lay-out`) | A complete `docs/` tree (including `code-style.md`) with freshness frontmatter and MADR 4.0 ADRs; style tool configs and ADRs after the interview |
 | Methodology (`groma-methodology`) | OpenSpec, Spec Kit, BMAD or GSD set up non-interactively, plus the `<type><NNN>-<slug>` change convention |
 | Skills (`groma-skills`) | Curated third-party skills per category, installed project-scoped |
 | Agents (`groma-agents`) | One canonical `AGENTS.md` and pointer files for each agent |
-| Loop (`groma-loop`) | Each change proposed, applied, verified and archived with an independent reviewer model and a tests gate that includes the style checks |
+| Loop (`groma-loop`) | Each change proposed, applied, verified and archived with an independent reviewer model and a tests gate that includes the style checks; branched, committed per review unit, integrated and pushed by the git settings |
 | Lifecycle reminders (`status.sh`) | One reminder per open change at session start: docs to update, verify and archive, untested ticks, milestone gates, stale work, pending ADRs; then uncommitted and unpushed work |
 
 ## Crosscutting concepts
@@ -33,6 +33,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 - **Freshness.** Every generated doc has `last_reviewed`, `review_after_days` and `sources`; `freshness.sh` compares them with git history. A source commit makes a doc stale only when it is newer than the doc and falls on a day after `last_reviewed`, so a review covers the commits of its own day.
 - **Living docs.** Every change updates the docs whose `sources` it touches and records design decisions with alternatives as ADRs (`origin: <change>#D<n>`). `docs-impact.sh` reports what is missing; `docs.gate` (`off`, `remind`, `review`, `strict`) sets how hard groma-loop enforces it. A doc may be exempted with a task line `Docs: <path> unchanged, because <reason>`.
 - **Code style.** Three layers: tool configs enforce what they can, `docs/code-style.md` links them and documents the conventions no tool enforces (each tagged `EXTRACTED` or `INFERRED` with a path), and ADRs hold the tool decisions. Agents reach the style through AGENTS.md, the methodology context and groma-loop's tests gate. The survey reports drift statically; no project tool runs during setup.
+- **Git workflow.** The `git` section of the config decides once how changes are integrated (`rebase`, `merge`, `squash`), whether each change gets a branch, how commits are written and when groma pushes. AGENTS.md carries the rule for every agent, including those outside the loop: a request to "merge" means the configured sequence. groma-loop carries it out and stops on conflicts, a dirty tree or a rejected push instead of resolving, stashing or forcing.
 - **No credentials.** Scripts never connect to databases and never print secrets.
 
 ## Constraints

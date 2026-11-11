@@ -71,3 +71,15 @@ Alternatives: one commit per change (rejected: loses the review-unit history tha
 ## Open Questions
 
 - Should `push: auto` also push the change branch, for backup? Deferred: pushing only the main branch keeps the no-force rule simple.
+
+## Implementation notes
+
+- D2: the command sequences live in one table, `skills/groma-agents/references/git-strategies.md`, because AGENTS.md is the carrier of the rule (D1) and groma-agents fills it from there; groma-loop reads the table through `../groma-agents/references/` and falls back to the "Git workflow" section of the project's AGENTS.md. `tests/scripts/git-integrate.bats` parses the table and runs its rows, so the tested commands are the ones agents follow. No integration script was added: scripts in `skills/*/scripts/` stay read-only toward the target project, and the loop runs the commands itself.
+- D2 and D3: the abort command for `squash` is `git reset --merge`, because `git merge --squash` writes no `MERGE_HEAD` and `git merge --abort` refuses. The conflicting paths are read with `git diff --name-only --diff-filter=U` before the abort.
+- D4: the `commits` share counts the last 200 non-merge commits reachable from the main branch (`git log --no-merges`), not the first-parent line, because in a pull-request project the first-parent line consists of merge subjects and would always read as `free`. The `integrate` rules use the first-parent line as designed. The script also prints a `main<TAB><branch>` line and a `summary` line with all counts, and treats a folder outside git like an empty repository ("no history").
+- D4: the main branch falls back to the current branch when neither `origin/HEAD`, `main` nor `master` exists, so a repository that only has `trunk` is still analyzed.
+- D5: the propose phase also commits, `docs(<scope>): propose <change-id>`, so the change artifacts are on the branch before the first unit; the commit scope per methodology (`openspec`, `spec-kit`, `bmad`, `gsd`, `changes` for none) is listed in `methodology-adapters.md`. `<type>` of unit and squash subjects comes from the change type (`c` feat, `f` fix, `d` docs, `r` refactor, `m` and `s` chore).
+- Config: the template carries concrete defaults (`rebase`, `true`, `conventional`, `ask`) instead of `{{…}}` placeholders, because the CLI leaves unknown placeholders unresolved; the `/groma` config step sets `git.integrate`, `git.commits` and `git.push` from the interview. `commits` is taken from `git-practice.sh` without a question.
+- Docs impact: the merge-base base applies when the current branch is named after the change; any other branch keeps the proposal-commit rule, and `--base` wins over both. A `note` line announces the merge base.
+- Evals: `conflict-loop-openspec` reuses the loop-openspec fixture; `run.sh` creates the change branch and rewords the first task line on `main`, so the loop's unit commit (which ticks that line) conflicts on rebase. Assertions were written; the evals were not run.
+- ADRs: every decision has an "Alternatives" line, so all five got an ADR (0037 to 0041, `status: proposed`); `docs-impact.sh` reports `adr=0`.

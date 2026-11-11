@@ -102,6 +102,7 @@ propose ─▶ review ⟲ ─▶ apply per task group ─▶ tests green? ─▶
 - **Reviewer `auto`** picks the most independent reviewer it can reach: another vendor's CLI (`codex`, `gemini`, `copilot`), else another Claude model, else a self-review in a fresh context, clearly marked as such. Pin one per phase with `review.<phase>.reviewer: gemini` or `claude:opus`.
 - **Mode `autonomous`** (default) runs to the archive and stops only when it is stuck: open high findings after the last round, tests still red after retries, a rejected high finding, or a destructive step outside the change. **`gated`** also waits for you after propose and before archive.
 - Every round is kept in the change folder as `reviews/<phase>-round-<n>.md` and archived with it.
+- **Git** follows the `git` section of the config: a branch per change, one commit per reviewed task group, an archive commit, then integration by `integrate` (`rebase` rebases and fast-forwards, `merge` makes a `--no-ff` merge commit, `squash` one commit named after the change) and a push of the main branch by `push` (`ask`, `auto`, `never`). The same rule lands in `AGENTS.md`, so "merge this branch" means the configured strategy for every agent. A conflict is aborted and handed to you with the paths; groma never force-pushes and never deletes branches. The interview recommends the strategy from your history (`skills/groma-detect/scripts/git-practice.sh`).
 
 Reminders: `skills/groma-methodology/scripts/status.sh` lists changes whose docs need an update, that are ready to archive, ticked without test changes, or stale, plus ADRs still `proposed` after their change was archived. `AGENTS.md` tells agents to run it at session start; Claude Code can run it automatically through an optional SessionStart hook.
 
@@ -129,6 +130,7 @@ On archive, groma-loop accepts the change's proposed ADRs, sets `last_reviewed` 
 - Edit, move or delete a file that existed before the run. Suggestions for existing files land in `docs/_groma/findings-<date>.md` as snippets.
 - Connect to a database. The data model comes from migrations, schema files and code. If you want a live schema, run `skills/groma-survey/scripts/dump-schema.sh` yourself; groma reads only the resulting file.
 - Run an installer that touches an existing file without asking first. Declined or failing installs go to `.groma/install.sh` for you to run.
+- Force-push, delete a branch, rewrite commits on the main branch or resolve a merge conflict on its own. A conflicting integration is aborted and handed to you.
 
 ## Configuration
 
@@ -162,6 +164,11 @@ reminders:
   archive_when_done: true
   stale_change_days: 14
   untested_tasks: true
+git:
+  integrate: rebase              # rebase | merge | squash
+  branch_per_change: true
+  commits: conventional          # conventional | free
+  push: ask                      # ask | auto | never
 conventions:
   changes:
     digits: 3

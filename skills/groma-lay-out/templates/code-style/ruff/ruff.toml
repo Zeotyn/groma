@@ -1,0 +1,5 @@
+# Ruff: https://docs.astral.sh/ruff/configuration/
+line-length = 100
+
+[lint]
+extend-select = ["I"]

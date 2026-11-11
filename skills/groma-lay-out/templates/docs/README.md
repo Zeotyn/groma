@@ -19,6 +19,7 @@ Start here. Agents read this file first (see `AGENTS.md`).
 | [data-model.md](data-model.md) | Entities, relationships, invariants | {{status:data-model}} | {{reviewed:data-model}} |
 | [glossary.md](glossary.md) | Domain terms everyone uses the same way | {{status:glossary}} | {{reviewed:glossary}} |
 | [risks.md](risks.md) | Known risks and technical debt | {{status:risks}} | {{reviewed:risks}} |
+| [code-style.md](code-style.md) | Style tools, check commands, conventions | {{status:code-style}} | {{reviewed:code-style}} |
 | [adr/](adr/README.md) | Architecture decision records (MADR 4.0) | - | - |
 
 <!-- groma: list optional and pre-existing docs below this line, one row each -->

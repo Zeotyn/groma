@@ -1,0 +1,2 @@
+# shellcheck: https://github.com/koalaman/shellcheck/wiki/Directive
+shell=sh

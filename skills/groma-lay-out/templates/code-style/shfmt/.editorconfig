@@ -1,0 +1,6 @@
+# shfmt reads these keys from .editorconfig: https://github.com/mvdan/sh
+[*.sh]
+indent_style = space
+indent_size = 2
+shell_variant = posix
+switch_case_indent = true

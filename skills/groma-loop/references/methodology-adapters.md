@@ -11,7 +11,7 @@ How each loop phase maps to the project's methodology. Read only the section for
 | verify | the OpenSpec verify workflow, then the docs gate | its report, the full change diff and the docs impact report |
 | archive | the OpenSpec archive workflow with spec sync, then the docs sync, then the git steps (archive commit `docs(openspec): archive <change-id>`, integration, push) | none (no review) |
 
-Task group = a `## N.` heading in tasks.md. Commit scope `<scope>` for the propose and archive commits: `openspec`.
+Task group = a `## N.` heading in tasks.md. Commit scope `<scope>` for the propose and archive commits: `openspec`. `<proposal title>` (squash subject, `per: change` unit title): the slug of the change name with dashes as spaces (`c007-cache-layer` → "cache layer"); when proposal.md starts with a `# ` heading, that heading instead.
 
 ## spec-kit
 
@@ -22,7 +22,7 @@ Task group = a `## N.` heading in tasks.md. Commit scope `<scope>` for the propo
 | verify | re-read spec.md acceptance criteria against the diff |
 | archive | none; mark the feature done in `docs/roadmap.md` |
 
-Task group = a phase heading in tasks.md.
+Task group = a phase heading in tasks.md. `<proposal title>`: the first heading of the feature's `spec.md`, else the humanized slug.
 
 ## generic (bmad, gsd, none)
 
@@ -33,6 +33,6 @@ Task group = a phase heading in tasks.md.
 | verify | check every task and the proposal's goals against the diff |
 | archive | move the change folder to the methodology's archive (or `<changes>/archive/YYYY-MM-DD-<name>/`) |
 
-The docs gate, the docs sync and the git steps (SKILL.md, Verify and Archive) run the same way for every methodology; `<change-dir>` is the change folder before archiving. Commit scope `<scope>`: `spec-kit`, `bmad`, `gsd`, and `changes` for `none`.
+The docs gate, the docs sync and the git steps (SKILL.md, Verify and Archive) run the same way for every methodology; `<change-dir>` is the change folder before archiving. Commit scope `<scope>`: `spec-kit`, `bmad`, `gsd`, and `changes` for `none`. `<proposal title>` for the generic methodologies: the first heading of `proposal.md`, else the humanized slug. Commit messages always go through a file (`git commit -F`), never `-m`.
 
 Review records always go to `<change folder>/reviews/`.

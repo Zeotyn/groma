@@ -330,7 +330,8 @@ CODE_STYLE_TABLE = "skills/groma-lay-out/references/code-style-tools.md"
 CODE_STYLE_TEMPLATES = "skills/groma-lay-out/templates/code-style"
 CODE_STYLE_COLUMNS = ["Stack", "Tool", "Role", "Config patterns", "Check", "Fix", "Install", "Template", "Default"]
 CODE_STYLE_ROLES = {"format", "lint"}
-CHECK_LOCATION_KINDS = {"file", "package-scripts"}
+CHECK_LOCATION_KINDS = {"file", "package-scripts", "targets"}
+CHECK_LOCATION_COLUMNS = ["Kind", "Pattern", "Command"]
 
 
 def markdown_tables(text: str) -> list[list[list[str]]]:
@@ -390,10 +391,11 @@ def validate_code_style_table(text: str, label: str, templates: Path) -> None:
             err(f"{where}: config patterns missing")
         if default not in ("yes", "no"):
             err(f"{where}: default must be 'yes' or 'no', got '{default}'")
-        for r in roles:
-            defaults.setdefault((stack, r), [])
-            if default == "yes":
-                defaults[(stack, r)].append(tool)
+        for st in [x.strip() for x in stack.split(",") if x.strip()]:
+            for r in roles:
+                defaults.setdefault((st, r), [])
+                if default == "yes":
+                    defaults[(st, r)].append(tool)
         template = template.strip("`")
         if template and not (templates / template).is_file():
             err(f"{where}: template '{template}' not found under {templates.name}/")
@@ -401,12 +403,19 @@ def validate_code_style_table(text: str, label: str, templates: Path) -> None:
         if len(names) != 1:
             err(f"{label}: stack '{stack}' role '{r}' needs exactly one default, has {names or 'none'}")
     locations = next((t for t in tables if t and t[0][:1] == ["Kind"]), None)
-    if locations is None:
-        err(f"{label}: no table with the columns ['Kind', 'Pattern'] (where checks run)")
-        return
-    for row in locations[1:]:
-        if len(row) < 2 or row[0] not in CHECK_LOCATION_KINDS:
-            err(f"{label}: check location {row[:2]} needs a kind in {sorted(CHECK_LOCATION_KINDS)}")
+    if locations is None or locations[0] != CHECK_LOCATION_COLUMNS:
+        err(f"{label}: no table with the columns {CHECK_LOCATION_COLUMNS} (where checks run)")
+    else:
+        for row in locations[1:]:
+            if len(row) != 3 or row[0] not in CHECK_LOCATION_KINDS or not row[1].strip("` "):
+                err(f"{label}: check location {row[:2]} needs a kind in {sorted(CHECK_LOCATION_KINDS)}, a pattern and a command")
+    prefixes = next((t for t in tables if t and t[0] == ["Prefix"]), None)
+    if prefixes is None or len(prefixes) < 2:
+        err(f"{label}: no non-empty table with the column ['Prefix'] (runner prefixes)")
+    else:
+        for row in prefixes[1:]:
+            if len(row) != 1 or not row[0].strip("` "):
+                err(f"{label}: runner prefix row {row} must hold one command prefix")
 
 
 def check_versions(root: Path = ROOT) -> None:

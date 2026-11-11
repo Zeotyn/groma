@@ -13,7 +13,7 @@ setup() {
 sd() { run sh "$SD" "$@"; }
 
 # write <path> with printf-style content, creating folders
-w() { mkdir -p "$(dirname "$P/$1")"; printf "$2" > "$P/$1"; }
+w() { [ "$1" = -- ] && shift; mkdir -p "$(dirname -- "$P/$1")"; printf -- "$2" > "$P/$1"; }
 
 ec() { printf '%s\n' "$@" > "$P/.editorconfig"; }
 
@@ -211,6 +211,119 @@ ec() { printf '%s\n' "$@" > "$P/.editorconfig"; }
   assert_output_contains "drift	indent_style	1	a.py"
 }
 
+# --- review round 1 ---------------------------------------------------------------
+
+@test "CRLF .editorconfig is parsed" {
+  printf '[*.py]\r\nindent_style = space\r\n' > "$P/.editorconfig"
+  w a.py 'def f():\n\treturn 1\n'
+  commit_at "$P" 2025-01-01 init
+  sd "$P"
+  assert_output_contains "drift	indent_style	1	a.py"
+}
+
+@test "file names starting with a dash and a file named - are handled" {
+  ec '[*]' 'indent_style = space' 'insert_final_newline = true'
+  w -- '-x.py' 'def f():\n    return 1\n'
+  w -- '-' 'ok\n'
+  w ok.py 'def f():\n    return 1\n'
+  commit_at "$P" 2025-01-01 init
+  sd "$P"
+  [ "$status" -eq 0 ]
+  assert_output_not_contains "drift	"
+  assert_output_not_contains "tail:"
+}
+
+@test "glob negation [!...] is honored" {
+  ec '[*.[!p]*]' 'indent_style = space'
+  w a.py 'def f():\n\treturn 1\n'
+  w b.rb 'def f\n\t1\nend\n'
+  commit_at "$P" 2025-01-01 init
+  sd "$P"
+  assert_output_contains "drift	indent_style	1	b.rb"
+  assert_output_not_contains "a.py"
+}
+
+@test "a relative --table path is resolved from the caller's directory" {
+  cp "$TABLE" "$BATS_TEST_TMPDIR/table.md"
+  w ruff.toml 'line-length = 100\n'
+  commit_at "$P" 2025-01-01 init
+  cd "$BATS_TEST_TMPDIR"
+  sd --table table.md "$P"
+  assert_output_contains "tool	ruff	ruff.toml"
+  assert_output_not_contains "note	style tools not detected"
+}
+
+@test "unset in a later section lifts a property" {
+  ec '[*]' 'indent_style = space' '[vendor/**]' 'indent_style = unset'
+  w a.py 'def f():\n\treturn 1\n'
+  w vendor/v.py 'def f():\n\treturn 1\n'
+  commit_at "$P" 2025-01-01 init
+  sd "$P"
+  assert_output_contains "drift	indent_style	1	a.py"
+  assert_output_not_contains "vendor/v.py"
+}
+
+@test "outside git every text file is checked" {
+  D="$BATS_TEST_TMPDIR/nogit"
+  mkdir -p "$D/src"
+  printf '[*]\nindent_style = space\n' > "$D/.editorconfig"
+  printf 'def f():\n\treturn 1\n' > "$D/src/a.py"
+  printf 'PNG\0\0\t\tbinary' > "$D/img.png"
+  sd "$D"
+  [ "$status" -eq 0 ]
+  assert_output_contains "drift	indent_style	1	src/a.py"
+  assert_output_not_contains "img.png"
+}
+
+@test "checked lines name where a tool runs: npm script, make target, workflow step" {
+  w ruff.toml 'line-length = 100\n'
+  w .prettierrc '{}\n'
+  w .rubocop.yml 'AllCops:\n  NewCops: enable\n'
+  w package.json '{\n  "scripts": {\n    "test": "node --test",\n    "format": "prettier --check ."\n  }\n}\n'
+  w Makefile 'test:\n\tnode --test\n\nlint:\n\truff check .\n'
+  w .github/workflows/ci.yml 'jobs:\n  lint:\n    steps:\n      - run: bundle exec rubocop\n'
+  commit_at "$P" 2025-01-01 init
+  sd "$P"
+  assert_output_contains "checked	prettier	package.json	npm run format"
+  assert_output_contains "checked	ruff	Makefile	make lint"
+  assert_output_contains "checked	rubocop	.github/workflows/ci.yml	run: bundle exec rubocop"
+  assert_output_contains "unchecked=0"
+}
+
+@test "the first two words of the check command count as a mention, runner prefixes stripped" {
+  w Cargo.toml '[package]\nname = "x"\n'
+  w .github/workflows/ci.yml 'steps:\n  - run: cargo fmt --check\n'
+  commit_at "$P" 2025-01-01 init
+  sd "$P"
+  assert_output_contains "checked	rustfmt	.github/workflows/ci.yml	run: cargo fmt --check"
+  assert_output_contains "unchecked	clippy	Cargo.toml"
+}
+
+@test "a tool matched through a manifest section wins over a bare match on the same file" {
+  w eslint.config.js 'import tseslint from "typescript-eslint";\nexport default [];\n'
+  commit_at "$P" 2025-01-01 init
+  sd "$P"
+  assert_output_contains "tool	typescript-eslint	eslint.config.js"
+  assert_output_not_contains "tool	eslint	"
+  w eslint.config.js 'export default [];\n'
+  sd "$P"
+  assert_output_contains "tool	eslint	eslint.config.js"
+  assert_output_not_contains "typescript-eslint"
+}
+
+@test "interrupt leaves no temp folder behind" {
+  ec '[*]' 'indent_style = space'
+  for i in $(seq 1 300); do w "f$i.py" 'def f():\n    return 1\n'; done
+  commit_at "$P" 2025-01-01 init
+  TMPDIR="$BATS_TEST_TMPDIR/tmp"; mkdir -p "$TMPDIR"; export TMPDIR
+  sh "$SD" "$P" >/dev/null &
+  pid=$!
+  sleep 0.2
+  kill -INT "$pid" 2>/dev/null || true
+  wait "$pid" 2>/dev/null || true
+  [ -z "$(ls -A "$TMPDIR")" ]
+}
+
 # --- fixtures ---------------------------------------------------------------------
 
 @test "django fixture: tab drift against editorconfig and ruff unchecked" {
@@ -227,6 +340,7 @@ ec() { printf '%s\n' "$@" > "$P/.editorconfig"; }
   assert_output_contains "tool	prettier	.prettierrc"
   assert_output_contains "tool	eslint	eslint.config.js"
   assert_output_contains "unchecked	prettier	.prettierrc"
+  assert_output_contains "checked	eslint	package.json	npm run lint"
   assert_output_not_contains "unchecked	eslint"
 }
 
@@ -244,7 +358,7 @@ ec() { printf '%s\n' "$@" > "$P/.editorconfig"; }
 }
 
 @test "the shipped table has every tool the tests rely on" {
-  for t in editorconfig prettier eslint biome ruff gofmt golangci-lint rustfmt clippy spotless rubocop shellcheck shfmt; do
+  for t in editorconfig prettier eslint typescript-eslint biome ruff gofmt golangci-lint rustfmt clippy spotless rubocop shellcheck shfmt; do
     grep -qi "| $t |" "$TABLE" || { echo "missing row: $t"; return 1; }
   done
 }

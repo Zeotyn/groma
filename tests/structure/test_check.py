@@ -256,10 +256,17 @@ def good_code_style_table() -> str:
 
         ## Where checks run
 
-        | Kind | Pattern |
-        |---|---|
-        | file | `.github/workflows/*.yml` |
-        | package-scripts | `package.json` |
+        | Kind | Pattern | Command |
+        |---|---|---|
+        | package-scripts | `package.json` | `npm run {script}` |
+        | targets | `Makefile` | `make {target}` |
+        | file | `.github/workflows/*.yml` | `{line}` |
+
+        ## Runner prefixes
+
+        | Prefix |
+        |---|
+        | `npx` |
         """)
 
 
@@ -309,3 +316,16 @@ def test_code_style_locations_table_required(tmp_path):
     text = good_code_style_table().split("## Where checks run")[0]
     check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
     assert any("where checks run" in e for e in check.errors)
+    assert any("runner prefixes" in e for e in check.errors)
+
+
+def test_code_style_location_needs_known_kind_and_command(tmp_path):
+    text = good_code_style_table().replace("| targets | `Makefile` | `make {target}` |", "| make | `Makefile` | |")
+    check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
+    assert any("needs a kind in" in e for e in check.errors)
+
+
+def test_code_style_runner_prefix_table_must_have_rows(tmp_path):
+    text = good_code_style_table().replace("| `npx` |\n", "")
+    check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
+    assert any("runner prefixes" in e for e in check.errors)

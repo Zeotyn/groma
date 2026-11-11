@@ -1,18 +1,18 @@
 ## 1. Tests and fixtures first
 
-- [ ] 1.1 Fixtures: style configs in node-prisma, editorconfig drift in python-django-stale-docs, style section in java-flyway `CONTRIBUTING.md`; regenerate with `tests/fixtures/generate.sh`
-- [ ] 1.2 `tests/scripts/style-drift.bats`: each editorconfig property, section globs, untracked files ignored, `unchecked` via workflow, package.json script and Makefile, no `.editorconfig` → empty report
-- [ ] 1.3 Structure check for `code-style-tools.md` (required columns, one default per stack and role, templates referenced exist)
+- [x] 1.1 Fixtures: style configs in node-prisma, editorconfig drift in python-django-stale-docs, style section in java-flyway `CONTRIBUTING.md`; regenerate with `tests/fixtures/generate.sh`
+- [x] 1.2 `tests/scripts/style-drift.bats`: each editorconfig property, section globs, untracked files ignored, `unchecked` via workflow, package.json script and Makefile, no `.editorconfig` → empty report
+- [x] 1.3 Structure check for `code-style-tools.md` (required columns, one default per stack and role, templates referenced exist)
 
 ## 2. Data and templates
 
-- [ ] 2.1 `skills/groma-lay-out/references/code-style-tools.md` with the seed rows from design D2
-- [ ] 2.2 `templates/code-style/<tool>/` configs for EditorConfig, Prettier, ESLint, Ruff, rustfmt, RuboCop, shfmt
-- [ ] 2.3 `templates/docs/code-style.md` and the slot row in `references/doc-slots.md` (fill patterns per U)
+- [x] 2.1 `skills/groma-lay-out/references/code-style-tools.md` with the seed rows from design D2
+- [x] 2.2 `templates/code-style/<tool>/` configs for EditorConfig, Prettier, ESLint, Ruff, rustfmt, RuboCop, shfmt
+- [x] 2.3 `templates/docs/code-style.md` and the slot row in `references/doc-slots.md` (fill patterns per U)
 
 ## 3. Scripts and skills
 
-- [ ] 3.1 `skills/groma-survey/scripts/style-drift.sh` per D3; shellcheck clean
+- [x] 3.1 `skills/groma-survey/scripts/style-drift.sh` per D3; shellcheck clean
 - [ ] 3.2 groma-survey SKILL: tool detection from the table, convention sampling per D4, drift and unchecked findings
 - [ ] 3.3 groma SKILL interview: style tools question per the orchestration delta; setup step per D5 through the install consent flow
 - [ ] 3.4 groma-lay-out SKILL: write the doc (brownfield from survey, greenfield from interview), ADR per chosen tool

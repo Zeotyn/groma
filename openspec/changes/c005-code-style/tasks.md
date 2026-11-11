@@ -13,12 +13,12 @@
 ## 3. Scripts and skills
 
 - [x] 3.1 `skills/groma-survey/scripts/style-drift.sh` per D3; shellcheck clean
-- [ ] 3.2 groma-survey SKILL: tool detection from the table, convention sampling per D4, drift and unchecked findings
-- [ ] 3.3 groma SKILL interview: style tools question per the orchestration delta; setup step per D5 through the install consent flow
-- [ ] 3.4 groma-lay-out SKILL: write the doc (brownfield from survey, greenfield from interview), ADR per chosen tool
-- [ ] 3.5 groma-agents AGENTS.md template: pointer line and check commands
-- [ ] 3.6 groma-loop SKILL and `review-prompt.md`: checks in the tests gate, doc as project rules with severities
-- [ ] 3.7 `methodologies.md`: code-style context line; `upgrades.md` row 0.3.0
+- [x] 3.2 groma-survey SKILL: tool detection from the table, convention sampling per D4, drift and unchecked findings
+- [x] 3.3 groma SKILL interview: style tools question per the orchestration delta; setup step per D5 through the install consent flow
+- [x] 3.4 groma-lay-out SKILL: write the doc (brownfield from survey, greenfield from interview), ADR per chosen tool
+- [x] 3.5 groma-agents AGENTS.md template: pointer line and check commands
+- [x] 3.6 groma-loop SKILL and `review-prompt.md`: checks in the tests gate, doc as project rules with severities
+- [x] 3.7 `methodologies.md`: code-style context line; `upgrades.md` row 0.3.0
 - [ ] 3.8 `scripts/test.sh` green
 
 ## 4. Evals

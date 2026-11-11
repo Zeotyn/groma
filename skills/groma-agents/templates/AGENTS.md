@@ -16,6 +16,12 @@ Run the groma status script and mention any reminder before starting new work:
 
 {{commands: build, test, lint, run; one line each, exact commands}}
 
+## Code style
+
+Read `{{code_style_doc}}` before writing code and run its check commands after each task:
+
+{{style_checks: one line per check command from the tools table of the code-style doc, as a code span; "None configured." when the table lists no tool}}
+
 ## Working method
 
 - Methodology: {{methodology}}. {{methodology_hint}}

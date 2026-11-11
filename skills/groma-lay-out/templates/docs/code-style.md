@@ -31,4 +31,4 @@ One rule per line. `EXTRACTED` comes from configuration, `INFERRED` from a sampl
 
 ## Decisions
 
-- {{decisions: one link per style ADR, e.g. [ADR 0003: Use Prettier for formatting](adr/0003-use-prettier-for-formatting.md); none: "No style decisions recorded yet."}}
+- {{decisions: one link per style ADR, e.g. [ADR NNNN: Use Prettier for formatting](adr/{{nnnn}}-use-prettier-for-formatting.md); none: "No style decisions recorded yet."}}

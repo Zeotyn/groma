@@ -1,6 +1,6 @@
 ---
 name: groma-lay-out
-description: Creates or completes the docs/ folder - vision, concept, architecture, data model, glossary, risks, MADR 4.0 ADRs and an index - without touching existing files during setup; also writes ADR candidates and doc updates inside a change. Use when a project lacks docs or ADRs, when asked to set up documentation, or after groma-survey.
+description: Creates or completes the docs/ folder - vision, concept, architecture, data model, glossary, risks, code style, MADR 4.0 ADRs and an index - without touching existing files during setup; sets up style tools chosen in the interview; also writes ADR candidates and doc updates inside a change. Use when a project lacks docs or ADRs, when asked to set up documentation, or after groma-survey.
 ---
 
 # groma-lay-out
@@ -17,13 +17,14 @@ Use whatever is available, in this order: survey results (from groma-survey in t
 
 ## Steps
 
-1. **Inventory.** List every file under `<project>/docs/` and the root-level docs. Map each to a slot with [references/doc-slots.md](references/doc-slots.md). Done when each of the 8 slots is marked *filled by <path>* or *empty*.
+1. **Inventory.** List every file under `<project>/docs/` and the root-level docs. Map each to a slot with [references/doc-slots.md](references/doc-slots.md). Done when each of the 9 slots is marked *filled by <path>* or *empty*.
 
 2. **Fill empty slots.** For each empty slot, copy the template from [templates/docs/](templates/docs/) to the groma path and resolve every placeholder (rules in doc-slots.md):
    - vision, concept, glossary: from the interview or existing README; greenfield answers go here.
    - architecture: from the survey's code map, with real paths as evidence and a Mermaid context diagram. If the diagrams skill from the config (for example archify) is installed, offer an interactive diagram in addition.
    - data-model: from the survey's data-model draft, tags kept. No persistent data: `Not applicable: <reason>`.
    - risks: high and medium survey findings that are real risks or debt.
+   - code-style: the tools table from the survey's "Code style draft" (brownfield) or from the tools chosen in the interview and set up below (greenfield), one row per tool with the config path linked and the check and fix commands from [references/code-style-tools.md](references/code-style-tools.md). No tool: "None found." (brownfield) or "None. Decided in the interview on <date>." (greenfield). Conventions from the survey draft, tags and paths kept; greenfield: "Not yet documented.". Decisions: links to the style ADRs. `sources`: the config files and the sampled source folders. The rules inside a config file are never copied into the doc. When an existing style guide fills the slot (patterns in doc-slots.md), create no file: link it in the index and put the tools table and the conventions into the findings report as a snippet for that guide.
    Set frontmatter `last_reviewed` to today, `status: draft`, `review_after_days` from `docs.review_after_days` (default 90), and `sources` to the code and config paths the doc describes. Never list other docs or paths inside change folders (`openspec/changes/`): they move on archive. Link the ADR instead.
 
 3. **ADRs.** When `<project>/docs/adr/` has no `0001-*` or `0002-*` and no ADR exists anywhere else, create `0001-record-architecture-decisions.md` and `0002-adopt-groma-docs-structure.md` from `templates/docs/adr/`. When ADRs exist elsewhere, keep them there and number new ones after the highest found. Write `<project>/docs/adr/README.md` if absent, listing **every** ADR (groma's, proposed ones from the survey, and found ones with their path).
@@ -35,6 +36,15 @@ Use whatever is available, in this order: survey results (from groma-survey in t
 6. **Writing quality.** If `anti-ai-slop-writing` is listed under `skills.writing` and installed, apply its rules to every prose section you wrote.
 
 7. **Verify.** Run `grep -rn "{{" <every file you created>`; it must print nothing. Done when every slot is filled and the list of created files is ready for the caller.
+
+## Style setup
+
+Runs when the interview chose style tools (the `groma` skill passes them), before the code-style slot is filled. Every tool is a row of [references/code-style-tools.md](references/code-style-tools.md).
+
+1. **Config files.** For each chosen tool with a Template: copy `templates/code-style/<template>` to `<project>/<file name of the template>` only when that path does not exist (existing path: the template goes into the findings report as a snippet). Chosen templates that share a target file name (`.editorconfig` from EditorConfig and shfmt) become one new file, concatenated in table order. An empty Template column creates no file; when the tool lives inside an existing build file (Spotless), write the snippet from the table's Notes into the findings report and leave the build file unchanged.
+2. **ADRs.** One ADR per chosen tool from [templates/adr-template.md](templates/adr-template.md), numbered after the highest existing ADR: title "Use <Tool> for <role>", `status: accepted` (the user decided in the interview), `evidence: [<config file>]`, the other options from the table as considered options, no `origin` line. Add each to `docs/adr/README.md`.
+3. **Installs.** Each non-empty Install command goes through the consent flow of `../groma-skills/references/install.md`: ask first; on no, refusal or failure write it to `<project>/.groma/install.sh`. Never edit `package.json`, `pyproject.toml` or other manifests yourself; the install command does that after consent.
+4. **Report.** Configs created, snippets, ADRs, installs run or pending. "document only" (brownfield default) and "none" skip all four steps; the code-style doc records the decision.
 
 ## ADR candidates from a change
 

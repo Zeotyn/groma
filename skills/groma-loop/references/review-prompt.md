@@ -18,14 +18,18 @@ Phase: `<propose | apply: task group N | verify>`
 
 <Five to ten lines: the relevant parts of AGENTS.md and accepted ADRs, for example "writes are additive", "POSIX sh".>
 
+### Code style
+
+<The "Enforced by tools" table and the "Conventions" section of the code-style doc (`docs/code-style.md`, or the style guide the docs index links), verbatim. Missing doc: "No code-style doc.">
+
 ## Findings from earlier rounds
 
 <Table of earlier findings with the author's responses. Rejected findings stay rejected unless you add new evidence; say so explicitly when you do.>
 
 ## How to judge
 
-- **high**: breaks a spec requirement or scenario, loses or corrupts data, security issue, violates an accepted ADR or a project rule, tests do not cover a changed requirement, a doc whose sources changed is neither updated nor exempted with a justified `Docs:` task line, a design decision with alternatives has no ADR.
-- **medium**: likely bug in an edge case, missing scenario test, unclear requirement that two readers would implement differently, design decision without rationale.
+- **high**: breaks a spec requirement or scenario, loses or corrupts data, security issue, violates an accepted ADR or a project rule, violates a rule enforced by a style tool from the code-style doc (its check command would fail), tests do not cover a changed requirement, a doc whose sources changed is neither updated nor exempted with a justified `Docs:` task line, a design decision with alternatives has no ADR.
+- **medium**: likely bug in an edge case, missing scenario test, unclear requirement that two readers would implement differently, design decision without rationale, violates a convention from the code-style doc.
 - **low**: naming, duplication, small readability issues.
 
 Check the change against its own specs first, then against the project rules, then for bugs. Name a concrete location (file and line, or artifact and heading) for every finding.

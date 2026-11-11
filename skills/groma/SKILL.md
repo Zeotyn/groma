@@ -1,6 +1,6 @@
 ---
 name: groma
-description: Initializes or updates a project for AI-assisted work - detects greenfield/brownfield, interviews, sets up methodology, skills, docs/ and AGENTS.md in eight steps. Use for /groma, "set up this project", "onboard this repo", "initialize project docs", or re-running groma on an initialized project.
+description: Initializes or updates a project for AI-assisted work - detects greenfield/brownfield, interviews, sets up methodology, skills, docs/ (including code style), and AGENTS.md in eight steps. Use for /groma, "set up this project", "onboard this repo", "initialize project docs", or re-running groma on an initialized project.
 ---
 
 # groma
@@ -26,9 +26,10 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
 1. **detect**: follow `../groma-detect/SKILL.md`. Result: project type and evidence.
 
 2. **interview**: ask only what the folder does not answer, one question at a time, recommended option first:
-   - greenfield: what is being built and for whom (feeds vision and concept), does it have a UI, which agents (claude, copilot, gemini, cursor, codex).
+   - greenfield: what is being built and for whom (feeds vision and concept), does it have a UI, the main language or stack, which agents (claude, copilot, gemini, cursor, codex).
    - brownfield: confirm the project purpose in one sentence from README and code, ask about UI only when no frontend is visible, ask about agents only when no agent folders exist.
-   Done when name, purpose, `has_ui` and `agents` are known.
+   - style tools: run `sh ../groma-survey/scripts/style-drift.sh <project>` (read-only). When it prints a `tool` line, ask nothing. Otherwise look up the stack's default tools in `../groma-lay-out/references/code-style-tools.md` and ask once, for example "Set up Ruff for formatting and linting? (recommended)". Brownfield: the recommended option is "document only"; the tools are the second option. Record the answer as the chosen tools, `document only` or `none`.
+   Done when name, purpose, `has_ui`, `agents` and the style answer are known.
 
 3. **config**: create `<project>/.groma/config.yaml` from [templates/config.yaml](templates/config.yaml) (it carries the `review` and `reminders` defaults: autonomous loop, reviewer auto) with the answers so far (methodology and skills stay as placeholders filled by steps 4 and 5; write `none` where still unknown), `initialized_with: groma@<VERSION>`. Run `sh scripts/check-prereqs.sh` and report missing required tools with their install hint.
 
@@ -39,6 +40,7 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
 6. **docs**:
    - brownfield: follow `../groma-survey/SKILL.md` first, then `../groma-lay-out/SKILL.md` with the survey results.
    - greenfield: follow `../groma-lay-out/SKILL.md` with the interview answers.
+   When the interview chose style tools, groma-lay-out's "Style setup" runs first: config files at free paths, one accepted ADR per tool, installs through the consent flow (`.groma/install.sh` when declined). "document only" and "none" create no config and no ADR; the doc records the decision. Update mode never creates tool configs unless the user asks.
 
 7. **agents**: follow `../groma-agents/SKILL.md`.
 

@@ -31,7 +31,7 @@ methodologies:
 
         context: |
           Product truth lives in docs/ (start at docs/README.md). Read the relevant docs and ADRs before writing artifacts.
-          Code style lives in docs/code-style.md; follow it and run its check commands.
+          Code style lives in docs/code-style.md or the code-style doc listed in docs/README.md; follow it and run its check commands.
 
         rules:
           proposal:
@@ -57,7 +57,7 @@ methodologies:
         ## Product context
 
         Product goals live in docs/vision.md and docs/concept.md; this constitution does not restate them.
-        Code style lives in docs/code-style.md; follow it and run its check commands.
+        Code style lives in docs/code-style.md or the code-style doc listed in docs/README.md; follow it and run its check commands.
 
   bmad:
     detect: [_bmad/, .bmad-core/]

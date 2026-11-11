@@ -88,9 +88,9 @@ case "$FX" in
     check ".editorconfig created" test -f "$P/.editorconfig"
     check ".prettierrc.json created" test -f "$P/.prettierrc.json"
     check "eslint.config.js created" test -f "$P/eslint.config.js"
-    check "tools table lists Prettier and ESLint" sh -c "grep -qi prettier '$P/docs/code-style.md' && grep -qi eslint '$P/docs/code-style.md'"
+    check "tools table lists Prettier and typescript-eslint" sh -c "grep -qi prettier '$P/docs/code-style.md' && grep -qi 'typescript-eslint' '$P/docs/code-style.md'"
     check "ADR Use Prettier accepted" sh -c "grep -li 'use prettier' '$P'/docs/adr/0*.md | xargs grep -lq '^status: *accepted'"
-    check "ADR Use ESLint accepted" sh -c "grep -li 'use eslint' '$P'/docs/adr/0*.md | xargs grep -lq '^status: *accepted'"
+    check "ADR Use typescript-eslint accepted" sh -c "grep -liE 'use (typescript-)?eslint' '$P'/docs/adr/0*.md | xargs grep -lq '^status: *accepted'"
     check "install command pending in .groma/install.sh" has "$P/.groma/install.sh" 'npm i -D .*prettier|npm i -D .*eslint'
     check "AGENTS.md lists the check commands" sh -c "grep -q 'prettier --check' '$P/AGENTS.md' && grep -q 'eslint' '$P/AGENTS.md'"
     check "openspec context has the code-style line" has "$P/openspec/config.yaml" 'Code style lives in docs/code-style.md'

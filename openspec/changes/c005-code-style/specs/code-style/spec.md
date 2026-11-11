@@ -5,7 +5,7 @@ Makes a project's code style explicit: detected or set up once, documented in `d
 ## ADDED Requirements
 
 ### Requirement: Code-style doc structure
-`docs/code-style.md` SHALL have the sections "Enforced by tools" (table: tool, config path, check command, fix command), "Conventions" (one rule per line, each tagged `EXTRACTED` or `INFERRED` with a source path) and "Decisions" (ADR links). It SHALL link tool config files and SHALL NOT restate the rules they contain. Its frontmatter `sources` SHALL list the tool config files and the sampled source folders.
+`docs/code-style.md` SHALL have the sections "Enforced by tools" (table: tool, config path, check command, fix command), "Conventions" (one rule per line, each tagged `EXTRACTED` or `INFERRED` with a source path) and "Decisions" (ADR links). It SHALL link tool config files and SHALL NOT restate the rules they contain. The check command SHALL be the command the project already runs for the tool (a `package.json` script, a Makefile target or a CI step) when one exists, else the tool's own command. Its frontmatter `sources` SHALL list the tool config files and the sampled source folders.
 
 #### Scenario: Node project with Prettier and ESLint
 - **WHEN** the project has `.prettierrc` and `eslint.config.js` and a `lint` script in `package.json`
@@ -40,8 +40,8 @@ The survey SHALL report drift between `.editorconfig` and the code for `indent_s
 When no style tool is detected, groma SHALL recommend tools for the detected or chosen stack from the reference table. After the user confirms, groma SHALL create `.editorconfig` and each tool's config as new files, record one ADR per chosen tool with `status: accepted`, and route dependency installs through the install consent flow. A tool whose setup needs editing an existing file SHALL be set up only through a snippet in the findings report.
 
 #### Scenario: Greenfield TypeScript
-- **WHEN** the user confirms Prettier and ESLint for a new TypeScript project
-- **THEN** `.editorconfig`, `.prettierrc.json` and `eslint.config.js` exist, ADRs "Use Prettier for formatting" and "Use ESLint for linting" are accepted, and `npm i -D prettier eslint` runs only after consent, otherwise it is in `.groma/install.sh`
+- **WHEN** the user confirms the recommended tools (EditorConfig, Prettier and typescript-eslint) for a new TypeScript project
+- **THEN** `.editorconfig`, `.prettierrc.json` and `eslint.config.js` exist, ADRs "Use Prettier for formatting" and "Use typescript-eslint for linting" are accepted, and the install commands (`npm i -D prettier`, `npm i -D eslint @eslint/js typescript typescript-eslint`) run only after consent, otherwise they are in `.groma/install.sh`
 
 #### Scenario: Tool needs an existing build file
 - **WHEN** the user picks Spotless for an existing Gradle project

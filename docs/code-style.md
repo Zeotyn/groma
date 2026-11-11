@@ -45,3 +45,7 @@ One rule per line. `EXTRACTED` comes from configuration or an accepted ADR, `INF
 - [ADR 0005: Write runtime scripts in POSIX sh](adr/0005-posix-sh-scripts.md)
 - [ADR 0031: Link tool configs from the code-style doc instead of restating their rules](adr/0031-link-tool-configs-from-the-code-style-doc.md)
 - [ADR 0032: Report style drift statically without running project tools](adr/0032-report-style-drift-statically-without-running-project-tools.md)
+- [ADR 0033: Drive style detection and setup from one reference table](adr/0033-drive-style-detection-and-setup-from-one-reference-table.md)
+- [ADR 0034: Infer conventions by the agent, bounded and cited](adr/0034-infer-conventions-by-the-agent-bounded-and-cited.md)
+- [ADR 0035: Write style configs to new paths and ask before installs](adr/0035-write-style-configs-to-new-paths-and-ask-before-installs.md)
+- [ADR 0036: Reach the style through three pointers](adr/0036-reach-the-style-through-three-pointers.md)

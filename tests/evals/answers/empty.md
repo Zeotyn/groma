@@ -4,7 +4,7 @@ Interview answers:
 - Users: busy parents who cook at home
 - Has a UI: yes
 - Main language or stack: TypeScript
-- Style tools: yes, set up Prettier and ESLint (the recommended defaults); EditorConfig too
+- Style tools: yes, set up the recommended defaults (Prettier and typescript-eslint)
 - Agents: claude, copilot
 - Methodology: openspec
 - Skills: take the recommended option in every category

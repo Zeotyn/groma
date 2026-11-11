@@ -9,7 +9,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 ### Added
 
 - Code style (change C005): mandatory doc `docs/code-style.md` with a tools table (config, check, fix), conventions tagged `EXTRACTED` or `INFERRED` with paths, and decision links; an existing `CONTRIBUTING.md` or style guide fills the slot. `style-drift.sh` in groma-survey detects style tools from the new reference table `code-style-tools.md`, reports `.editorconfig` drift (indentation, line endings, final newline, trailing whitespace) and tools whose check runs in no CI workflow or script, without running any project tool. Greenfield, or brownfield without tools: the interview recommends the stack's defaults; after a yes groma creates `.editorconfig` and the tools' base configs from `templates/code-style/`, records one accepted ADR per tool and routes installs through the consent flow. AGENTS.md gets a "Code style" section with the check commands, the OpenSpec context a code-style line, and groma-loop runs the checks in the tests gate and reviews against the doc (tool rule: high, convention: medium).
-- `.editorconfig` and `docs/code-style.md` for this repository; ADRs 0031 and 0032.
+- `.editorconfig` and `docs/code-style.md` for this repository; ADRs 0031 to 0036.
 
 ## [0.2.2] - 2026-11-04
 

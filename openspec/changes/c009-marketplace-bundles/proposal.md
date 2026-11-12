@@ -10,7 +10,7 @@ The Claude marketplace offers one plugin with all eight skills. Someone who want
   - `groma`: all skills (unchanged);
   - `groma-docs`: groma-detect, groma-survey, groma-lay-out;
   - `groma-loop`: groma-loop (plus whatever its standalone test needs after R001).
-- Each bundle has its own manifest with the shared version; the version check covers them.
+- S001 result (ADR 0050): no per-bundle folders. Each bundle is a marketplace entry with `source: "./"` and a `skills` list of skill subdirectories; only those load. All bundles carry the root manifest's name, so their skills are prefixed `groma:` and the bundles are alternatives. Version: each entry's `version`, covered by the version check.
 - README "Install" gains a bundle table; a test installs each bundle into a temporary plugin dir and lists its skills.
 
 ## Capabilities
@@ -27,4 +27,4 @@ README "Install"; `docs/architecture.md` distribution part; ADR if S001 leaves a
 
 ## Impact
 
-`.claude-plugin/`, possibly per-bundle folders (per S001), `tests/structure/check.py`, `scripts/release-check.sh` (versions of every bundle manifest).
+`.claude-plugin/marketplace.json` (no per-bundle folders, ADR 0050), `tests/structure/check.py`, `scripts/release-check.sh` (today it reads only the first `version` in `marketplace.json`; it must check every entry).

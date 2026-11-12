@@ -36,13 +36,13 @@ Alternatives: keep skipping Claude when the plugin is present (rejected: the tea
 - R001 runs first: after vendoring, every skill folder is self-contained, so `materialize.sh` copies folders as they are.
 - C009 bundles: `materialize.sh` copies the groma skill folders installed next to it, so a `groma-docs` bundle puts only detect, survey and lay-out into the project.
 - C014: the next-action hooks come with the plugin. Teammates who only have the project copy get the skills, not the plugin hooks; for them the settings path from C007 stays.
-- S001 question 5 settles how the D3 hint switches the plugin off per project.
+- S001 question 5 (ADR 0050): the hint is `claude plugin disable groma@groma --scope local`, run by the user in the project; it writes `enabledPlugins` into `.claude/settings.local.json` (not committed) and hides the plugin's skills only there. Verified: a project copy plus the enabled plugin lists each skill twice (`groma-detect` and `groma:groma-detect`).
 - C015: the D2 question and the D3 hint follow the user-language rule.
 
 ## Risks / Trade-offs
 
 - [Two implementations of one rule set drift] → bats runs the CLI scenarios against the script, and the parity test fails on any difference.
-- [How to disable a plugin per project depends on Claude Code] → spike S001 checks the current mechanism; until then the hint names the plugin manager.
+- [How to disable a plugin per project depends on Claude Code] → S001 verified `claude plugin disable <plugin> --scope local` on 2.1.322; the hint names that command.
 - [Skills appear twice for a plugin user who ignores the hint] → harmless duplication; the summary repeats the hint once.
 
 ## Open Questions

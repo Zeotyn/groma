@@ -64,5 +64,6 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0047](0047-describe-hook-adapters-per-agent-as-data.md) | Describe hook adapters per agent as data | accepted | 2026-11-12 |
 | [0048](0048-publish-to-npm-through-trusted-publishing.md) | Publish to npm through trusted publishing | accepted | 2026-11-12 |
 | [0049](0049-publish-releases-directly-not-staged.md) | Publish releases directly, not staged | accepted | 2026-11-12 |
+| [0050](0050-ship-bundles-and-hooks-through-the-plugin-manifest.md) | Ship bundles and hooks through the plugin manifest | proposed | 2026-11-12 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

@@ -27,3 +27,6 @@
 
 - [x] 5.1 `docs/architecture.md`, `docs/concept.md`, `docs/glossary.md`; proposed ADRs for D1, D2, D4 with `origin`; ADR index
 - [x] 5.2 README: next action section with status-line snippet; CHANGELOG `[Unreleased]`
+- [x] Docs: `docs/vision.md` unchanged, because the README change documents the next-action display and setup, not goals
+- [x] Docs: `docs/code-style.md` unchanged, because the new scripts and tests follow the documented conventions and add no new one
+- [x] 5.3 ADRs for D3, D5 and D6 (0045 to 0047), found missing by docs-impact in the archive review; `next.*` in `docs/data-model.md`

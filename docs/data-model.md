@@ -1,7 +1,7 @@
 ---
 title: Data model
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 review_after_days: 90
 owner: Eugen Waldschmidt
 sources: [skills/groma/templates/config.yaml, skills/groma-lay-out/templates/adr-template.md, skills/groma-skills/catalog.yaml, skills/groma-lay-out/references/doc-slots.md, skills/groma-methodology/references/conventions.md]
@@ -31,7 +31,7 @@ erDiagram
 
 | Entity | Key attributes | Relationships | Source | Tag |
 |---|---|---|---|---|
-| Project config | `schema`, `initialized_with`, `project.name`, `project.has_ui`, `project_type`, `methodology`, `workflow`, `agents`, `docs.gate` (off/remind/review/strict), `docs.adr_from` (design-alternatives/marked/off), `reminders.*` (`archive_when_done`, `stale_change_days`, `untested_tasks`, `uncommitted`, `unpushed`), `git.*` (`integrate` rebase/merge/squash, `branch_per_change`, `commits` conventional/free, `push` ask/auto/never), `steps.*` | has one skill pick per category | `skills/groma/templates/config.yaml` | EXTRACTED |
+| Project config | `schema`, `initialized_with`, `project.name`, `project.has_ui`, `project_type`, `methodology`, `workflow`, `agents`, `docs.gate` (off/remind/review/strict), `docs.adr_from` (design-alternatives/marked/off), `reminders.*` (`archive_when_done`, `stale_change_days`, `untested_tasks`, `uncommitted`, `unpushed`), `git.*` (`integrate` rebase/merge/squash, `branch_per_change`, `commits` conventional/free, `push` ask/auto/never), `next.*` (`hook` on/off, `reshow_minutes`), `steps.*` | has one skill pick per category | `skills/groma/templates/config.yaml` | EXTRACTED |
 | Category | id, `select` (single/multi), `condition`, `recommended`, `options` | offers catalog skills | `skills/groma-skills/catalog.yaml` | EXTRACTED |
 | Catalog skill | id, `source`, `ref`, `skills`, `claude_plugin`, `marketplace`, `install`, `post_install` | listed in categories | `skills/groma-skills/catalog.yaml` | EXTRACTED |
 | Doc | `title`, `status`, `last_reviewed`, `review_after_days`, `owner`, `sources` | fills one doc slot | `skills/groma-lay-out/templates/docs/` | EXTRACTED |

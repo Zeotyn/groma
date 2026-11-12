@@ -51,3 +51,21 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 | C007 | `c007-next-action` | done |
 | C008 | `c008-release-workflow` | done |
 | F005 | `f005-eval-pending-context` | done |
+
+## M004 v0-4
+
+- Goal: Every groma skill installed alone with `npx skills add Zeotyn/groma --skill <name>` passes its standalone test; the marketplace offers the bundles the spike confirms (at least `groma` and `groma-docs`); the eval run writes a token and cost report per fixture with a recorded baseline, and the always-loaded diet and the survey subagent are measured against it; the effect measurement compares one task with and without groma docs; with the plugin installed and the next action switched on, a new Claude Code session starts with the next action in the agent context and no settings file was written; groma talks to the user in the user's language. `v0.4.0` tagged and published through the release workflow, all test levels green.
+- Status: active
+- Progress: 0/9 done
+
+| Id | Change | Status |
+|---|---|---|
+| C009 | `c009-marketplace-bundles` | active |
+| C010 | `c010-token-report` | active |
+| C011 | `c011-always-loaded-diet` | active |
+| C012 | `c012-survey-subagent` | active |
+| C013 | `c013-effect-measurement` | active |
+| C014 | `c014-plugin-next-hooks` | active |
+| C015 | `c015-user-language` | active |
+| R001 | `r001-vendor-shared-files` | active |
+| S001 | `s001-plugin-bundles-hooks` | active |

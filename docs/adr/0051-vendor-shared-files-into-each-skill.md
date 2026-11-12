@@ -33,7 +33,7 @@ Chosen option: "vendored copies listed in a manifest, a sync script and a byte-c
 Details:
 - `scripts/shared-files.txt` lists `<source> -> <consumer>` pairs. Contributors edit only the source and run `scripts/sync-shared.sh`, which copies sources over consumers (`--check` reports differences).
 - `tests/structure/check.py shared` fails when a copy differs from its source and names the source to edit.
-- Skills read their local copy (`references/...`, `scripts/...`, `templates/...`). A procedure hand-off, where a skill follows another skill's `SKILL.md`, runs a sibling's procedure or writes a sibling's script path into project files, stays a `../groma-<name>/` reference; it is listed in `scripts/handoffs.txt`, names the `npx skills add Zeotyn/groma --skill <name>` command and skips the step when the sibling is missing. `check.py handoffs` fails on any other sibling reference.
+- Skills read their local copy (`references/...`, `scripts/...`, `templates/...`). A procedure hand-off, where a skill follows another skill's `SKILL.md`, runs a sibling's procedure or writes a sibling's script path into project files, stays a `../groma-<name>/` reference; it is listed in `scripts/handoffs.txt`, names the `npx skills add Zeotyn/groma --skill <name>` command and skips the step when the sibling is missing. `check.py handoffs` fails on any other sibling reference and on a hand-off whose file lacks that command.
 - `tests/scripts/standalone.bats` copies each skill folder alone into a temporary project and runs its reference check and scripts.
 - `scripts/` is not shipped; the copies inside `skills/` are what the npm package, the plugins and `npx skills` deliver.
 
@@ -41,7 +41,7 @@ Details:
 
 * Good, because every skill installed alone finds the files it reads.
 * Good, because a drifted copy fails CI with the source to edit.
-* Bad, because the package carries duplicate files: the npm tarball grew from 95,327 to 98,682 bytes (279,110 to 379,500 unpacked, 96 to 116 files).
+* Bad, because the package carries duplicate files: the npm tarball grew from 95,327 to 99,009 bytes (279,110 to 379,692 unpacked, 96 to 117 files).
 * Bad, because contributors must remember the sync step; the check catches it.
 
 ### Confirmation

@@ -21,7 +21,7 @@ skills/groma/agents.yaml -> skills/groma-skills/agents.yaml
 skills/groma/scripts/validate-config.sh -> skills/groma-skills/scripts/validate-config.sh
 # groma-agents: hook adapters, change naming rule text
 skills/groma/agents.yaml -> skills/groma-agents/agents.yaml
-skills/groma-methodology/references/conventions.md -> skills/groma-agents/references/conventions.md
+skills/groma-methodology/references/naming-rule.md -> skills/groma-agents/references/naming-rule.md
 # groma-lay-out: install consent flow
 skills/groma-skills/references/install-consent.md -> skills/groma-lay-out/references/install-consent.md
 # groma-methodology: prerequisites, docs reminders in status.sh

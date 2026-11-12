@@ -35,7 +35,7 @@ Read `{{code_style_doc}}` before writing code and run its check commands after e
 
 ## Change naming
 
-Name every new change `<type><NNN>-<slug>` in lowercase. Types: {{types}}. Numbers count per type, include archived changes and are never reused. Get the next id with the groma script `next-change-id.sh <type>`, or by checking existing change folders. A change that belongs to a milestone starts its `proposal.md` with `Milestone: mNNN`. Milestone, refactor and docs changes carry no spec deltas.
+Name every new change `<type><NNN>-<slug>` in lowercase. Types: {{types}}. Numbers count per type, include archived changes and are never reused. Get the next id with groma-methodology's `next-change-id.sh <type>` when that skill is installed, else by checking existing change folders. A change that belongs to a milestone starts its `proposal.md` with `Milestone: mNNN`. Milestone, refactor and docs changes carry no spec deltas.
 
 ## Git workflow
 

@@ -4,7 +4,8 @@
 # Every other ../groma-*/ reference in skills/ fails the structure check and
 # tests/scripts/standalone.bats; a file the skill reads is vendored instead
 # (scripts/shared-files.txt). Each hand-off says which skill to add when the
-# sibling is missing and skips the step.
+# sibling is missing and skips the step: the file must contain
+# `npx skills add Zeotyn/groma --skill <sibling>` (or the generic `--skill <name>`).
 #
 # groma: the orchestrator runs each step by following the sibling's SKILL.md.
 skills/groma/SKILL.md ../groma-detect/

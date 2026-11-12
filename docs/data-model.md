@@ -4,7 +4,7 @@ status: draft
 last_reviewed: 2026-11-12
 review_after_days: 90
 owner: Eugen Waldschmidt
-sources: [skills/groma/templates/config.yaml, skills/groma-lay-out/templates/adr-template.md, skills/groma-skills/catalog.yaml, skills/groma-lay-out/references/doc-slots.md, skills/groma-methodology/references/conventions.md]
+sources: [skills/groma/templates/config.yaml, skills/groma-lay-out/templates/adr-template.md, skills/groma-skills/catalog.yaml, skills/groma-lay-out/references/doc-slots.md, skills/groma-methodology/references/conventions.md, skills/groma-methodology/references/naming-rule.md]
 ---
 
 # Data model
@@ -36,7 +36,7 @@ erDiagram
 | Catalog skill | id, `source`, `ref`, `skills`, `claude_plugin`, `marketplace`, `install`, `post_install` | listed in categories | `skills/groma-skills/catalog.yaml` | EXTRACTED |
 | Doc | `title`, `status`, `last_reviewed`, `review_after_days`, `owner`, `sources` | fills one doc slot | `skills/groma-lay-out/templates/docs/` | EXTRACTED |
 | ADR | number `NNNN`, `status`, `date`, `evidence`, optional `origin` `<change>#D<n>` | records at most one change decision | `skills/groma-lay-out/templates/adr-template.md` | EXTRACTED |
-| Change | id `<type><NNN>-<slug>`, optional `Milestone: mNNN` line | belongs to at most one milestone | `skills/groma-methodology/references/conventions.md` | EXTRACTED |
+| Change | id `<type><NNN>-<slug>`, optional `Milestone: mNNN` line | belongs to at most one milestone | `skills/groma-methodology/references/naming-rule.md`, `skills/groma-methodology/references/conventions.md` | EXTRACTED |
 
 ## Invariants
 

@@ -472,6 +472,7 @@ def check_versions(root: Path = ROOT) -> None:
 
 SHARED_MANIFEST = "scripts/shared-files.txt"
 HANDOFFS = "scripts/handoffs.txt"
+INSTALL_HINT = "npx skills add Zeotyn/groma --skill "
 SIBLING_REF_RE = re.compile(r"(?:\.\./)+groma[a-z-]*/[A-Za-z0-9_./-]*")
 
 
@@ -547,6 +548,11 @@ def check_handoffs(root: Path = ROOT) -> None:
                 err(f"{rel}: '{ref}' points into a sibling skill; vendor the file (scripts/shared-files.txt) or list a procedure hand-off in {HANDOFFS}")
     for rel, ref in sorted(allowed - seen):
         err(f"{HANDOFFS}: '{rel} {ref}' is listed but not found")
+    for rel, ref in sorted(allowed & seen):
+        sibling = re.match(r"(?:\.\./)+(groma[a-z-]*)/", ref).group(1)
+        text = (root / rel).read_text(encoding="utf-8")
+        if f"{INSTALL_HINT}{sibling}`" not in text and f"{INSTALL_HINT}<name>`" not in text:
+            err(f"{rel}: hand-off to {sibling} needs the message `{INSTALL_HINT}{sibling}` for when it is missing")
 
 
 CHECKS = {

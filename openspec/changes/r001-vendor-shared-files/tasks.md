@@ -11,7 +11,7 @@
 - [x] 2.2 Vendor the files and switch skill text and scripts to the local copies
 - [x] 2.3 Procedure hand-offs: clear message and skip when the sibling skill is missing
 - [x] 2.4 `scripts/test.sh` green; tarball size before and after recorded here
-  - `npm pack --dry-run`: before (main 9d56a25) 95,327 bytes packed, 279,110 unpacked, 96 files; after 98,682 bytes packed (+3.5 %), 379,500 unpacked, 116 files (19 vendored copies plus `install-consent.md`). The copies ship inside `skills/`; `scripts/sync-shared.sh`, `scripts/shared-files.txt` and `scripts/handoffs.txt` do not.
+  - `npm pack --dry-run`: before (main 9d56a25) 95,327 bytes packed, 279,110 unpacked, 96 files; after 99,009 bytes packed (+3.9 %), 379,692 unpacked, 117 files (19 vendored copies plus the split-out sources `install-consent.md` and `naming-rule.md`). The copies ship inside `skills/`; `scripts/sync-shared.sh`, `scripts/shared-files.txt` and `scripts/handoffs.txt` do not.
 
 ## 3. Docs
 

@@ -389,7 +389,8 @@ def test_shared_missing_copy_and_bad_line(tmp_path):
 
 
 def test_handoffs_unlisted_sibling_reference_fails(tmp_path):
-    write(tmp_path / "skills/groma-a/SKILL.md", "Read `../groma-b/references/t.md` and follow `../groma-b/SKILL.md`.\n")
+    write(tmp_path / "skills/groma-a/SKILL.md", "Read `../groma-b/references/t.md` and follow `../groma-b/SKILL.md` "
+          "(missing: `npx skills add Zeotyn/groma --skill groma-b`).\n")
     write(tmp_path / "scripts/handoffs.txt", "# c\nskills/groma-a/SKILL.md ../groma-b/SKILL.md\n")
     check.check_handoffs(tmp_path)
     assert len(check.errors) == 1
@@ -401,3 +402,17 @@ def test_handoffs_stale_entry_fails(tmp_path):
     write(tmp_path / "scripts/handoffs.txt", "skills/groma-a/SKILL.md ../groma-b/SKILL.md\n")
     check.check_handoffs(tmp_path)
     assert any("listed but not found" in e for e in check.errors)
+
+
+def test_handoffs_need_the_install_message(tmp_path):
+    write(tmp_path / "skills/groma-a/SKILL.md", "Follow `../groma-b/SKILL.md`; else `npx skills add Zeotyn/groma --skill groma-c`.\n")
+    write(tmp_path / "scripts/handoffs.txt", "skills/groma-a/SKILL.md ../groma-b/SKILL.md\n")
+    check.check_handoffs(tmp_path)
+    assert any("needs the message `npx skills add Zeotyn/groma --skill groma-b`" in e for e in check.errors)
+
+
+def test_handoffs_generic_install_message_counts(tmp_path):
+    write(tmp_path / "skills/groma-a/SKILL.md", "Follow `../groma-b/SKILL.md`; missing: `npx skills add Zeotyn/groma --skill <name>`.\n")
+    write(tmp_path / "scripts/handoffs.txt", "skills/groma-a/SKILL.md ../groma-b/SKILL.md\n")
+    check.check_handoffs(tmp_path)
+    assert check.errors == []

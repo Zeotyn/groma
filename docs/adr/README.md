@@ -47,7 +47,7 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0030](0030-toggle-uncommitted-and-unpushed-reminders-separately.md) | Toggle the uncommitted and unpushed reminders separately | accepted | 2026-11-04 |
 | [0031](0031-link-tool-configs-from-the-code-style-doc.md) | Link tool configs from the code-style doc instead of restating their rules | accepted | 2026-11-11 |
 | [0032](0032-report-style-drift-statically-without-running-project-tools.md) | Report style drift statically without running project tools | accepted | 2026-11-11 |
-| [0033](0033-drive-style-detection-and-setup-from-one-reference-table.md) | Drive style detection and setup from one reference table | accepted | 2026-11-11 |
+| [0033](0033-drive-style-detection-and-setup-from-one-reference-table.md) | Drive style detection and setup from one reference table | accepted, refined by [0051](0051-vendor-shared-files-into-each-skill.md) | 2026-11-11 |
 | [0034](0034-infer-conventions-by-the-agent-bounded-and-cited.md) | Infer conventions by the agent, bounded and cited | accepted | 2026-11-11 |
 | [0035](0035-write-style-configs-to-new-paths-and-ask-before-installs.md) | Write style configs to new paths and ask before installs | accepted | 2026-11-11 |
 | [0036](0036-reach-the-style-through-three-pointers.md) | Reach the style through three pointers | accepted | 2026-11-11 |

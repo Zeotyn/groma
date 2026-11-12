@@ -3,7 +3,8 @@
 #
 # Usage: scripts/sync-shared.sh [--check]
 #   reads scripts/shared-files.txt: lines "<source> -> <consumer>", paths from
-#   the repository root, # comments and blank lines ignored
+#   the repository root, # comments and blank lines ignored; a path with
+#   spaces is rejected as a malformed line
 #   --check   copy nothing, report the copies that differ
 #
 # Output, tab-separated:

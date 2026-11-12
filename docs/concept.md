@@ -25,6 +25,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 | Agents (`groma-agents`) | One canonical `AGENTS.md` and pointer files for each agent |
 | Loop (`groma-loop`) | Each change proposed, applied, verified and archived with an independent reviewer model and a tests gate that includes the style checks; branched, committed per review unit, integrated and pushed by the git settings |
 | Lifecycle reminders (`status.sh`) | One reminder per open change at session start: docs to update, verify and archive, untested ticks, milestone gates, stale work, pending ADRs; then uncommitted and unpushed work |
+| Next action (`next.sh`) | The single next step, deterministic and without tokens, in the status line, after each answer (Claude Code Stop hook) or with `npx groma-cli next` |
 
 ## Crosscutting concepts
 
@@ -34,6 +35,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 - **Living docs.** Every change updates the docs whose `sources` it touches and records design decisions with alternatives as ADRs (`origin: <change>#D<n>`). `docs-impact.sh` reports what is missing; `docs.gate` (`off`, `remind`, `review`, `strict`) sets how hard groma-loop enforces it. A doc may be exempted with a task line `Docs: <path> unchanged, because <reason>`.
 - **Code style.** Three layers: tool configs enforce what they can, `docs/code-style.md` links them and documents the conventions no tool enforces (each tagged `EXTRACTED` or `INFERRED` with a path), and ADRs hold the tool decisions. Agents reach the style through AGENTS.md, the methodology context and groma-loop's tests gate. The survey reports drift statically; no project tool runs during setup.
 - **Git workflow.** The `git` section of the config decides once how changes are integrated (`rebase`, `merge`, `squash`), whether each change gets a branch, how commits are written and when groma pushes. AGENTS.md carries the rule for every agent, including those outside the loop: a request to "merge" means the configured sequence. groma-loop carries it out and stops on conflicts, a dirty tree or a rejected push instead of resolving, stashing or forcing.
+- **Next action.** A fixed ladder picks one action from the reminders, so the user sees what to do next without asking. Hooks only display it; they never block, retry or prompt the agent. Each agent's hook support is data in `agents.yaml`; agents without a display-only channel rely on the AGENTS.md line.
 - **No credentials.** Scripts never connect to databases and never print secrets.
 
 ## Constraints

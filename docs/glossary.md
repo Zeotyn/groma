@@ -44,3 +44,5 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Change branch | A branch named after the change id (`c007-cache`) that groma-loop creates when `branch_per_change` is true and never deletes | `groma-loop` | a feature branch with a free name |
 | Git practice | What `git-practice.sh` reads from the main branch's history: merge commits, pull-request merges, `(#n)` subjects, conventional subjects, with a recommended strategy and commit style | `groma-detect` | the configured strategy, which the user picks |
 | Push policy | `git.push`: `ask` (default), `auto` or `never`, for the main branch after integration | git workflow | the `unpushed` reminder of `status.sh` |
+| Next action | The one step `next.sh` names for a project: the first rung of the ladder that applies, or nothing | `groma-methodology`, hooks, status line | the full reminder list of `status.sh` |
+| Ladder | The fixed, ordered list of rungs `next.sh` checks; the first match wins | `next.sh` | a priority score |

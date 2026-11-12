@@ -72,6 +72,7 @@ Node.js 22+. Commands:
 | `npx groma-cli init [path]` | Copies the skills for each agent, runs the methodology init and catalog installs, writes `.groma/config.yaml` and `.groma/generated.json` |
 | `npx groma-cli update` | Refreshes generated skill copies, re-runs pending steps, bumps `initialized_with` |
 | `npx groma-cli status` | Prints the change status (same as `status.sh`) |
+| `npx groma-cli next` | Prints the one next action (`--short` for a status line, `--json`); nothing when nothing is open |
 | `npx groma-cli doctor` | Checks prerequisites, config and generated files |
 
 Main `init` flags: `--agents`, `--methodology`, `--workflow`, `--skills`, `--review`, `--ui`, `--yes` (recommended answers, no questions), `--print` (write install commands to `.groma/install.sh` instead of running them), `--dry-run` (show the plan, write nothing), `--force` (`update` only: replace generated files you edited). Skills for agents covered by an installed Claude plugin are not copied; the config lists them in `agents_via_plugin`. Exit codes: 0 ok, 1 failure, 2 usage error, 3 prerequisites missing (for example Node older than 22).
@@ -105,6 +106,29 @@ propose ─▶ review ⟲ ─▶ apply per task group ─▶ tests green? ─▶
 - **Git** follows the `git` section of the config: a branch per change, one commit per reviewed task group, an archive commit, then integration by `integrate` (`rebase` rebases and fast-forwards, `merge` makes a `--no-ff` merge commit, `squash` one commit named after the change) and a push of the main branch by `push` (`ask`, `auto`, `never`). The same rule lands in `AGENTS.md`, so "merge this branch" means the configured strategy for every agent. A conflict is aborted and handed to you with the paths; groma never force-pushes and never deletes branches. The interview recommends the strategy from your history (`skills/groma-detect/scripts/git-practice.sh`).
 
 Reminders: `skills/groma-methodology/scripts/status.sh` lists changes whose docs need an update, that are ready to archive, ticked without test changes, or stale, plus ADRs still `proposed` after their change was archived. `AGENTS.md` tells agents to run it at session start; Claude Code can run it automatically through an optional SessionStart hook.
+
+## Next action
+
+`skills/groma-methodology/scripts/next.sh` names the one thing to do next, or prints nothing. It takes the first rung that applies: a rebase or merge in progress, a done change with docs open, a done change to verify, uncommitted files, a milestone at its gate, unpushed commits (skipped with `git.push: never`), a proposed ADR whose change is archived, then the active change you last worked on.
+
+```
+$ npx groma-cli next
+Push 3 commits on main: git push
+$ npx groma-cli next --short
+push 3
+```
+
+A warm run takes well under 300 ms: the result is cached in `.groma/.cache/` until `HEAD`, the working tree, the refs or the changes folder change. The folder ignores itself, so it never shows up in `git status`.
+
+**Status line (Claude Code).** groma never edits your status line. Add this to your status line script, with `$project_dir` set to `workspace.project_dir` from the JSON Claude Code passes on stdin:
+
+```sh
+n=$(sh /path/to/groma-methodology/scripts/next.sh --short "$project_dir") && [ -n "$n" ] && printf ' ▶ %s' "$n"
+```
+
+No status line yet? `skills/groma-agents/templates/statusline-snippet.sh` is a complete one.
+
+**After each answer (Claude Code, opt-in).** The Stop hook runs `next-stop.sh`, which shows `▶ Next: …` as a message to you, only when the suggestion changed or after `next.reshow_minutes` (default 30, `0` = only on change). It never blocks or prompts the agent. groma installs it only after you agree and sets `next.hook: on`. Copilot CLI (stderr with exit 2), Gemini CLI and Codex have experimental adapters in `skills/groma/agents.yaml`; Cursor has none and relies on the `AGENTS.md` line that asks agents to name the next action at the end of a session.
 
 ## Living docs
 

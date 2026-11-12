@@ -33,7 +33,7 @@ It SHALL print nothing when no rung applies. It SHALL use only local files and g
 - **THEN** `--short` prints `verify c007` and `--long` prints "c007-cache: all tasks done, verify: /opsx:verify c007-cache"
 
 ### Requirement: Fast and cached
-The script SHALL finish in under 300 ms on a repository with 20 changes when its cache is valid. The cache SHALL be keyed on `HEAD`, the `git status --porcelain` output and the modification time of the changes folder. It SHALL live in `.groma/.cache/`, which groma lists in a `.groma/.gitignore` it creates.
+The script SHALL finish in under 300 ms on a repository with 20 changes when its cache is valid. The cache SHALL be keyed on `HEAD`, the `git status --porcelain` output and the modification time of the changes folder. It SHALL live in `.groma/.cache/`, which ignores itself through a `.groma/.cache/.gitignore` containing `*`, so running the script never adds an untracked file.
 
 #### Scenario: Cache hit
 - **WHEN** the script runs twice with no change to `HEAD`, working tree or changes folder
@@ -61,8 +61,8 @@ groma SHALL NOT modify a user's status line configuration or script. When the us
 - **THEN** the file and the script are unchanged and the summary shows the snippet to add
 
 ### Requirement: Hook adapters as data
-Per-agent hook support SHALL be described in the agent table with event name, config file, output format and status (`stable`, `experimental`, `none`). groma SHALL offer hooks only for `stable` agents by default and for `experimental` agents only when the user asks, marked untested.
+Per-agent hook support SHALL be described in the agent table with event name, config file, output format and status (`stable`, `experimental`, `none`). groma SHALL offer hooks only for `stable` agents by default and for `experimental` agents only when the user asks, marked untested and given as a snippet.
 
 #### Scenario: Gemini requested
 - **WHEN** the user asks for the hook in Gemini CLI
-- **THEN** groma installs the experimental adapter only after a warning that it is untested
+- **THEN** groma prints the experimental adapter as a snippet only after a warning that it is untested

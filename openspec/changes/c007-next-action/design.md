@@ -32,13 +32,23 @@ Alternatives: steer the agent through a follow-up channel so it acts on the next
 
 Alternatives: a second independent implementation of the checks (rejected: two sources of truth for reminders); let the agent pick the next step (rejected: not deterministic and costs tokens).
 
-### D3: Cache on `HEAD`, working tree and changes folder
-The cache key is the SHA-1 of the following, concatenated:
+### D3: Cache on `HEAD`, working tree, refs, config and changes folder
+The cache key is the git object hash (`git hash-object --stdin`) of the following, concatenated:
 - `git rev-parse HEAD`
 - `git status --porcelain`
-- the changes folder's newest mtime (`find -newer` against the cache file)
+- the local and remote branch heads (`git for-each-ref refs/heads refs/remotes`)
+- the content of `.groma/config.yaml`
 
-A hit returns the cached JSON. A miss runs the ladder and writes `.groma/.cache/next.json`. groma creates `.groma/.gitignore` with `.cache/` and `.next-shown` if absent. The `.groma/` folder belongs to groma, so ADR 0006 allows the write.
+A file in the changes folder newer than the cache file (`find -newer`) also invalidates it.
+
+A hit returns the cached result. A miss runs the ladder and writes `.groma/.cache/next`. The script creates `.groma/.cache/.gitignore` with `*` if absent, so the folder ignores itself. The `.groma/` folder belongs to groma, so ADR 0006 allows the write.
+
+Implementation notes (apply):
+- The key also covers `git for-each-ref refs/heads refs/remotes`: a `git push` changes neither `HEAD` nor the working tree, so without the refs the unpushed rung would stay cached after a push.
+- The cache file `.groma/.cache/next` holds plain lines (key, rung, short, long) instead of JSON, so the shell never parses JSON; `--json` is rendered on output.
+- The rebase or merge check (rung 1) runs before the cache lookup and is never cached.
+- A self-ignoring `.groma/.cache/.gitignore` replaces the planned `.groma/.gitignore`: creating `.groma/.gitignore` showed up as an untracked file, so the first run reported its own write as uncommitted work. The hook state moved into the same folder.
+- The cache is used only when `.groma/` exists, so `next.sh` writes nothing into a project groma did not set up.
 
 Alternatives: time-based cache (rejected: stale right after a commit, which is exactly when the suggestion changes); no cache (rejected: the status line calls the script on every refresh).
 
@@ -47,8 +57,8 @@ The status line is user-owned and often global (`~/.claude/statusline.sh`). grom
 
 Alternatives: write the status line config when none exists (rejected: global settings are outside the project, and ADR 0006 covers the project only, so groma's write scope must not grow to `~`); skip the status line (rejected: it is the least noisy display).
 
-### D5: Debounce state in `.groma/.next-shown`
-The Stop hook command runs `next.sh --long`. It compares the result with `.groma/.next-shown`, which stores the line and an epoch. It prints `{"systemMessage": "▶ Next: …"}` when the line differs or when the stored epoch is older than `reshow_minutes`, and then updates the file. Otherwise it prints nothing. An empty result clears the file.
+### D5: Debounce state in `.groma/.cache/next-shown`
+The Stop hook command runs `next.sh --long`. It compares the result with `.groma/.cache/next-shown`, which stores the line and an epoch. It prints `{"systemMessage": "▶ Next: …"}` when the line differs or when the stored epoch is older than `reshow_minutes`, and then updates the file. Otherwise it prints nothing. An empty result clears the file.
 
 Alternatives: show after every answer (rejected: banner blindness); show only at session start (rejected: the SessionStart hook already covers that).
 
@@ -59,6 +69,8 @@ Each agent gets `hook: {status, event, config, format}`:
 - gemini: `experimental`, `AfterAgent`, `systemMessage`.
 - codex: `experimental`, `Stop`, needs `codex_hooks = true` and trust.
 - cursor: `none`.
+
+Spike result (task 1.1, `tests/manual/copilot-agentstop-2026-11-12.md`): Copilot ignores plain stdout and `systemMessage` on `agentStop`; stderr with exit code 2 is shown to the user as `! <text>` without a new turn (headless, CLI 1.0.105). Copilot is `experimental` with format `stderr-exit2` (`next-stop.sh --stderr`) until the interactive TUI is checked.
 
 Alternatives: hard-code per-agent logic in groma-agents (rejected: ADR 0004); support only Claude (rejected: the fallback costs nothing to keep open for others).
 
@@ -71,7 +83,7 @@ Alternatives: hard-code per-agent logic in groma-agents (rejected: ADR 0004); su
 
 ## Migration Plan
 
-- `upgrades.md` row 0.3.0: in update mode, offer the hook and the snippet once, and add the AGENTS.md fallback line when groma created the file.
+- `upgrades.md` row 0.3.0: in update mode, offer the hook and the snippet once, and put the AGENTS.md "Session end" section into the findings report as a snippet; an existing AGENTS.md is never edited (ADR 0006), even one groma created.
 - `next.hook: off` by default. groma sets `on` only after the user agrees.
 
 ## Open Questions

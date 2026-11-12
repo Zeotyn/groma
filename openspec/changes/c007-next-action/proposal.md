@@ -14,15 +14,14 @@ Users and agents lose track of what comes next. Examples: a change sits at "all 
   5. milestone gate
   6. unpushed commits (unless `git.push: never`)
   7. proposed ADR whose change is archived
-  8. active change without progress
+  8. the active change with the most recent commit and open tasks
 
-  `--short` prints at most 20 characters for a status-line pill; `--long` prints a sentence with the command. A cache keyed on `HEAD` and the working-tree state keeps a run under 300 ms.
+  `--short` prints at most 20 characters for a status-line pill; `--long` prints a sentence with the command. A cache keyed on `HEAD`, the working-tree state, the refs and the config keeps a run under 300 ms.
 - **Claude Code status line:** groma never edits the user's status line script. It prints a snippet that adds a `▶ <short>` pill.
 - **Claude Code Stop hook** (opt-in, in `.claude/settings.local.json`): shows the long line as `systemMessage` only when the suggestion changed, or 30 minutes after it was last shown. It never uses blocking, retry or follow-up channels.
 - **Per-agent hook adapters** as data in `agents.yaml`, with a status per agent:
   - `stable` (claude)
-  - `spike` (copilot)
-  - `experimental` (gemini, codex)
+  - `experimental` (copilot, after the spike; gemini, codex)
   - `none` (cursor)
 - **Fallback everywhere:** an AGENTS.md line and the CLI command `npx groma-cli next`.
 - **Spike first:** does Copilot CLI's `agentStop` output reach the user without starting another turn? The result sets copilot's adapter status.
@@ -39,7 +38,7 @@ Users and agents lose track of what comes next. Examples: a change sits at "all 
 
 ## Impact
 
-- New: `skills/groma-methodology/scripts/next.sh`, `tests/scripts/next.bats`, `skills/groma-agents/templates/claude-stop-hook.json`, `templates/statusline-snippet.sh`, `.groma/.gitignore` template.
+- New: `skills/groma-methodology/scripts/next.sh`, `tests/scripts/next.bats`, `skills/groma-agents/templates/claude-stop-hook.json`, `templates/statusline-snippet.sh`, self-ignoring `.groma/.cache/`.
 - Changed: `skills/groma/agents.yaml` (hook adapters), `cli/main.js` and a new `cli/next.js`, groma-agents SKILL and AGENTS.md template, config template and validator, `upgrades.md`.
 - Depends on C006 (`git.push`) and F002 (milestone gate and repository state in `status.sh`).
 

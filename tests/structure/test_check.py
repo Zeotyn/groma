@@ -151,9 +151,10 @@ def test_marketplace_plugin_needs_source_and_matching_name(tmp_path):
 
 def good_agents() -> dict:
     agent = {"skills_dir": ".claude/skills", "home_marker": "~/.claude", "npx_skills_id": "claude-code", "instructions": "CLAUDE.md"}
+    hook = {"status": "stable", "event": "Stop", "config": ".claude/settings.local.json", "format": "systemMessage"}
     return {
         "schema": 1,
-        "agents": {a: dict(agent) for a in check.AGENT_IDS},
+        "agents": {a: {**agent, "hook": dict(hook)} for a in check.AGENT_IDS},
         "commands": {k: "x" for k in check.AGENT_COMMANDS},
         "touches": {"npx_skills": ["skills-lock.json"], "claude_plugin": [".claude/settings.json"]},
     }
@@ -183,6 +184,28 @@ def test_agents_command_missing():
     del a["commands"]["npx_skills"]
     check.validate_agents(a, "a")
     assert any("commands.npx_skills" in e for e in check.errors)
+
+
+def test_agents_hook_missing():
+    a = good_agents()
+    del a["agents"]["gemini"]["hook"]
+    check.validate_agents(a, "a")
+    assert any("agents.gemini: hook.status" in e for e in check.errors)
+
+
+def test_agents_hook_status_invalid():
+    a = good_agents()
+    a["agents"]["copilot"]["hook"]["status"] = "spike"
+    check.validate_agents(a, "a")
+    assert any("agents.copilot: hook.status must be one of" in e and "spike" in e for e in check.errors)
+
+
+def test_agents_hook_needs_event_unless_none():
+    a = good_agents()
+    del a["agents"]["claude"]["hook"]["event"]
+    a["agents"]["cursor"]["hook"] = {"status": "none"}
+    check.validate_agents(a, "a")
+    assert check.errors == ["a: agents.claude: hook.event missing"]
 
 
 def good_methodologies() -> dict:
@@ -329,3 +352,9 @@ def test_code_style_runner_prefix_table_must_have_rows(tmp_path):
     text = good_code_style_table().replace("| `npx` |\n", "")
     check.validate_code_style_table(text, "t", write_code_style_templates(tmp_path))
     assert any("runner prefixes" in e for e in check.errors)
+
+
+def test_shipped_hook_adapters():
+    agents = check.yaml.safe_load((check.ROOT / "skills/groma/agents.yaml").read_text())["agents"]
+    assert agents["claude"]["hook"]["status"] == "stable"
+    assert agents["cursor"]["hook"] == {"status": "none"}  # no display-only channel

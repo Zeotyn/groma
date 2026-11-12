@@ -323,3 +323,43 @@ YAML
   [ "$status" -eq 0 ]
   assert_output_contains "warning	line $ln	unknown git key 'force' (known: integrate, branch_per_change, commits, push)"
 }
+
+# --- next action (C007) -------------------------------------------------------------
+
+@test "next section with valid values passes" {
+  printf 'next:\n  hook: on\n  reshow_minutes: 0\n' >> "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "summary	errors=0	warnings=0"
+}
+
+@test "next.hook must be on or off" {
+  printf 'next:\n  hook: maybe\n' >> "$C"
+  ln=$(grep -n 'hook:' "$C" | cut -d: -f1)
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "error	line $ln	next.hook must be on or off, got 'maybe'"
+}
+
+@test "negative next.reshow_minutes fails with the line number" {
+  printf 'next:\n  hook: off\n  reshow_minutes: -5\n' >> "$C"
+  ln=$(grep -n 'reshow_minutes:' "$C" | cut -d: -f1)
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "error	line $ln	next.reshow_minutes must be a number >= 0, got '-5'"
+}
+
+@test "unknown next key warns" {
+  printf 'next:\n  hook: off\n  color: red\n' >> "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "unknown next key 'color' (known: hook, reshow_minutes)"
+}
+
+@test "the config template's next section validates" {
+  sed -n '/^next:/,/^[^ #]/p' "$TPL" | sed '$d' >> "$C"
+  grep -q 'reshow_minutes: 30' "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "summary	errors=0	warnings=0"
+}

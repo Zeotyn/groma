@@ -25,6 +25,8 @@ AGENTS = "skills/groma/agents.yaml"
 METHODOLOGIES = "skills/groma-methodology/methodologies.yaml"
 AGENT_IDS = ["claude", "copilot", "gemini", "cursor", "codex"]
 AGENT_FIELDS = ["skills_dir", "home_marker", "npx_skills_id", "instructions"]
+HOOK_STATUSES = ["stable", "experimental", "none"]
+HOOK_FIELDS = ["event", "config", "format"]
 AGENT_COMMANDS = ["npx_skills", "plugin_marketplace", "plugin_install"]
 METHODOLOGY_IDS = ["openspec", "spec-kit", "bmad", "gsd", "none"]
 MANIFESTS = [
@@ -229,6 +231,14 @@ def validate_agents(data: dict, label: str) -> None:
         for f in AGENT_FIELDS:
             if not (entry or {}).get(f):
                 err(f"{label}: agents.{a}: '{f}' missing")
+        hook = (entry or {}).get("hook") or {}
+        status = hook.get("status")
+        if status not in HOOK_STATUSES:
+            err(f"{label}: agents.{a}: hook.status must be one of {HOOK_STATUSES}, got '{status}'")
+        elif status != "none":
+            for f in HOOK_FIELDS:
+                if not hook.get(f):
+                    err(f"{label}: agents.{a}: hook.{f} missing")
     commands = data.get("commands") or {}
     for c in AGENT_COMMANDS:
         if not commands.get(c):

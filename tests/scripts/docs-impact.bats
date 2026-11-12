@@ -235,3 +235,16 @@ ADR: yes/' "$CH/design.md" && rm "$CH/design.md.bak"
   assert_output_contains "impact	docs/architecture.md	src/cache.js"
   assert_output_not_contains "docs/data-model.md"
 }
+
+@test "does not write the index, so it never competes for index.lock" {
+  mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1"; }
+  sleep 1
+  before=$(mtime "$P/.git/index")
+  sleep 1
+  touch "$P/src/cache.js" "$P/docs/glossary.md"
+  echo n > "$P/src/new.js"
+  di openspec/changes/c007-cache
+  assert_output_contains "impact	docs/architecture.md	src/cache.js src/new.js"
+  after=$(mtime "$P/.git/index")
+  [ "$before" = "$after" ]
+}

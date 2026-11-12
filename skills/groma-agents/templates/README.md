@@ -8,5 +8,7 @@
 | `copilot-instructions.md` | `.github/copilot-instructions.md` | GitHub Copilot |
 | `groma.mdc` | `.cursor/rules/groma.mdc` | Cursor |
 | `claude-session-hook.json` | `.claude/settings.local.json` (optional, only on request) | Claude Code |
+| `claude-stop-hook.json` | `.claude/settings.local.json` (optional, only on request) | Claude Code |
+| `statusline-snippet.sh` | none, printed as a snippet in the findings report and summary | Claude Code |
 
 Codex reads `AGENTS.md` directly and needs no pointer file.

@@ -4,6 +4,20 @@
 
 DEFAULT_TYPES="m:milestone c:change f:fix s:spike r:refactor d:docs"
 
+# Read a scalar from .groma/config.yaml below the global $ROOT.
+cfg_value() { # key default [section]
+  v=""
+  # shellcheck disable=SC2153  # ROOT is set by the sourcing script
+  [ -f "$ROOT/.groma/config.yaml" ] && v=$(awk -v k="$1" -v sec="${3:-reminders}" '
+    function ind(s) { match(s, /^ */); return RLENGTH }
+    /^[ ]*#/ || /^[ ]*$/ { next }
+    { i = ind($0); l = $0; sub(/^ */, "", l); sub(/[ ]+#.*/, "", l); sub(/[ \t]+$/, "", l)
+      if (inr && i == 0) inr = 0
+      if (l == sec ":" && i == 0) { inr = 1; next }
+      if (inr && index(l, k ":") == 1) { sub(/^[^:]*:[ ]*/, "", l); gsub(/["\047]/, "", l); print l; exit } }' "$ROOT/.groma/config.yaml")
+  echo "${v:-$2}"
+}
+
 # Locate the changes directory of the active methodology.
 # Prints the path or nothing.
 changes_dir() {
@@ -65,4 +79,10 @@ list_changes() {
       printf '%s\tarchive\t%s\n' "$n" "$p"
     done
   fi
+}
+
+# Escape a one-line string for use inside a JSON string: backslash and double
+# quote escaped, other control characters (tabs) become spaces.
+json_escape() {
+  printf '%s' "$1" | tr '\001-\037' ' ' | sed 's/\\/\\\\/g; s/"/\\"/g'
 }

@@ -36,17 +36,6 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-cfg_value() { # key default [section]
-  v=""
-  [ -f "$ROOT/.groma/config.yaml" ] && v=$(awk -v k="$1" -v sec="${3:-reminders}" '
-    function ind(s) { match(s, /^ */); return RLENGTH }
-    /^[ ]*#/ || /^[ ]*$/ { next }
-    { i = ind($0); l = $0; sub(/^ */, "", l); sub(/[ ]+#.*/, "", l); sub(/[ \t]+$/, "", l)
-      if (inr && i == 0) inr = 0
-      if (l == sec ":" && i == 0) { inr = 1; next }
-      if (inr && index(l, k ":") == 1) { sub(/^[^:]*:[ ]*/, "", l); gsub(/["\047]/, "", l); print l; exit } }' "$ROOT/.groma/config.yaml")
-  echo "${v:-$2}"
-}
 ARCHIVE_WHEN_DONE=$(cfg_value archive_when_done true)
 UNTESTED=$(cfg_value untested_tasks true)
 STALE_DAYS=$(cfg_value stale_change_days 14)

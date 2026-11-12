@@ -3,8 +3,8 @@
 #
 # Usage: docs-impact.sh [--root <project>] [--base <ref>] [--docs <docs-dir>] [--gate] <change-dir>
 #
-# Changed paths: `git diff <base>` (committed and uncommitted) plus untracked
-# files, without the change folder itself. The base defaults to
+# Changed paths: committed since <base>, plus uncommitted and untracked files
+# (from `git status`, which leaves .git/index alone), without the change folder itself. The base defaults to
 # `git merge-base <main> HEAD` when the current branch is named after the
 # change (the main branch: the remote's default branch, else main, else
 # master); otherwise to the parent of the commit that added
@@ -99,8 +99,13 @@ set -f
 NL='
 '
 IFS=$NL
-CHANGED=$( { git -c core.quotePath=false diff --relative --no-renames --name-only "$BASE" -- .
-  git -c core.quotePath=false ls-files --others --exclude-standard; } | LC_ALL=C sort -u)
+# committed since the base (tree against tree), then uncommitted and untracked from
+# status: neither writes .git/index, so a status line never competes for index.lock
+PREFIX=$(git rev-parse --show-prefix)
+CHANGED=$( { git -c core.quotePath=false diff --relative --no-renames --name-only "$BASE" HEAD -- .
+  git --no-optional-locks status --porcelain -z --no-renames --untracked-files=all -- . |
+    tr '\0' '\n' | cut -c4- | while IFS= read -r f; do printf '%s\n' "${f#"$PREFIX"}"; done
+  } | LC_ALL=C sort -u)
 CHANGED=$(printf '%s\n' "$CHANGED" | grep -v "^$REL/" || true)
 
 # frontmatter value for key, empty if absent

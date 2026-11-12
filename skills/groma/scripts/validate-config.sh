@@ -120,7 +120,7 @@ for k in initialized_with project_type methodology agents skills docs convention
   has "$k" || report error "$k" "missing required key '$k'"
 done
 for k in $(printf '%s\n' "$FLAT" | cut -f1 | awk -F. '{ print $1 }' | sort -u); do
-  in_set "$k" "schema initialized_with project project_type project_type_override methodology workflow agents agents_via_plugin skills docs conventions review reminders git steps" \
+  in_set "$k" "schema initialized_with project project_type project_type_override methodology workflow agents agents_via_plugin skills docs conventions review reminders next git steps" \
     || report warning "$k" "unknown top-level key '$k'"
 done
 v=$(get project_type); [ -z "$v" ] || in_set "$v" "greenfield brownfield" || report error project_type "project_type must be greenfield or brownfield, got '$v'"
@@ -176,6 +176,14 @@ enum git.push "ask auto never" "ask, auto or never"
 v=$(get git.branch_per_change); [ -z "$v" ] || in_set "$v" "true false" || report error git.branch_per_change "git.branch_per_change must be true or false, got '$v'"
 for k in $(printf '%s\n' "$FLAT" | cut -f1 | grep '^git\.' || true); do
   in_set "${k#git.}" "integrate branch_per_change commits push" || report warning "$k" "unknown git key '${k#git.}' (known: integrate, branch_per_change, commits, push)"
+done
+
+# --- next action (optional section; missing keys mean off, 30) ----------------------------
+enum next.hook "on off" "on or off"
+v=$(get next.reshow_minutes)
+if [ -n "$v" ] && ! is_int "$v"; then report error next.reshow_minutes "next.reshow_minutes must be a number >= 0, got '$v'"; fi
+for k in $(printf '%s\n' "$FLAT" | cut -f1 | grep '^next\.' || true); do
+  in_set "${k#next.}" "hook reshow_minutes" || report warning "$k" "unknown next key '${k#next.}' (known: hook, reshow_minutes)"
 done
 
 # --- skills against catalog --------------------------------------------------------

@@ -13,6 +13,7 @@ Commands:
   update [path]   refresh generated skill copies, re-run pending steps
   status [path]   lifecycle reminders for open changes
   doctor [path]   check prerequisites, config and generated files
+  next [path]     the one next action for this project (--short, --json)
 
 Options for init and update:
   --agents <list|all|none>      claude,copilot,gemini,cursor,codex (default: detected)
@@ -29,6 +30,10 @@ Options for init and update:
   -h, --help                    show this help
   -v, --version                 print the groma version
 
+Options for next:
+  --short                       at most 20 characters, for a status line
+  --json                        rung, short and long text as JSON
+
 [path] defaults to the current directory. After init, open the project in your agent and run /groma.`;
 
 const OPTIONS = {
@@ -44,9 +49,11 @@ const OPTIONS = {
   print: { type: 'boolean' },
   'dry-run': { type: 'boolean' },
   force: { type: 'boolean' },
+  short: { type: 'boolean' },
+  json: { type: 'boolean' },
 };
 
-const COMMANDS = ['init', 'update', 'status', 'doctor'];
+const COMMANDS = ['init', 'update', 'status', 'doctor', 'next'];
 
 export class UsageError extends Error {}
 
@@ -75,6 +82,7 @@ export async function main(argv, io = defaultIo()) {
   if (!command) { fail(HELP); return EXIT.usage; }
   if (!COMMANDS.includes(command)) { fail(`unknown command '${command}'\n\n${HELP}`); return EXIT.usage; }
   if (extra.length) { fail(`unexpected argument '${extra[0]}'`); return EXIT.usage; }
+  if ((flags.short || flags.json) && command !== 'next') { fail(`--short and --json are only for 'next'`); return EXIT.usage; }
 
   const project = resolve(io.cwd ?? process.cwd(), path);
   if (!statSync(project, { throwIfNoEntry: false })?.isDirectory()) {

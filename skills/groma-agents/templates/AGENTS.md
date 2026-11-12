@@ -7,6 +7,10 @@ Instructions for coding agents working on {{project_name}}. Keep this file short
 Run the groma status script and mention any reminder before starting new work:
 `sh {{status_script}} --root .` (prints `groma status: nothing open` when all is well).
 
+## Session end
+
+Before you end a work session, run `sh {{next_script}} .` and name its line as the next step (it prints nothing when nothing is open).
+
 ## Read first
 
 1. `docs/README.md`: index of all project docs (vision, concept, architecture, data model, glossary, risks, ADRs).

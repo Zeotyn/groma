@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-12
 decision-makers: Eugen Waldschmidt
 evidence: [tests/manual/claude-plugin-bundles-2026-11-12.md]

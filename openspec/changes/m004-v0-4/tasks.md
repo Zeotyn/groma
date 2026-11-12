@@ -1,6 +1,6 @@
 ## 1. Child changes
 
-- [ ] 1.1 S001 `s001-plugin-bundles-hooks` finished with an ADR or follow-up and archived
+- [x] 1.1 S001 `s001-plugin-bundles-hooks` finished with an ADR or follow-up and archived
 - [ ] 1.2 R001 `r001-vendor-shared-files` implemented, verified and archived
 - [ ] 1.3 C009 `c009-marketplace-bundles` implemented, verified and archived
 - [ ] 1.4 C010 `c010-token-report` implemented, verified and archived, baseline recorded

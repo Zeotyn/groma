@@ -30,7 +30,7 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 | Runtime scripts | POSIX sh | Detection, git practice, freshness, style drift, docs impact, config validation, change ids, lifecycle status, reviewer calls, schema dump | `skills/*/scripts/` |
 | Templates and references | Markdown, YAML | Docs, agent file and style config templates, stack tables (signals, data sources, ADR sources, style tools), skill catalog | `skills/*/templates/`, `skills/*/references/`, `skills/groma-skills/catalog.yaml` |
 | Distribution manifests | JSON | Plugin and extension metadata per agent | `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/`, `gemini-extension.json`, `install.sh` |
-| Test suite (not shipped) | sh, bats, Python via uv | Structure checks, script tests, invariant, evals | `scripts/test.sh`, `tests/` |
+| Test suite (not shipped) | sh, bats, Python via uv | Structure checks (including identical shared copies), script tests, standalone installs, invariant, evals; `sync-shared.sh` refreshes the shared copies | `scripts/test.sh`, `scripts/sync-shared.sh`, `tests/` |
 
 ## Building blocks
 
@@ -43,7 +43,9 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 - `groma-skills`: `catalog.yaml` and `references/install.md`.
 - `groma-agents`: templates for `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `copilot-instructions.md`, `groma.mdc`; `references/git-strategies.md` holds the command sequences of the three integration strategies; `claude-stop-hook.json` and `statusline-snippet.sh` for the next action. Hook support per agent (event, config file, output format, status `stable`, `experimental` or `none`) is data in `skills/groma/agents.yaml`.
 
-The orchestrator refers to siblings by relative path (`../groma-detect/`). A skill never calls another skill's scripts except through that documented sibling path, and every skill works alone. groma-survey reads groma-lay-out's `code-style-tools.md` the same way and degrades to "style tools not detected" when it is missing; groma-loop reads groma-agents' `git-strategies.md` and falls back to the "Git workflow" section of the project's AGENTS.md.
+Every skill works alone, because `npx skills add --skill <name>` installs one folder ([ADR 0051](adr/0051-vendor-shared-files-into-each-skill.md)). A file that more than one skill reads (a table, template or script) has one source and a vendored copy in each consumer: groma carries `code-style-tools.md`, `style-drift.sh`, `git-practice.sh`, `catalog.yaml` and the AGENTS.md template; groma-survey carries `detect.sh`, `signals.md`, `doc-slots.md`, `code-style-tools.md` and the ADR template; groma-skills and groma-agents carry `agents.yaml`; groma-methodology and groma-loop carry `docs-impact.sh`; groma-loop carries `git-strategies.md`; groma-agents carries `conventions.md`; groma-methodology carries `check-prereqs.sh`; groma-lay-out carries `install-consent.md` from groma-skills. `scripts/shared-files.txt` lists every source and copy, `scripts/sync-shared.sh` copies sources over copies, and the structure check fails when a copy differs.
+
+Only procedure hand-offs still point into a sibling folder, listed in `scripts/handoffs.txt`: the orchestrator follows each sibling's `SKILL.md` (`../groma-detect/SKILL.md`), groma-loop follows groma-lay-out's "ADR candidates from a change" and runs groma-methodology's `roadmap.sh`, and groma-agents writes the paths of groma-methodology's `status.sh`, `next.sh`, `next-stop.sh` and groma-lay-out's `docs-impact.sh` into AGENTS.md and hook files. When the sibling is missing, the skill names the `npx skills add Zeotyn/groma --skill <name>` command and skips that step. `tests/scripts/standalone.bats` installs each skill alone and checks this.
 
 ## Runtime view
 

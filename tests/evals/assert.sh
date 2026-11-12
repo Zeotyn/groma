@@ -91,6 +91,7 @@ for d in README vision concept architecture data-model glossary risks; do
 done
 check "ADR index present" test -f "$P/docs/adr/README.md"
 check "AGENTS.md present" test -f "$P/AGENTS.md"
+check "AGENTS.md within 80 lines" sh -c "[ \$(wc -l < '$P/AGENTS.md') -le 80 ]"
 # code-style slot: docs/code-style.md, or an existing style guide linked from the docs index
 check "code-style slot filled" sh -c "test -f '$P/docs/code-style.md' || grep -Eqi 'code.style|CONTRIBUTING|STYLEGUIDE' '$P/docs/README.md'"
 check "AGENTS.md points to the code-style doc" has "$P/AGENTS.md" 'code-style|CONTRIBUTING|STYLEGUIDE'

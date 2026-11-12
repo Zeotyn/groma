@@ -17,8 +17,10 @@ ROOT = Path(__file__).resolve().parents[2]
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$")
 SOURCE_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
-DESCRIPTION_MAX = 400  # always-loaded budget (C011 D1)
+DESCRIPTION_MAX = 400  # always-loaded budget (ADR 0071)
+DESCRIPTIONS_TOTAL_MAX = 2000
 AGENTS_TEMPLATE_MAX_LINES = 80
+AGENTS_TEMPLATE_MAX_CHARS = 3200
 KNOWN_CONDITIONS = {"has_ui", "greenfield", "brownfield"}
 LINK_SCAN_DIRS = ["skills", "tests", "docs"]
 LINK_SCAN_FILES = ["README.md", "CONTRIBUTING.md", "AGENTS.md", "CHANGELOG.md"]
@@ -61,6 +63,7 @@ def check_skills(root: Path = ROOT) -> None:
     if not skills_dir.is_dir():
         err("skills/: directory missing")
         return
+    total = 0
     for skill in sorted(p for p in skills_dir.iterdir() if p.is_dir()):
         md = skill / "SKILL.md"
         rel = md.relative_to(root)
@@ -81,13 +84,20 @@ def check_skills(root: Path = ROOT) -> None:
         desc = fm.get("description")
         if not isinstance(desc, str) or not desc.strip():
             err(f"{rel}: description missing")
-        elif len(desc) > DESCRIPTION_MAX:
+            continue
+        total += len(desc)
+        if len(desc) > DESCRIPTION_MAX:
             err(f"{rel}: description has {len(desc)} chars, max {DESCRIPTION_MAX}")
+    if total > DESCRIPTIONS_TOTAL_MAX:
+        err(f"skills/: descriptions have {total} chars in total, max {DESCRIPTIONS_TOTAL_MAX}")
     template = skills_dir / "groma-agents" / "templates" / "AGENTS.md"
     if template.is_file():
-        lines = len(template.read_text(encoding="utf-8").splitlines())
+        text = template.read_text(encoding="utf-8")
+        lines = len(text.splitlines())
         if lines > AGENTS_TEMPLATE_MAX_LINES:
             err(f"{template.relative_to(root)}: {lines} lines, max {AGENTS_TEMPLATE_MAX_LINES}")
+        if len(text) > AGENTS_TEMPLATE_MAX_CHARS:
+            err(f"{template.relative_to(root)}: {len(text)} chars, max {AGENTS_TEMPLATE_MAX_CHARS}")
 
 
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")

@@ -596,3 +596,56 @@ def test_agents_template_over_budget(tmp_path):
     write(tmp_path / "skills/groma-agents/templates/AGENTS.md", "x\n" * 81)
     check.check_skills(tmp_path)
     assert check.errors == ["skills/groma-agents/templates/AGENTS.md: 81 lines, max 80"]
+
+
+def skill(root: Path, name: str, desc: str) -> None:
+    write(root / f"skills/{name}/SKILL.md", f"---\nname: {name}\ndescription: {desc}\n---\n")
+
+
+def test_description_at_budget_passes(tmp_path):
+    skill(tmp_path, "groma-x", "d" * 400)
+    check.check_skills(tmp_path)
+    assert check.errors == []
+
+
+def test_folded_description_counted_after_yaml_joining(tmp_path):
+    folded = ">-\n  " + "a" * 200 + "\n  " + "b" * 200  # joins to 200 + space + 200
+    skill(tmp_path, "groma-x", folded)
+    check.check_skills(tmp_path)
+    assert check.errors == ["skills/groma-x/SKILL.md: description has 401 chars, max 400"]
+
+
+def test_descriptions_total_at_budget_passes(tmp_path):
+    for n in "abcde":
+        skill(tmp_path, f"groma-{n}", "d" * 400)
+    check.check_skills(tmp_path)
+    assert check.errors == []
+
+
+def test_descriptions_total_over_budget(tmp_path):
+    for n in "abcde":
+        skill(tmp_path, f"groma-{n}", "d" * 400)
+    skill(tmp_path, "groma-f", "d")
+    check.check_skills(tmp_path)
+    assert check.errors == ["skills/: descriptions have 2001 chars in total, max 2000"]
+
+
+def test_agents_template_at_line_budget_passes(tmp_path):
+    skill(tmp_path, "groma-agents", "d")
+    write(tmp_path / "skills/groma-agents/templates/AGENTS.md", "x\n" * 80)
+    check.check_skills(tmp_path)
+    assert check.errors == []
+
+
+def test_agents_template_at_char_budget_passes(tmp_path):
+    skill(tmp_path, "groma-agents", "d")
+    write(tmp_path / "skills/groma-agents/templates/AGENTS.md", "x" * 3199 + "\n")
+    check.check_skills(tmp_path)
+    assert check.errors == []
+
+
+def test_agents_template_over_char_budget(tmp_path):
+    skill(tmp_path, "groma-agents", "d")
+    write(tmp_path / "skills/groma-agents/templates/AGENTS.md", "x" * 3200 + "\n")
+    check.check_skills(tmp_path)
+    assert check.errors == ["skills/groma-agents/templates/AGENTS.md: 3201 chars, max 3200"]

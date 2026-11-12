@@ -13,13 +13,13 @@ Skill descriptions and AGENTS.md are always loaded; everything else is loaded on
 ## Decisions
 
 ### D1: Budgets enforced by the structure check
-Descriptions at most 400 characters; the AGENTS.md template at most 80 lines. The numbers are starting points; the change records the measured effect and adjusts them once.
+Each description at most 400 characters, all descriptions together at most 2000 characters; the AGENTS.md template at most 80 lines and 3200 characters. The 400 and 80 alone did not bind: eight descriptions could reach 3200 characters, and the template had 54 lines before the diet. The totals were therefore adjusted to the measured text: descriptions 2384 characters before the diet and 1821 after (1817 after review), template 3246 characters before and 2966 after (3013 after review restored one sentence). Both caps sit below the pre-diet text, so the diet cannot grow back unnoticed, with some headroom for wording changes.
 
 Alternatives: trim once without a check (rejected: the text grows back); a token-count check with a tokenizer dependency (rejected: characters and lines are a good enough proxy without a new dependency).
 
-### D2: Triggering verified by the evals
-A trimmed description must still make the agent pick the skill; the full eval run is the proof.
+### D2: Evals as the regression run
+A trimmed description must still make the agent pick the skill. The evals confirm the skills still work end to end; triggering is not covered by a test.
 
 ## Risks / Trade-offs
 
-- [A description too short stops triggering] → evals catch it; restore the trigger word.
+- [A description too short stops triggering] → no test covers triggering; keep the trigger phrases (the "Use when" part) and restore a trigger word when a session misses a skill.

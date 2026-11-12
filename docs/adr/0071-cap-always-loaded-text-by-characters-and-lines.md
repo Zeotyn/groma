@@ -26,17 +26,18 @@ The eight skill descriptions and the generated AGENTS.md sit in the agent's cont
 
 ## Decision Outcome
 
-Chosen option: "Budgets in characters and lines", because it stops the text from growing back and needs no tokenizer. Descriptions have at most 400 characters, the AGENTS.md template at most 80 lines.
+Chosen option: "Budgets in characters and lines", because it stops the text from growing back and needs no tokenizer. Each skill description has at most 400 characters and all descriptions together at most 2000; the AGENTS.md template has at most 80 lines and 3200 characters. The totals sit below the pre-diet text (descriptions 2384 characters, template 3246) and leave some room above the post-diet text (1821, later 1817; template 2966, later 3013), so the diet cannot silently be undone, while a ninth skill or a longer template needs trimming elsewhere or a new decision.
 
 ### Consequences
 
 * Good, because a growing description or template fails `scripts/test.sh` with the skill and its length.
 * Bad, because characters and lines only approximate tokens.
-* Neutral, because the numbers are starting points; they are adjusted once the token report (C010) measures the effect.
+* Neutral, because the per-description cap alone would allow 3200 characters for eight skills; the total cap is what binds.
+* Neutral, because the token report (C010) records the token effect; the numbers change only by a new decision.
 
 ### Confirmation
 
-`tests/structure/check.py` (`check_skills`) and its unit tests; the evals confirm that trimmed descriptions still trigger.
+`tests/structure/check.py` (`check_skills`) and its unit tests enforce the caps; the evals confirm the skills still work end to end; triggering is not covered by a test.
 
 ## Pros and Cons of the Options
 

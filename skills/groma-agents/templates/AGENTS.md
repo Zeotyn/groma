@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Instructions for coding agents working on {{project_name}}.
+Instructions for coding agents working on {{project_name}}. Keep this file short; details live in `docs/`.
 
 ## Session start
 

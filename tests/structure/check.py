@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[2]
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$")
 SOURCE_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+DESCRIPTION_MAX = 400  # always-loaded budget (C011 D1)
+AGENTS_TEMPLATE_MAX_LINES = 80
 KNOWN_CONDITIONS = {"has_ui", "greenfield", "brownfield"}
 LINK_SCAN_DIRS = ["skills", "tests", "docs"]
 LINK_SCAN_FILES = ["README.md", "CONTRIBUTING.md", "AGENTS.md", "CHANGELOG.md"]
@@ -79,8 +81,13 @@ def check_skills(root: Path = ROOT) -> None:
         desc = fm.get("description")
         if not isinstance(desc, str) or not desc.strip():
             err(f"{rel}: description missing")
-        elif len(desc) > 1024:
-            err(f"{rel}: description has {len(desc)} chars, max 1024")
+        elif len(desc) > DESCRIPTION_MAX:
+            err(f"{rel}: description has {len(desc)} chars, max {DESCRIPTION_MAX}")
+    template = skills_dir / "groma-agents" / "templates" / "AGENTS.md"
+    if template.is_file():
+        lines = len(template.read_text(encoding="utf-8").splitlines())
+        if lines > AGENTS_TEMPLATE_MAX_LINES:
+            err(f"{template.relative_to(root)}: {lines} lines, max {AGENTS_TEMPLATE_MAX_LINES}")
 
 
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")

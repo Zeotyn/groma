@@ -583,3 +583,16 @@ def test_handoffs_generic_install_message_counts(tmp_path):
     write(tmp_path / "scripts/handoffs.txt", "skills/groma-a/SKILL.md ../groma-b/SKILL.md\n")
     check.check_handoffs(tmp_path)
     assert check.errors == []
+
+
+def test_description_over_budget_names_skill_and_length(tmp_path):
+    write(tmp_path / "skills/groma-x/SKILL.md", f"---\nname: groma-x\ndescription: {'d' * 401}\n---\n")
+    check.check_skills(tmp_path)
+    assert check.errors == ["skills/groma-x/SKILL.md: description has 401 chars, max 400"]
+
+
+def test_agents_template_over_budget(tmp_path):
+    write(tmp_path / "skills/groma-agents/SKILL.md", "---\nname: groma-agents\ndescription: d\n---\n")
+    write(tmp_path / "skills/groma-agents/templates/AGENTS.md", "x\n" * 81)
+    check.check_skills(tmp_path)
+    assert check.errors == ["skills/groma-agents/templates/AGENTS.md: 81 lines, max 80"]

@@ -1,6 +1,6 @@
 ## 1. Tests first
 
-- [ ] 1.1 Structure check for description length and AGENTS.md template lines (fails on today's text where it exceeds)
+- [x] 1.1 Structure check for description length and AGENTS.md template lines (fails on today's text where it exceeds)
 
 ## 2. Diet
 

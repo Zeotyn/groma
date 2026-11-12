@@ -121,7 +121,15 @@ case "$FX" in
     check "ADR Use typescript-eslint accepted" sh -c "grep -liE 'use (typescript-)?eslint' '$P'/docs/adr/0*.md | xargs grep -lq '^status: *accepted'"
     check "install command pending in .groma/install.sh" has "$P/.groma/install.sh" 'npm i -D .*prettier|npm i -D .*eslint'
     check "AGENTS.md lists the check commands" sh -c "grep -q 'prettier --check' '$P/AGENTS.md' && grep -q 'eslint' '$P/AGENTS.md'"
-    check "openspec context has the code-style line" has "$P/openspec/config.yaml" 'Code style lives in docs/code-style.md'
+    # The line goes into openspec/config.yaml when the init ran; when the init is
+    # pending (no network in the eval), it waits as a findings snippet (methodology-setup spec)
+    if [ -f "$P/openspec/config.yaml" ]; then
+      check "openspec context has the code-style line" has "$P/openspec/config.yaml" 'Code style lives in docs/code-style.md'
+    else
+      check "methodology pending in config" has "$P/.groma/config.yaml" '^ +methodology: *pending'
+      check "OpenSpec init pending in .groma/install.sh" has "$P/.groma/install.sh" 'openspec.* init'
+      check "findings snippet has the code-style line" has "$findings" 'Code style lives in docs/code-style.md'
+    fi
     ;;
   node-prisma)
     check "project_type brownfield" has "$P/.groma/config.yaml" '^project_type: *brownfield'

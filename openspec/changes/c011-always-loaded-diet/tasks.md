@@ -11,7 +11,7 @@
 
 ## 3. Docs
 
-- [ ] 3.1 CHANGELOG `[Unreleased]`; concept or ADR per D1
+- [x] 3.1 CHANGELOG `[Unreleased]`; concept or ADR per D1
 - [x] Docs: docs/architecture.md unchanged, because the structure check's role and the skills' layout stay the same.
 - [x] Docs: docs/glossary.md unchanged, because no term changes.
 - [x] Docs: docs/vision.md unchanged, because only the README's line count changes.

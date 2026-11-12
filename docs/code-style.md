@@ -1,7 +1,7 @@
 ---
 title: Code style
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 review_after_days: 90
 owner: Eugen Waldschmidt
 sources: [.editorconfig, scripts/test.sh, skills/, tests/, cli/, install.sh, uninstall.sh]
@@ -35,7 +35,7 @@ One rule per line. `EXTRACTED` comes from configuration or an accepted ADR, `INF
 - Markdown tables: a header row, a `|---|` separator without alignment colons, one row per item, paths and commands in backticks, no trailing spaces (INFERRED, `skills/groma-lay-out/references/doc-slots.md:5-16`).
 - Markdown docs carry the frontmatter keys `title`, `status`, `last_reviewed`, `review_after_days`, `owner`, `sources`; lists use `-`; indentation is two spaces (EXTRACTED, `.editorconfig`, `skills/groma-lay-out/templates/docs/`).
 - A skill reads only files inside its own folder: a table, template or script that several skills read is a vendored copy of one source, listed in `scripts/shared-files.txt` and refreshed by `scripts/sync-shared.sh`; a `../groma-<name>/` path appears only in a procedure hand-off listed in `scripts/handoffs.txt` (EXTRACTED, [ADR 0051](adr/0051-vendor-shared-files-into-each-skill.md), `tests/structure/check.py` `check_shared`, `check_handoffs`).
-- Skills: `SKILL.md` with `name` equal to the folder, a description of at most 1024 characters, numbered steps that each end in a "Done when" sentence, paths relative to the skill folder (EXTRACTED, `tests/structure/check.py` `check_skills`; INFERRED, `skills/groma-survey/SKILL.md`).
+- Skills: `SKILL.md` with `name` equal to the folder, a description of at most 400 characters, numbered steps that each end in a "Done when" sentence, paths relative to the skill folder (EXTRACTED, `tests/structure/check.py` `check_skills`; INFERRED, `skills/groma-survey/SKILL.md`).
 - CLI JavaScript: ESM, single quotes, semicolons, two-space indentation, tests with `node:test` next to the code in `cli/test/` (INFERRED, `cli/main.js:1-8`, `cli/test/`).
 - Python: four-space indentation, type hints, `from __future__ import annotations`, module constants in upper case (INFERRED, `tests/structure/check.py:7-20`).
 - All artifacts, skills, docs and messages are in English (EXTRACTED, `AGENTS.md`).

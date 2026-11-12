@@ -14,6 +14,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Every groma skill works when installed alone (change R001), for example with `npx skills add Zeotyn/groma --skill groma-survey`. Shared tables, templates and scripts are vendored into each skill that reads them and kept byte-identical by `scripts/sync-shared.sh` and a structure check; only procedure hand-offs between skills remain, each with an "add skill X" message. The full suite behaves as before. ADR 0051.
+- Always-loaded diet (change C011): the eight skill descriptions are shorter (2384 to 1821 characters in total) and the AGENTS.md template drops restated lines (54 to 53 lines, 488 to 444 words). The structure check caps each description at 400 characters and the template at 80 lines; groma-agents keeps a generated AGENTS.md within 80 lines (was 150). ADR 0050 (proposed).
 
 ## [0.3.0] - 2026-11-12
 

@@ -1,7 +1,7 @@
 ---
 title: Concept
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 review_after_days: 120
 owner: Eugen Waldschmidt
 sources: [skills/]
@@ -36,6 +36,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 - **Code style.** Three layers: tool configs enforce what they can, `docs/code-style.md` links them and documents the conventions no tool enforces (each tagged `EXTRACTED` or `INFERRED` with a path), and ADRs hold the tool decisions. Agents reach the style through AGENTS.md, the methodology context and groma-loop's tests gate. The survey reports drift statically; no project tool runs during setup.
 - **Git workflow.** The `git` section of the config decides once how changes are integrated (`rebase`, `merge`, `squash`), whether each change gets a branch, how commits are written and when groma pushes. AGENTS.md carries the rule for every agent, including those outside the loop: a request to "merge" means the configured sequence. groma-loop carries it out and stops on conflicts, a dirty tree or a rejected push instead of resolving, stashing or forcing.
 - **Next action.** A fixed ladder picks one action from the reminders, so the user sees what to do next without asking. Hooks only display it; they never block, retry or prompt the agent. Each agent's hook support is data in `agents.yaml`; agents without a display-only channel rely on the AGENTS.md line.
+- **Always-loaded budget.** Skill descriptions and the generated AGENTS.md are in the agent's context on every turn, so they stay short: at most 400 characters per description and 80 lines for the AGENTS.md template, enforced by the structure check (ADR 0050). Details go into skill bodies, references and `docs/`, which load on demand.
 - **No credentials.** Scripts never connect to databases and never print secrets.
 
 ## Constraints

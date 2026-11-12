@@ -1,7 +1,7 @@
 ---
 title: Architecture
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 review_after_days: 90
 owner: Eugen Waldschmidt
 sources: [skills/, .claude-plugin/, .codex-plugin/, .cursor-plugin/, gemini-extension.json, install.sh, uninstall.sh, scripts/, tests/]
@@ -58,6 +58,8 @@ The orchestrator refers to siblings by relative path (`../groma-detect/`). A ski
 ## Deployment
 
 Distributed from GitHub (`Zeotyn/groma`) as a Claude Code / Copilot plugin marketplace, via `npx skills add`, as Codex, Cursor and Gemini manifests, through `install.sh`, and on npm as `groma-cli` (`npx groma-cli init`, command `groma`). Nothing runs as a service.
+
+Releases start from a pushed tag `v<version>`: `.github/workflows/release.yml` runs `scripts/release-check.sh` (tag equals every manifest version, `CHANGELOG.md` has the section), test levels 1 to 3, then `npm publish --provenance` through npm trusted publishing (OIDC, no token) and a GitHub release with the CHANGELOG section as notes.
 
 ## Decisions
 

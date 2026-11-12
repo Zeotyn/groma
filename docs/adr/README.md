@@ -62,5 +62,7 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0045](0045-cache-the-next-action-on-repository-state.md) | Cache the next action on repository state | accepted | 2026-11-12 |
 | [0046](0046-debounce-the-stop-hook-on-change-and-time.md) | Debounce the Stop hook on change and time | accepted | 2026-11-12 |
 | [0047](0047-describe-hook-adapters-per-agent-as-data.md) | Describe hook adapters per agent as data | accepted | 2026-11-12 |
+| [0048](0048-publish-to-npm-through-trusted-publishing.md) | Publish to npm through trusted publishing | proposed | 2026-11-12 |
+| [0049](0049-publish-releases-directly-not-staged.md) | Publish releases directly, not staged | proposed | 2026-11-12 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

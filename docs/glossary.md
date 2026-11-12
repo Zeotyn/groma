@@ -1,7 +1,7 @@
 ---
 title: Glossary
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 review_after_days: 180
 owner: Eugen Waldschmidt
 sources: [README.md, skills/]
@@ -45,4 +45,5 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Git practice | What `git-practice.sh` reads from the main branch's history: merge commits, pull-request merges, `(#n)` subjects, conventional subjects, with a recommended strategy and commit style | `groma-detect` | the configured strategy, which the user picks |
 | Push policy | `git.push`: `ask` (default), `auto` or `never`, for the main branch after integration | git workflow | the `unpushed` reminder of `status.sh` |
 | Next action | The one step `next.sh` names for a project: the first rung of the ladder that applies, or nothing | `groma-methodology`, hooks, status line | the full reminder list of `status.sh` |
+| Trusted publishing | npm publishing from the `release.yml` GitHub Actions workflow through OIDC, without a token; npmjs.com trusts `Zeotyn/groma` and that file name | releases, `scripts/release-check.sh` | provenance, which npm attaches to each version published this way |
 | Ladder | The fixed, ordered list of rungs `next.sh` checks; the first match wins | `next.sh` | a priority score |

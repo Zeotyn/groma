@@ -228,6 +228,16 @@ Then run `/groma` in a project: it compares `initialized_with` in the config wit
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Most contributions are one table row: a new stack pattern, ADR location or catalog entry.
 
+## Releasing
+
+A pushed tag `v<version>` releases groma. `.github/workflows/release.yml` checks the tag against every manifest version and the CHANGELOG (`scripts/release-check.sh`), runs test levels 1 to 3, publishes `groma-cli` to npm with provenance and creates the GitHub release from the CHANGELOG section.
+
+1. Set the version in the plugin manifests, `.claude-plugin/marketplace.json`, `package.json` and `skills/groma/VERSION`; rename `[Unreleased]` in `CHANGELOG.md` to `[<version>] - <date>`.
+2. Run `sh scripts/release-check.sh v<version>`, commit, push `main`.
+3. `git tag v<version> && git push origin v<version>`.
+
+npm trusts the workflow through trusted publishing: on npmjs.com, `groma-cli` has the trusted publisher GitHub Actions `Zeotyn/groma` with workflow `release.yml`, direct publish allowed, and publishing access set to "require two-factor authentication and disallow bypass tokens". The repository holds no npm token.
+
 ## License
 
 [MIT](LICENSE)

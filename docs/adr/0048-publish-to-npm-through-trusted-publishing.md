@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-12
 decision-makers: Eugen Waldschmidt
 evidence: [.github/workflows/release.yml, scripts/release-check.sh, tests/scripts/release-check.bats]

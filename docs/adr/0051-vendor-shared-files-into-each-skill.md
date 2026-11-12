@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-12
 decision-makers: Eugen Waldschmidt
 evidence: [scripts/shared-files.txt, scripts/sync-shared.sh, scripts/handoffs.txt, tests/structure/check.py, tests/scripts/standalone.bats]

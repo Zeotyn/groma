@@ -8,5 +8,5 @@
 ## 2. Release gate
 
 - [x] 2.1 Test levels 1–4 green, including code-style evals on fixtures (2026-11-12: 8 of 8 after f005; `empty` re-asserted on the recorded run)
-- [ ] 2.2 `v0.3.0` tagged, CHANGELOG released, npm package published
-- [ ] 2.3 `docs/roadmap.md` shows M003 complete
+- [x] 2.2 `v0.3.0` tagged, CHANGELOG released, npm package published
+- [x] 2.3 `docs/roadmap.md` shows M003 complete

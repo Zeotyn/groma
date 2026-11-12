@@ -41,7 +41,7 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 ## M003 v0-3
 
 - Goal: On the node-prisma and python-django fixtures, `/groma` produces `docs/code-style.md` with tool table and inferred conventions; on a greenfield TypeScript project it creates `.editorconfig`, Prettier and ESLint configs after the interview; groma-loop runs the style checks before review and integrates by the configured git strategy without merge commits by default. `v0.3.0` tagged, all test levels green.
-- Status: active
+- Status: done
 - Progress: 5/5 done
 
 | Id | Change | Status |

@@ -85,3 +85,10 @@ The CLI SHALL exit 0 on success, 1 on errors, 2 on usage errors and 3 when prere
 - **WHEN** `groma init` runs on Node 20
 - **THEN** it exits 3 with "Node 22 or newer required"
 
+### Requirement: Next command
+`groma next [path]` SHALL run the next-action script with `--long` by default and pass `--short` and `--json` through, with exit code 0 also when nothing is printed.
+
+#### Scenario: Terminal use
+- **WHEN** the user runs `npx groma-cli next` in a project with 3 unpushed commits
+- **THEN** it prints "Push 3 commits on main: git push"
+

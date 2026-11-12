@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-12
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma-methodology/scripts/next-stop.sh, tests/scripts/next.bats, tests/manual/claude-stop-hook-2026-11-12.md]

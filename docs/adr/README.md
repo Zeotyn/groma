@@ -56,11 +56,11 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0039](0039-abort-and-escalate-on-git-conflicts.md) | Abort and escalate on git conflicts, never force | accepted | 2026-11-11 |
 | [0040](0040-recommend-the-git-workflow-from-the-history-by-script.md) | Recommend the git workflow from the history by script | accepted | 2026-11-11 |
 | [0041](0041-commit-one-review-unit-at-a-time.md) | Commit one review unit at a time | accepted | 2026-11-11 |
-| [0042](0042-show-the-next-action-on-display-only-channels.md) | Show the next action on display-only channels, never steer the agent | proposed | 2026-11-12 |
-| [0043](0043-pick-the-next-action-from-a-fixed-ladder-in-a-script.md) | Pick the next action from a fixed ladder in a script, built on status.sh | proposed | 2026-11-12 |
-| [0044](0044-offer-the-status-line-only-as-a-snippet.md) | Offer the status line only as a snippet | proposed | 2026-11-12 |
-| [0045](0045-cache-the-next-action-on-repository-state.md) | Cache the next action on repository state | proposed | 2026-11-12 |
-| [0046](0046-debounce-the-stop-hook-on-change-and-time.md) | Debounce the Stop hook on change and time | proposed | 2026-11-12 |
-| [0047](0047-describe-hook-adapters-per-agent-as-data.md) | Describe hook adapters per agent as data | proposed | 2026-11-12 |
+| [0042](0042-show-the-next-action-on-display-only-channels.md) | Show the next action on display-only channels, never steer the agent | accepted | 2026-11-12 |
+| [0043](0043-pick-the-next-action-from-a-fixed-ladder-in-a-script.md) | Pick the next action from a fixed ladder in a script, built on status.sh | accepted | 2026-11-12 |
+| [0044](0044-offer-the-status-line-only-as-a-snippet.md) | Offer the status line only as a snippet | accepted | 2026-11-12 |
+| [0045](0045-cache-the-next-action-on-repository-state.md) | Cache the next action on repository state | accepted | 2026-11-12 |
+| [0046](0046-debounce-the-stop-hook-on-change-and-time.md) | Debounce the Stop hook on change and time | accepted | 2026-11-12 |
+| [0047](0047-describe-hook-adapters-per-agent-as-data.md) | Describe hook adapters per agent as data | accepted | 2026-11-12 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

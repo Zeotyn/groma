@@ -2,7 +2,7 @@
 
 - [x] 1.1 C005 `c005-code-style` implemented, verified and archived
 - [x] 1.2 C006 `c006-git-workflow` implemented, verified and archived
-- [ ] 1.3 C007 `c007-next-action` implemented, verified and archived
+- [x] 1.3 C007 `c007-next-action` implemented, verified and archived
 
 ## 2. Release gate
 

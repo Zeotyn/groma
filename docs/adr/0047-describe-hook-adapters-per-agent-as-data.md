@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-12
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma/agents.yaml, tests/structure/check.py, tests/manual/copilot-agentstop-2026-11-12.md]

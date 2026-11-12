@@ -6,8 +6,9 @@
 
 - [x] 2.1 Trim the eight descriptions
 - [x] 2.2 Trim the AGENTS.md template
-- [ ] 2.3 Eval run; report difference against the C010 baseline recorded here; `scripts/test.sh` green
+- [x] 2.3 Eval run; report difference against the C010 baseline recorded here; `scripts/test.sh` green
   Proxy until the C010 baseline exists: descriptions 2384 → 1821 characters (−24 %); AGENTS.md template 54 → 53 lines, 488 → 444 words, 3246 → 2966 characters (−9 %).
+  Evals 2026-11-12: 8 passed, 0 failed (all fixtures); token difference follows once C010 records its baseline.
 
 ## 3. Docs
 

@@ -358,3 +358,46 @@ def test_shipped_hook_adapters():
     agents = check.yaml.safe_load((check.ROOT / "skills/groma/agents.yaml").read_text())["agents"]
     assert agents["claude"]["hook"]["status"] == "stable"
     assert agents["cursor"]["hook"] == {"status": "none"}  # no display-only channel
+
+
+def shared_repo(tmp_path: Path, copy: str = "table\n") -> None:
+    write(tmp_path / "skills/groma-a/references/t.md", "table\n")
+    write(tmp_path / "skills/groma-b/references/t.md", copy)
+    write(tmp_path / "scripts/shared-files.txt", "# c\nskills/groma-a/references/t.md -> skills/groma-b/references/t.md\n")
+
+
+def test_shared_identical_copy_passes(tmp_path):
+    shared_repo(tmp_path)
+    check.check_shared(tmp_path)
+    assert check.errors == []
+
+
+def test_shared_drifted_copy_names_the_source(tmp_path):
+    shared_repo(tmp_path, "edited\n")
+    check.check_shared(tmp_path)
+    assert any("differs from skills/groma-a/references/t.md" in e for e in check.errors)
+
+
+def test_shared_missing_copy_and_bad_line(tmp_path):
+    shared_repo(tmp_path)
+    (tmp_path / "skills/groma-b/references/t.md").unlink()
+    (tmp_path / "scripts/shared-files.txt").write_text(
+        "skills/groma-a/references/t.md -> skills/groma-b/references/t.md\nonly-one-path\n")
+    check.check_shared(tmp_path)
+    assert any("vendored copy missing" in e for e in check.errors)
+    assert any("expected '<source> -> <consumer>'" in e for e in check.errors)
+
+
+def test_handoffs_unlisted_sibling_reference_fails(tmp_path):
+    write(tmp_path / "skills/groma-a/SKILL.md", "Read `../groma-b/references/t.md` and follow `../groma-b/SKILL.md`.\n")
+    write(tmp_path / "scripts/handoffs.txt", "# c\nskills/groma-a/SKILL.md ../groma-b/SKILL.md\n")
+    check.check_handoffs(tmp_path)
+    assert len(check.errors) == 1
+    assert "'../groma-b/references/t.md' points into a sibling skill" in check.errors[0]
+
+
+def test_handoffs_stale_entry_fails(tmp_path):
+    write(tmp_path / "skills/groma-a/SKILL.md", "Nothing here.\n")
+    write(tmp_path / "scripts/handoffs.txt", "skills/groma-a/SKILL.md ../groma-b/SKILL.md\n")
+    check.check_handoffs(tmp_path)
+    assert any("listed but not found" in e for e in check.errors)

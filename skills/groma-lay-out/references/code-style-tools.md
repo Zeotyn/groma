@@ -1,6 +1,6 @@
 # Code-style tools
 
-One table for detection, the tools section of `docs/code-style.md` and greenfield setup. groma-survey's `style-drift.sh` reads it through `../groma-lay-out/references/`; groma-lay-out writes the templates it names. Add a tool by adding a row: no skill or script changes.
+One table for detection, the tools section of `docs/code-style.md` and greenfield setup. groma-survey and groma carry identical copies; their `style-drift.sh` reads the copy in its own skill folder. groma-lay-out writes the templates it names. Add a tool by adding a row: no skill or script changes.
 
 Columns:
 

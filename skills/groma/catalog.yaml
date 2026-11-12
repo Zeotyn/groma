@@ -1,0 +1,152 @@
+# groma skill catalog
+#
+# Categories group interchangeable skills. Each category is asked once in the
+# interview; picks are stored under `skills.<category>` in .groma/config.yaml
+# (except `workflow`, stored as top-level `workflow`).
+#
+# Skill entry fields:
+#   title, description   shown in the interview
+#   source               GitHub owner/repo (used by `npx skills add`)
+#   ref                  pinned tag or commit, bump in a PR after checking upstream
+#   skills               skill names inside the repo for `npx skills add --skill` ('*' = all)
+#   claude_plugin        plugin@marketplace for Claude Code / Copilot CLI (optional)
+#   marketplace          owner/repo of that marketplace (required with claude_plugin)
+#   install              custom install command, replaces `npx skills add` (optional)
+#   post_install         one-time command to run inside the agent after install (optional)
+#   url                  homepage or repository
+#
+# Verified against GitHub on 2026-11-04. Contribute: see CONTRIBUTING.md.
+
+schema: 1
+
+categories:
+  design:
+    description: Design vocabulary and UI quality checks for projects with a user interface
+    select: single
+    condition: has_ui
+    recommended: impeccable
+    options: [impeccable, frontend-design, none]
+
+  writing:
+    description: Output and writing style; groma also applies these when it writes your docs
+    select: multi
+    recommended: [anti-ai-slop-writing, i-have-adhd]
+    options: [anti-ai-slop-writing, i-have-adhd, none]
+
+  pragmatism:
+    description: Keeps the agent from over-engineering
+    select: single
+    recommended: ponytail
+    options: [ponytail, none]
+
+  workflow:
+    description: Working style layer on top of the spec methodology (planning, TDD, reviews)
+    select: single
+    recommended: superpowers
+    options: [superpowers, mattpocock-skills, none]
+
+  diagrams:
+    description: Architecture and flow diagrams for docs/architecture.md
+    select: single
+    recommended: archify
+    options: [archify, none]
+
+  discovery:
+    description: Code map for brownfield surveys
+    select: single
+    recommended: graphify
+    options: [graphify, repomix, none]
+
+skills:
+  impeccable:
+    title: impeccable
+    description: 24 design commands (critique, audit, polish, ...) plus a deterministic UI slop detector
+    source: pbakaus/impeccable
+    ref: cli-v4.8.0
+    skills: ['*']
+    claude_plugin: impeccable@impeccable
+    marketplace: pbakaus/impeccable
+    post_install: /impeccable init
+    url: https://impeccable.style
+
+  frontend-design:
+    title: frontend-design (Anthropic)
+    description: Lighter design guidance for distinctive, non-templated UI
+    source: anthropics/skills
+    ref: main
+    skills: [frontend-design]
+    claude_plugin: frontend-design@claude-plugins-official
+    marketplace: anthropics/claude-plugins-official
+    url: https://github.com/anthropics/skills
+
+  anti-ai-slop-writing:
+    title: anti-ai-slop-writing
+    description: Human-sounding text, bans typical AI phrases and structures
+    source: jalaalrd/anti-ai-slop-writing
+    ref: 63255f9bbb75a265dc5786a04535cd033f487756
+    skills: ['*']
+    url: https://github.com/jalaalrd/anti-ai-slop-writing
+
+  i-have-adhd:
+    title: i-have-adhd
+    description: Action-first answers, numbered steps, one next action, no filler
+    source: ayghri/i-have-adhd
+    ref: v0.4.1
+    skills: ['*']
+    claude_plugin: i-have-adhd@i-have-adhd
+    marketplace: ayghri/i-have-adhd
+    url: https://github.com/ayghri/i-have-adhd
+
+  ponytail:
+    title: ponytail
+    description: Laziest-senior-dev ladder; reuse before writing, minimum code plus one test
+    source: DietrichGebert/ponytail
+    ref: v5.3.3
+    skills: ['*']
+    claude_plugin: ponytail@ponytail
+    marketplace: DietrichGebert/ponytail
+    url: https://github.com/DietrichGebert/ponytail
+
+  superpowers:
+    title: superpowers
+    description: Brainstorm, write plans, subagent-driven TDD, systematic debugging
+    source: obra/superpowers
+    ref: v7.0.2
+    skills: ['*']
+    claude_plugin: superpowers@claude-plugins-official
+    marketplace: anthropics/claude-plugins-official
+    url: https://github.com/obra/superpowers
+
+  mattpocock-skills:
+    title: mattpocock skills
+    description: Composable skills (grilling, to-spec, tdd, code-review, domain-modeling)
+    source: mattpocock/skills
+    ref: v1.3.2
+    skills: ['*']
+    claude_plugin: mattpocock-skills@claude-plugins-official
+    marketplace: anthropics/claude-plugins-official
+    url: https://github.com/mattpocock/skills
+
+  archify:
+    title: archify
+    description: Validated architecture, sequence and data-flow diagrams as interactive HTML
+    source: tt-a1i/archify
+    ref: v3.2.0
+    skills: [archify]
+    url: https://github.com/tt-a1i/archify
+
+  graphify:
+    title: graphify
+    description: Knowledge graph of the code base (tree-sitter), query/path/explain tools
+    source: Graphify-Labs/graphify
+    ref: v0.9.102
+    install: uv tool install graphifyy==0.9.102 && graphify install
+    url: https://github.com/Graphify-Labs/graphify
+
+  repomix:
+    title: repomix
+    description: Packs the repository into one compressed file the agent can read in full
+    source: yamadashy/repomix
+    ref: v1.18.1
+    install: npx --yes repomix@1.18.1 --compress --output .groma/repomix.xml
+    url: https://github.com/yamadashy/repomix

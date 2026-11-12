@@ -1,0 +1,32 @@
+# Shared files: one source, vendored copies in the skills that read them (ADR 0051).
+# One pair per line, paths from the repository root:
+#   <source> -> <consumer>
+# Edit only the source, then run scripts/sync-shared.sh. The structure check
+# (tests/structure/check.py shared) fails when a copy differs from its source.
+#
+# groma: interview (style tools, git workflow), config check, upgrade snippets
+skills/groma-lay-out/references/code-style-tools.md -> skills/groma/references/code-style-tools.md
+skills/groma-survey/scripts/style-drift.sh -> skills/groma/scripts/style-drift.sh
+skills/groma-detect/scripts/git-practice.sh -> skills/groma/scripts/git-practice.sh
+skills/groma-skills/catalog.yaml -> skills/groma/catalog.yaml
+skills/groma-agents/templates/AGENTS.md -> skills/groma/templates/AGENTS.md
+# groma-survey: detection, doc slots, style table, ADR template
+skills/groma-detect/scripts/detect.sh -> skills/groma-survey/scripts/detect.sh
+skills/groma-detect/references/signals.md -> skills/groma-survey/references/signals.md
+skills/groma-lay-out/references/doc-slots.md -> skills/groma-survey/references/doc-slots.md
+skills/groma-lay-out/references/code-style-tools.md -> skills/groma-survey/references/code-style-tools.md
+skills/groma-lay-out/templates/adr-template.md -> skills/groma-survey/templates/adr-template.md
+# groma-skills: install command templates, config check
+skills/groma/agents.yaml -> skills/groma-skills/agents.yaml
+skills/groma/scripts/validate-config.sh -> skills/groma-skills/scripts/validate-config.sh
+# groma-agents: hook adapters, change naming rule text
+skills/groma/agents.yaml -> skills/groma-agents/agents.yaml
+skills/groma-methodology/references/conventions.md -> skills/groma-agents/references/conventions.md
+# groma-lay-out: install consent flow
+skills/groma-skills/references/install-consent.md -> skills/groma-lay-out/references/install-consent.md
+# groma-methodology: prerequisites, docs reminders in status.sh
+skills/groma/scripts/check-prereqs.sh -> skills/groma-methodology/scripts/check-prereqs.sh
+skills/groma-lay-out/scripts/docs-impact.sh -> skills/groma-methodology/scripts/docs-impact.sh
+# groma-loop: docs gate, git strategies
+skills/groma-lay-out/scripts/docs-impact.sh -> skills/groma-loop/scripts/docs-impact.sh
+skills/groma-agents/references/git-strategies.md -> skills/groma-loop/references/git-strategies.md

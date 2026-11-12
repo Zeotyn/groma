@@ -1,0 +1,90 @@
+# Agent table, read by the `groma` CLI and by the groma skills.
+#
+# Per agent:
+#   skills_dir      project skill folder (groma init copies the groma skills here)
+#   home_marker     folder whose presence means the agent is installed on this machine
+#   npx_skills_id   agent id for `npx skills add -a <id>`
+#   instructions    agent instruction file (codex reads AGENTS.md)
+#   plugins         true when catalog entries with `claude_plugin` install as plugins
+#   hook            next-action display after an answer (groma-methodology next.sh):
+#                   status  stable | experimental (untested, only on request) | none
+#                   event   hook event of the agent's CLI
+#                   config  settings file that carries the hook
+#                   format  output field that reaches the user only; never a channel
+#                           that blocks, retries or messages the agent
+#
+# commands: install command templates. Placeholders: {source} {ref} {skills}
+#   ({skills} is --skill '*' or one --skill <name> per listed skill),
+#   {agents} (one -a <npx_skills_id> per agent), {marketplace}, {claude_plugin}.
+# builtin_marketplaces: marketplaces that need no `marketplace add`.
+# touches: files and folders each installer writes in the project; {skill} is
+#   each skill name an entry lists. Existing paths make the installer ask first.
+#
+# Verified with skills 1.7.6 on 2026-11-04. gemini and codex npx ids unverified.
+
+schema: 1
+
+agents:
+  claude:
+    skills_dir: .claude/skills
+    home_marker: ~/.claude
+    npx_skills_id: claude-code
+    instructions: CLAUDE.md
+    plugins: true
+    hook:
+      status: stable
+      event: Stop
+      config: .claude/settings.local.json
+      format: systemMessage
+  copilot:
+    skills_dir: .github/skills
+    home_marker: ~/.copilot
+    npx_skills_id: github-copilot
+    instructions: .github/copilot-instructions.md
+    # spike 2026-11-12 (CLI 1.0.105, headless): JSON systemMessage and plain stdout are
+    # ignored; stderr with exit 2 is shown as '! <text>' without a new turn;
+    # interactive TUI unverified
+    hook:
+      status: experimental
+      event: agentStop
+      config: .github/hooks/groma-next.json
+      format: stderr-exit2
+  gemini:
+    skills_dir: .gemini/skills
+    home_marker: ~/.gemini
+    npx_skills_id: gemini-cli
+    instructions: GEMINI.md
+    hook:
+      status: experimental
+      event: AfterAgent
+      config: .gemini/settings.json
+      format: systemMessage
+  cursor:
+    skills_dir: .cursor/skills
+    home_marker: ~/.cursor
+    npx_skills_id: cursor
+    instructions: .cursor/rules/groma.mdc
+    hook:
+      status: none
+  codex:
+    skills_dir: .agents/skills
+    home_marker: ~/.codex
+    npx_skills_id: codex
+    instructions: AGENTS.md
+    # untested: needs `codex_hooks = true` and a trusted project
+    hook:
+      status: experimental
+      event: Stop
+      config: .codex/config.toml
+      format: systemMessage
+
+commands:
+  npx_skills: npx --yes skills@1.7.6 add https://github.com/{source}/tree/{ref} {skills} {agents} -y
+  plugin_marketplace: claude plugin marketplace add {marketplace} --scope project
+  plugin_install: claude plugin install {claude_plugin} --scope project
+
+builtin_marketplaces: [anthropics/claude-plugins-official]
+
+touches:
+  npx_skills: [skills-lock.json, '.agents/skills/{skill}', '.claude/skills/{skill}']
+  claude_plugin: [.claude/settings.json]

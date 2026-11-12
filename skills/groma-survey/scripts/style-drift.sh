@@ -32,7 +32,7 @@
 set -eu
 
 HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
-TABLE="$HERE/../../groma-lay-out/references/code-style-tools.md"
+TABLE="$HERE/../references/code-style-tools.md"
 DIR=.
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -184,7 +184,7 @@ EOF
   cat "$WORK/tools"
   FOUND=$(awk -F'\t' '$4 != "" { printf "%s\t%s\t%s\n", $2, $3, $4 }' "$WORK/tools")
 else
-  printf 'note%sstyle tools not detected (groma-lay-out missing)\n' "$TAB"
+  printf 'note%sstyle tools not detected (code-style-tools.md missing)\n' "$TAB"
 fi
 
 # --- (b) editorconfig drift ------------------------------------------------------------

@@ -1,0 +1,27 @@
+# Procedure hand-offs: references from one skill into a sibling skill folder
+# that stay references (ADR 0051). One line per file and reference:
+#   <skill file> <reference as written>
+# Every other ../groma-*/ reference in skills/ fails the structure check and
+# tests/scripts/standalone.bats; a file the skill reads is vendored instead
+# (scripts/shared-files.txt). Each hand-off says which skill to add when the
+# sibling is missing and skips the step.
+#
+# groma: the orchestrator runs each step by following the sibling's SKILL.md.
+skills/groma/SKILL.md ../groma-detect/
+skills/groma/SKILL.md ../groma-survey/
+skills/groma/SKILL.md ../groma-detect/SKILL.md
+skills/groma/SKILL.md ../groma-methodology/SKILL.md
+skills/groma/SKILL.md ../groma-skills/SKILL.md
+skills/groma/SKILL.md ../groma-survey/SKILL.md
+skills/groma/SKILL.md ../groma-lay-out/SKILL.md
+skills/groma/SKILL.md ../groma-agents/SKILL.md
+# groma-agents: paths of groma-methodology and groma-lay-out scripts written
+# into AGENTS.md and hook files; the project's agents run the sibling's copy.
+skills/groma-agents/SKILL.md ../groma-methodology/scripts/status.sh
+skills/groma-agents/SKILL.md ../groma-methodology/scripts/next.sh
+skills/groma-agents/SKILL.md ../groma-methodology/scripts/next-stop.sh
+skills/groma-agents/SKILL.md ../groma-lay-out/scripts/docs-impact.sh
+# groma-loop: ADR candidates are written by groma-lay-out's procedure; the
+# roadmap belongs to groma-methodology's change naming.
+skills/groma-loop/SKILL.md ../groma-lay-out/SKILL.md
+skills/groma-loop/SKILL.md ../groma-methodology/scripts/roadmap.sh

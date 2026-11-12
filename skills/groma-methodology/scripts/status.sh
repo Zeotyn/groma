@@ -19,7 +19,7 @@
 #          reminders.stale_change_days (0 disables), reminders.uncommitted,
 #          reminders.unpushed, docs.gate (off disables both docs reminders)
 #          in .groma/config.yaml. The docs impact report comes from
-#          groma-lay-out's docs-impact.sh when it is installed.
+#          docs-impact.sh next to this script, a copy of groma-lay-out's.
 set -eu
 
 HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
@@ -42,7 +42,7 @@ STALE_DAYS=$(cfg_value stale_change_days 14)
 UNCOMMITTED=$(cfg_value uncommitted true)
 UNPUSHED=$(cfg_value unpushed true)
 DOCS_GATE=$(cfg_value gate review docs)
-DOCS_IMPACT="$HERE/../../groma-lay-out/scripts/docs-impact.sh"
+DOCS_IMPACT="$HERE/docs-impact.sh"
 [ "$DOCS_GATE" != off ] && [ -f "$DOCS_IMPACT" ] || DOCS_IMPACT=""
 
 days() { # YYYY-MM-DD -> days since epoch

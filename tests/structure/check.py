@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Structure checks for the groma repository (test level 1).
 
-Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|versions|code-style|all]
+Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|versions|code-style|shared|handoffs|all]
 Exit code 0 when all selected checks pass, 1 otherwise.
 """
 from __future__ import annotations
@@ -470,6 +470,85 @@ def check_versions(root: Path = ROOT) -> None:
             err(f"CHANGELOG.md: latest release {released[0]} != manifest version {version}")
 
 
+SHARED_MANIFEST = "scripts/shared-files.txt"
+HANDOFFS = "scripts/handoffs.txt"
+SIBLING_REF_RE = re.compile(r"(?:\.\./)+groma[a-z-]*/[A-Za-z0-9_./-]*")
+
+
+def shared_pairs(root: Path = ROOT) -> list[tuple[str, str]]:
+    """`<source> -> <consumer>` lines of the shared-files manifest."""
+    path = root / SHARED_MANIFEST
+    if not path.is_file():
+        err(f"{SHARED_MANIFEST}: missing")
+        return []
+    pairs: list[tuple[str, str]] = []
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) != 3 or parts[1] != "->":
+            err(f"{SHARED_MANIFEST}:{n}: expected '<source> -> <consumer>', got '{line}'")
+            continue
+        pairs.append((parts[0], parts[2]))
+    return pairs
+
+
+def check_shared(root: Path = ROOT) -> None:
+    """Every vendored copy is byte-identical to its source (ADR 0051)."""
+    pairs = shared_pairs(root)
+    consumers: set[str] = set()
+    for source, consumer in pairs:
+        for rel in (source, consumer):
+            if not rel.startswith("skills/"):
+                err(f"{SHARED_MANIFEST}: '{rel}' must live under skills/")
+        if source.split("/")[:2] == consumer.split("/")[:2]:
+            err(f"{SHARED_MANIFEST}: '{consumer}' is in the same skill as its source")
+        if consumer in consumers:
+            err(f"{SHARED_MANIFEST}: '{consumer}' listed twice")
+        consumers.add(consumer)
+        src, dst = root / source, root / consumer
+        if not src.is_file():
+            err(f"{source}: shared source missing")
+            continue
+        if not dst.is_file():
+            err(f"{consumer}: vendored copy missing; run scripts/sync-shared.sh")
+        elif src.read_bytes() != dst.read_bytes():
+            err(f"{consumer}: differs from {source}; edit the source, then run scripts/sync-shared.sh")
+    sources = {s for s, _ in pairs}
+    for c in sorted(consumers & sources):
+        err(f"{SHARED_MANIFEST}: '{c}' is both a source and a copy")
+
+
+def check_handoffs(root: Path = ROOT) -> None:
+    """No skill file points into a sibling skill folder except a listed procedure hand-off."""
+    path = root / HANDOFFS
+    if not path.is_file():
+        err(f"{HANDOFFS}: missing")
+        return
+    allowed: set[tuple[str, str]] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        parts = line.split()
+        if len(parts) == 2 and not line.startswith("#"):
+            allowed.add((parts[0], parts[1]))
+    seen: set[tuple[str, str]] = set()
+    skills_dir = root / "skills"
+    if not skills_dir.is_dir():
+        return
+    for f in sorted(p for p in skills_dir.rglob("*") if p.is_file()):
+        try:
+            text = f.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        rel = f.relative_to(root).as_posix()
+        for ref in SIBLING_REF_RE.findall(text):
+            seen.add((rel, ref))
+            if (rel, ref) not in allowed:
+                err(f"{rel}: '{ref}' points into a sibling skill; vendor the file (scripts/shared-files.txt) or list a procedure hand-off in {HANDOFFS}")
+    for rel, ref in sorted(allowed - seen):
+        err(f"{HANDOFFS}: '{rel} {ref}' is listed but not found")
+
+
 CHECKS = {
     "skills": check_skills,
     "links": check_links,
@@ -480,6 +559,8 @@ CHECKS = {
     "manifests": check_manifests,
     "versions": check_versions,
     "code-style": check_code_style_table,
+    "shared": check_shared,
+    "handoffs": check_handoffs,
 }
 
 

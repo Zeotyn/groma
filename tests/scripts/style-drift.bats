@@ -206,7 +206,7 @@ ec() { printf '%s\n' "$@" > "$P/.editorconfig"; }
   commit_at "$P" 2025-01-01 init
   sd --table "$BATS_TEST_TMPDIR/nope.md" "$P"
   [ "$status" -eq 0 ]
-  assert_output_contains "note	style tools not detected (groma-lay-out missing)"
+  assert_output_contains "note	style tools not detected (code-style-tools.md missing)"
   assert_output_not_contains "tool	editorconfig"
   assert_output_contains "drift	indent_style	1	a.py"
 }

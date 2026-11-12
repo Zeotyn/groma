@@ -24,9 +24,9 @@ Offer the curated [catalog.yaml](catalog.yaml) one category at a time, record th
      `select: multi` accepts several picks; `select: single` exactly one.
    Done when every category has a recorded value.
 
-3. **Record.** Write picks to `<project>/.groma/config.yaml`: `skills.<category>` for each category, the `workflow` category as top-level `workflow`. Then run `sh ../groma/scripts/validate-config.sh <project>/.groma/config.yaml --catalog catalog.yaml` when groma is installed; fix every reported error.
+3. **Record.** Write picks to `<project>/.groma/config.yaml`: `skills.<category>` for each category, the `workflow` category as top-level `workflow`. Then run `sh scripts/validate-config.sh <project>/.groma/config.yaml --catalog catalog.yaml`; fix every reported error.
 
-4. **Install.** For each picked skill, build the commands for every configured agent from the templates in [../groma/agents.yaml](../groma/agents.yaml), following [references/install.md](references/install.md). Ask before an installer touches an existing file or installs outside the project. Run them; on refusal, missing permission or failure, write `.groma/install.sh` instead. Done when every pick is installed or listed in `.groma/install.sh`.
+4. **Install.** For each picked skill, build the commands for every configured agent from the templates in [agents.yaml](agents.yaml), following [references/install.md](references/install.md). Ask before an installer touches an existing file or installs outside the project. Run them; on refusal, missing permission or failure, write `.groma/install.sh` instead. Done when every pick is installed or listed in `.groma/install.sh`.
 
 5. **Report.** Per skill: installed for which agents, or pending in `.groma/install.sh`, plus any `post_install` command the user must run inside the agent. Add the same list, with every command that ran or is pending, as a section `## Installs` to the current findings report (`<project>/docs/_groma/findings-<date>.md`; create it from groma-survey's template if this run has none).
 

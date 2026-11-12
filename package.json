@@ -1,6 +1,6 @@
 {
   "name": "groma-cli",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Project setup skills for AI coding agents: spec-driven development, living docs with ADRs, code style, brownfield survey and one AGENTS.md for Claude Code, Copilot, Gemini CLI, Cursor and Codex",
   "keywords": ["ai-agents", "claude-code", "github-copilot", "gemini-cli", "cursor", "codex", "agent-skills", "agents-md", "spec-driven-development", "openspec", "living-documentation", "adr", "brownfield", "developer-tools"],
   "license": "MIT",

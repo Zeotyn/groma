@@ -45,16 +45,16 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0028](0028-let-last-reviewed-cover-source-commits-of-that-day.md) | Let last_reviewed cover source commits up to the end of that day | accepted | 2026-11-04 |
 | [0029](0029-report-repository-state-from-local-git-only.md) | Report uncommitted and unpushed work from local git state only | accepted | 2026-11-04 |
 | [0030](0030-toggle-uncommitted-and-unpushed-reminders-separately.md) | Toggle the uncommitted and unpushed reminders separately | accepted | 2026-11-04 |
-| [0031](0031-link-tool-configs-from-the-code-style-doc.md) | Link tool configs from the code-style doc instead of restating their rules | proposed | 2026-11-11 |
-| [0032](0032-report-style-drift-statically-without-running-project-tools.md) | Report style drift statically without running project tools | proposed | 2026-11-11 |
-| [0033](0033-drive-style-detection-and-setup-from-one-reference-table.md) | Drive style detection and setup from one reference table | proposed | 2026-11-11 |
-| [0034](0034-infer-conventions-by-the-agent-bounded-and-cited.md) | Infer conventions by the agent, bounded and cited | proposed | 2026-11-11 |
-| [0035](0035-write-style-configs-to-new-paths-and-ask-before-installs.md) | Write style configs to new paths and ask before installs | proposed | 2026-11-11 |
-| [0036](0036-reach-the-style-through-three-pointers.md) | Reach the style through three pointers | proposed | 2026-11-11 |
-| [0037](0037-carry-the-git-workflow-in-agents-md-from-the-config.md) | Carry the git workflow in AGENTS.md, sourced from the config | proposed | 2026-11-11 |
-| [0038](0038-integrate-with-three-fixed-command-sequences.md) | Integrate with three fixed command sequences | proposed | 2026-11-11 |
-| [0039](0039-abort-and-escalate-on-git-conflicts.md) | Abort and escalate on git conflicts, never force | proposed | 2026-11-11 |
-| [0040](0040-recommend-the-git-workflow-from-the-history-by-script.md) | Recommend the git workflow from the history by script | proposed | 2026-11-11 |
-| [0041](0041-commit-one-review-unit-at-a-time.md) | Commit one review unit at a time | proposed | 2026-11-11 |
+| [0031](0031-link-tool-configs-from-the-code-style-doc.md) | Link tool configs from the code-style doc instead of restating their rules | accepted | 2026-11-11 |
+| [0032](0032-report-style-drift-statically-without-running-project-tools.md) | Report style drift statically without running project tools | accepted | 2026-11-11 |
+| [0033](0033-drive-style-detection-and-setup-from-one-reference-table.md) | Drive style detection and setup from one reference table | accepted | 2026-11-11 |
+| [0034](0034-infer-conventions-by-the-agent-bounded-and-cited.md) | Infer conventions by the agent, bounded and cited | accepted | 2026-11-11 |
+| [0035](0035-write-style-configs-to-new-paths-and-ask-before-installs.md) | Write style configs to new paths and ask before installs | accepted | 2026-11-11 |
+| [0036](0036-reach-the-style-through-three-pointers.md) | Reach the style through three pointers | accepted | 2026-11-11 |
+| [0037](0037-carry-the-git-workflow-in-agents-md-from-the-config.md) | Carry the git workflow in AGENTS.md, sourced from the config | accepted | 2026-11-11 |
+| [0038](0038-integrate-with-three-fixed-command-sequences.md) | Integrate with three fixed command sequences | accepted | 2026-11-11 |
+| [0039](0039-abort-and-escalate-on-git-conflicts.md) | Abort and escalate on git conflicts, never force | accepted | 2026-11-11 |
+| [0040](0040-recommend-the-git-workflow-from-the-history-by-script.md) | Recommend the git workflow from the history by script | accepted | 2026-11-11 |
+| [0041](0041-commit-one-review-unit-at-a-time.md) | Commit one review unit at a time | accepted | 2026-11-11 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

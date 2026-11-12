@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-11
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma-lay-out/SKILL.md, skills/groma-lay-out/templates/code-style/, skills/groma-skills/references/install.md]

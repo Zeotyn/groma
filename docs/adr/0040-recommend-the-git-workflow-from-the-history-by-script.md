@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-11
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma-detect/scripts/git-practice.sh, skills/groma/SKILL.md, tests/scripts/git-practice.bats, tests/fixtures/histories.sh]

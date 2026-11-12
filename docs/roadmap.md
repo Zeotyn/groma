@@ -1,7 +1,7 @@
 ---
 title: Roadmap
 status: current
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-12
 review_after_days: 30
 owner: groma
 sources: [openspec/changes]
@@ -42,10 +42,10 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 
 - Goal: On the node-prisma and python-django fixtures, `/groma` produces `docs/code-style.md` with tool table and inferred conventions; on a greenfield TypeScript project it creates `.editorconfig`, Prettier and ESLint configs after the interview; groma-loop runs the style checks before review and integrates by the configured git strategy without merge commits by default. `v0.3.0` tagged, all test levels green.
 - Status: active
-- Progress: 0/3 done
+- Progress: 2/3 done
 
 | Id | Change | Status |
 |---|---|---|
-| C005 | `c005-code-style` | active |
-| C006 | `c006-git-workflow` | active |
+| C005 | `c005-code-style` | done |
+| C006 | `c006-git-workflow` | done |
 | C007 | `c007-next-action` | active |

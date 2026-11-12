@@ -33,3 +33,5 @@ Chosen option: "Four levels", because the cheap levels run on every PR and evals
 ## More Information
 
 Derived by groma from existing code on 2026-11-04 (design decision D9); confirm or reject.
+
+Amended 2026-11-12 by fix f006-no-nightly-evals: evals no longer run nightly. They run on demand (manual workflow run, pull request labeled `eval`) and in the release gate, because every scheduled run costs API tokens.

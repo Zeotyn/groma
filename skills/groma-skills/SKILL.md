@@ -1,6 +1,6 @@
 ---
 name: groma-skills
-description: Lets the user pick third-party skills per category (design, writing, pragmatism, workflow, diagrams, discovery) from the groma catalog and installs them for this project and its agents. Use during /groma, or when asked which skills to add or to change a project's skills.
+description: Installs third-party skills picked per category (design, writing, diagrams, workflow) from the groma catalog. Use during /groma, or when asked which skills to add or to change a project's skills.
 ---
 
 # groma-skills

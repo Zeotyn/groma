@@ -1,6 +1,6 @@
 ---
 name: groma-lay-out
-description: Creates or completes the docs/ folder - vision, concept, architecture, data model, glossary, risks, code style, MADR 4.0 ADRs and an index - without touching existing files during setup; sets up style tools chosen in the interview; also writes ADR candidates and doc updates inside a change. Use when a project lacks docs or ADRs, when asked to set up documentation, or after groma-survey.
+description: Creates or completes docs/ - vision, concept, architecture, data model, glossary, risks, code style, MADR ADRs - without touching existing files; sets up style tools; writes ADRs and doc updates inside a change. Use when a project lacks docs or ADRs, to set up documentation, or after groma-survey.
 ---
 
 # groma-lay-out

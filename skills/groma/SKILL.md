@@ -1,6 +1,6 @@
 ---
 name: groma
-description: Initializes or updates a project for AI-assisted work - detects greenfield/brownfield, interviews, sets up methodology, skills, docs/ (including code style), and AGENTS.md in eight steps. Use for /groma, "set up this project", "onboard this repo", "initialize project docs", or re-running groma on an initialized project.
+description: Initializes or updates a project for AI-assisted work - methodology, skills, docs/ and AGENTS.md. Use for /groma, "set up this project", "onboard this repo", "initialize project docs", or re-running groma on an initialized project.
 ---
 
 # groma

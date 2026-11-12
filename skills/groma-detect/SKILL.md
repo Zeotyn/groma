@@ -1,6 +1,6 @@
 ---
 name: groma-detect
-description: Classifies a folder as greenfield or brownfield and lists the evidence. Use when starting /groma, when asked whether a project is new or existing, or before surveying a repository.
+description: Classifies a folder as greenfield or brownfield with evidence. Use when starting /groma, when asked whether a project is new or existing, or before surveying a repository.
 ---
 
 # groma-detect

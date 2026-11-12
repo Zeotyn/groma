@@ -1,6 +1,6 @@
 ---
 name: groma-agents
-description: Writes one canonical AGENTS.md and pointer files for Claude Code, Copilot, Gemini CLI and Cursor so every agent reads the same project instructions. Use during /groma or when agent instruction files are missing or out of sync.
+description: Writes AGENTS.md and pointer files for Claude Code, Copilot, Gemini CLI and Cursor. Use during /groma or when agent instruction files are missing or out of sync.
 ---
 
 # groma-agents
@@ -23,7 +23,7 @@ The findings report is this run's `<project>/docs/_groma/findings-<YYYY-MM-DD>.m
    - `docs_impact_script`: the path of `../groma-lay-out/scripts/docs-impact.sh`, resolved like `status_script`. `docs.gate: off`: drop the "Living docs" bullet. groma-lay-out missing: drop it too and tell the user to add it (`npx skills add Zeotyn/groma --skill groma-lay-out`) for the docs check.
    - `code_style_doc`: the file that fills the code-style slot (`docs/code-style.md`, or the style guide the docs index links for it). `style_checks`: the check commands from that doc's "Enforced by tools" table, one per line; no tool: `None configured.`. Do not copy conventions into AGENTS.md; the pointer is enough.
    - "Git workflow" section, from the `git` keys of the config (missing keys: `integrate: rebase`, `branch_per_change: true`, `commits: conventional`, `push: ask`). `main_branch`: the "Main branch" rule of [references/git-strategies.md](references/git-strategies.md) (the remote's default branch, else `main`, else `master`, else `main`). `git_integrate` and `git_abort`: the Commands and On conflict cells of the configured strategy's row in that table, with `<main>` resolved and `<branch>` and `<message file>` kept. `commits_rule`: `conventional` → "Conventional Commits, `<type>(<change-id>): <summary>`"; `free` → "free subjects". `push_rule`: `ask` → "push `<main>` only when the user agreed"; `auto` → "push `<main>` after every integration"; `never` → "never push, the user pushes". `branch_per_change: false`: replace the branch bullet with "Work on `<main>` directly; groma-loop creates no branches." Not a git repository: drop the section.
-   Keep it under 150 lines. Done when no `{{` remains.
+   Keep it within 80 lines. Done when no `{{` remains.
 
 2. **Pointer files.** For each agent in `agents`, create the file from [templates/](templates/README.md) when absent:
 

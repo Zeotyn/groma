@@ -36,7 +36,7 @@ Re-run `/groma` at any time. It only adds what is missing and reports what went 
 
 ## When to use groma
 
-- **You want an `AGENTS.md` generator.** groma writes one canonical `AGENTS.md` plus `CLAUDE.md`, `.github/copilot-instructions.md`, `GEMINI.md` and `.cursor/rules/groma.mdc` pointers, under 150 lines, from what it found in the repo.
+- **You want an `AGENTS.md` generator.** groma writes one canonical `AGENTS.md` plus `CLAUDE.md`, `.github/copilot-instructions.md`, `GEMINI.md` and `.cursor/rules/groma.mdc` pointers, within 80 lines, from what it found in the repo.
 - **You are onboarding an existing repository (brownfield) for Claude Code or Copilot.** The survey reads code, migrations, docs and ADRs without changing a file, and reports what is stale.
 - **You want spec-driven development with an AI agent.** groma installs OpenSpec, Spec Kit, BMAD or GSD non-interactively and wires it to the docs.
 - **You want living documentation and architecture decision records (ADRs)** that a change must update before it is archived.

@@ -1,6 +1,6 @@
 ---
 name: groma-loop
-description: Runs one change through propose, apply, verify and archive with an independent reviewer model - review rounds, mandatory answers to every finding, tests and style checks before review, autonomous or gated. Use for "groma-loop", "build this with review", "implement with a second model", or to review a proposal or implementation with another model.
+description: Runs a change through propose, apply, verify and archive with an independent reviewer model. Use for "groma-loop", "build this with review", "implement with a second model", or to review a proposal or implementation with another model.
 ---
 
 # groma-loop

@@ -1,6 +1,6 @@
 ---
 name: groma-survey
-description: Read-only survey of an existing repository - code map, ADR and docs harvest, stale-doc check, data model from migrations and schemas, code-style tools, conventions and editorconfig drift, proposed ADRs, findings report. Use for brownfield onboarding, "what is in this repo", missing or outdated docs, or when /groma finds existing code.
+description: Read-only survey of an existing repository - code map, docs and ADR harvest, stale docs, data model from migrations, code style and editorconfig drift, findings report. Use for brownfield onboarding, "what is in this repo", missing or outdated docs, or when /groma finds existing code.
 ---
 
 # groma-survey

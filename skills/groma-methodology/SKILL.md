@@ -1,6 +1,6 @@
 ---
 name: groma-methodology
-description: Initializes a spec methodology (OpenSpec, Spec Kit, BMAD, GSD) non-interactively, links it to docs/, and sets up the change naming convention m/c/f/s/r/d with next-id, check and roadmap scripts. Use during /groma, when choosing or adding a methodology, or when creating, naming or checking changes and milestones.
+description: Sets up a spec methodology (OpenSpec, Spec Kit, BMAD, GSD) and the m/c/f/s/r/d change naming with next-id and roadmap scripts. Use during /groma, when choosing or adding a methodology, or when creating, naming or checking changes and milestones.
 ---
 
 # groma-methodology

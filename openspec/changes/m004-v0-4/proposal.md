@@ -6,10 +6,10 @@ groma 0.3 is usable only in full: the skills reach into each other's folders, so
 
 Milestone only; behavior is specified in the child changes.
 
-**Goal:** Every groma skill installed alone with `npx skills add Zeotyn/groma --skill <name>` passes its standalone test; the marketplace offers the bundles the spike confirms (at least `groma` and `groma-docs`); the eval run writes a token and cost report per fixture with a recorded baseline, and the always-loaded diet and the survey subagent are measured against it; the effect measurement compares one task with and without groma docs; with the plugin installed and the next action switched on, a new Claude Code session starts with the next action in the agent context and no settings file was written; groma talks to the user in the user's language. `v0.4.0` tagged and published through the release workflow, all test levels green.
+**Goal:** Every groma skill installed alone with `npx skills add Zeotyn/groma --skill <name>` passes its standalone test; the marketplace offers the bundles the spike confirms (at least `groma` and `groma-docs`); the eval run writes a token and cost report per fixture with a recorded baseline, and the always-loaded diet and the survey subagent are measured against it; the effect measurement compares one task with and without groma docs; with the plugin installed and the next action switched on, a new Claude Code session starts with the next action in the agent context and no settings file was written; groma talks to the user in the user's language; `/groma` with the plugin only copies the skills into the project by default and gives the same project result as `npx groma-cli init`. `v0.4.0` tagged and published through the release workflow, all test levels green.
 
 **Scope:**
-- In: everything specified in `s001-plugin-bundles-hooks`, `r001-vendor-shared-files`, `c009-marketplace-bundles`, `c010-token-report`, `c011-always-loaded-diet`, `c012-survey-subagent`, `c013-effect-measurement`, `c014-plugin-next-hooks` and `c015-user-language`.
+- In: everything specified in `s001-plugin-bundles-hooks`, `r001-vendor-shared-files`, `c009-marketplace-bundles`, `c010-token-report`, `c011-always-loaded-diet`, `c012-survey-subagent`, `c013-effect-measurement`, `c014-plugin-next-hooks`, `c015-user-language` and `c016-agent-only-init`.
 - Out: the language of generated project docs; a hosted skill registry; network signals for the next action (CI, PR state); Copilot plugin hooks unless the spike confirms them.
 
 **Child changes:**
@@ -25,6 +25,7 @@ Milestone only; behavior is specified in the child changes.
 | C013 | `c013-effect-measurement` | last of the token changes |
 | C014 | `c014-plugin-next-hooks` | after S001 |
 | C015 | `c015-user-language` | independent |
+| C016 | `c016-agent-only-init` | after R001 (copies the vendored skill folders) |
 
 ## Capabilities
 

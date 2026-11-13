@@ -20,14 +20,14 @@ flowchart LR
   installers --> upstream[(Upstream skill repos on GitHub)]
 ```
 
-A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cursor, Codex). The agent follows the skills, reads the target project, writes new files into it and calls third-party installers, or lists their commands in `.groma/install.sh`.
+A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cursor, Codex). The agent follows the skills, reads the target project, writes new files into it and calls third-party installers, or lists their commands in `.groma/install.sh`. `npx groma-cli init` is a second, equal entry: it does the deterministic part in the terminal and hands over to `/groma`. Both paths end with the same project.
 
 ## Containers
 
 | Container | Technology | Responsibility | Evidence |
 |---|---|---|---|
 | Skills | Markdown (Agent Skills format) | Procedure for each step | `skills/*/SKILL.md` |
-| Runtime scripts | POSIX sh | Detection, git practice, freshness, style drift, docs impact, config validation, change ids, lifecycle status, reviewer calls, schema dump | `skills/*/scripts/` |
+| Runtime scripts | POSIX sh | Detection, git practice, freshness, style drift, docs impact, config validation, change ids, lifecycle status, reviewer calls, schema dump, copying the groma skills into the project | `skills/*/scripts/` |
 | Templates and references | Markdown, YAML | Docs, agent file and style config templates, stack tables (signals, data sources, ADR sources, style tools), skill catalog | `skills/*/templates/`, `skills/*/references/`, `skills/groma-skills/catalog.yaml` |
 | Distribution manifests | JSON | Plugin and extension metadata per agent | `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/`, `gemini-extension.json`, `install.sh` |
 | Plugin hooks | JSON | Claude Code hooks that ship with the plugin: `SessionStart` and `Stop` for the next action | `hooks/hooks.json` |
@@ -35,7 +35,7 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 
 ## Building blocks
 
-- `groma`: orchestrator, owns `config.yaml` template, `check-prereqs.sh`, `validate-config.sh`.
+- `groma`: orchestrator, owns `config.yaml` template, `check-prereqs.sh`, `validate-config.sh` and `materialize.sh` (copies the groma skills into the project).
 - `groma-detect`: `detect.sh` plus `references/signals.md`; `git-practice.sh` recommends the integration strategy and commit style from the main branch's history.
 - `groma-survey`: `freshness.sh`, `style-drift.sh` (tools from the lay-out table, `.editorconfig` drift, unchecked tools), `dump-schema.sh`, ADR and data-source tables, findings template.
 - `groma-lay-out`: doc templates, `doc-slots.md`, `code-style-tools.md` with `templates/code-style/` (style setup) and `docs-impact.sh` (docs impact and ADR candidates of a change; on a change branch the base is the merge base with the main branch).
@@ -51,6 +51,8 @@ Only procedure hand-offs still point into a sibling folder, listed in `scripts/h
 ## Runtime view
 
 `/groma` in init mode: detect → interview (style tools asked only when `style-drift.sh` finds none; integration strategy and push policy asked in git repositories, brownfield with the recommendation and evidence of `git-practice.sh`) → write `.groma/config.yaml` → methodology → skills → docs (survey first on brownfield; style setup from the interview, then the docs tree with `docs/code-style.md`) → agents → summary. After each step `steps.<name>` becomes `done`, `pending` or `skipped`. A later run validates the config and resumes at the first `pending` step.
+
+Skill materialization has one rule set and two implementations ([ADR 0057](adr/0057-mirror-the-cli-materialization-rules-in-a-shell-script.md)): `cli/skills.js` for `groma init` and `groma update`, and `skills/groma/scripts/materialize.sh` for `/groma`, which copies the groma skill folders installed next to it. Both copy into `<skills_dir>/groma*/` of each selected agent, add `metadata.generatedBy` to every copied `SKILL.md` and record each file's SHA-256 in `.groma/generated.json` with keys in byte order. A file is groma's to replace only while its hash matches its record: unchanged copies are replaced, edited copies are kept and reported, a file or folder without a record is a conflict and stays untouched, and files of a skill that is no longer shipped are deleted only when unchanged. A parity test runs one fixture through both and compares the results byte for byte. In the agents step `/groma` asks once whether to copy (recommended yes, `steps.skills_copy`) unless `groma init` already did; update mode runs `materialize.sh --update`. When the groma Claude plugin is active as well, both paths still copy and print `claude plugin disable groma@groma --scope local`; neither runs it or edits settings ([ADR 0059](adr/0059-copy-the-skills-also-when-the-plugin-is-installed.md)).
 
 `groma-loop` per change: propose → review rounds → apply per task group (tests gate with the code-style check commands, then review rounds on the diff with the code-style doc as project rules) → verify (plus the docs gate: every `docs-impact.sh` line is a high finding) → archive with spec sync and docs sync (proposed ADRs with this change's `origin` become accepted, `last_reviewed` of touched docs set, ADR index and roadmap updated). With `docs.gate: strict` archive waits until the report is empty. In a git repository the loop first requires a clean working tree, works on a branch named after the change, commits each review unit after its clean review, commits the archive, integrates with the configured strategy (rebase, merge or squash, the command sequence from `git-strategies.md`) and pushes the main branch by `git.push`. Before the integration the loop requires clean trees, records both refs and fast-forwards the main branch to its upstream; when the main branch is checked out in another worktree, the main-side commands run there (`git -C`). A conflicting integration is aborted, so both branches stay as they were, and escalated with the conflicting paths; a failure without conflicts stops without an abort; the loop never force-pushes, never moves the main branch by hand and never deletes branches. The main branch follows one rule for every script and skill (`git-strategies.md`, "Main branch").
 

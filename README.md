@@ -44,13 +44,23 @@ Re-run `/groma` at any time. It only adds what is missing and reports what went 
 
 ## Install
 
-Recommended: run the CLI in your project (Node.js 22+). It copies the groma skills into each agent's skill folder, sets up the methodology and catalog skills, writes `.groma/config.yaml` and then hands over to `/groma`.
+Two paths give the same project. Both put the groma skills into each agent's project skill folder (`.claude/skills/`, `.github/skills/`, ...) and record them in `.groma/generated.json`, so a teammate who clones the repository has them.
+
+**In the terminal** (Node.js 22+): the CLI copies the skills, sets up the methodology and catalog skills, writes `.groma/config.yaml` and then hands over to `/groma`.
 
 ```sh
 npx groma-cli init
 ```
 
-Other paths:
+**In the agent, without the CLI:** install groma for your agent with one of the commands below and run `/groma`. It does the whole setup and asks once whether to put the groma skills into the project (recommended: yes). Needs `sha256sum` or `shasum`, which Linux and macOS have.
+
+If the groma Claude Code plugin is installed and the project holds its own copy, Claude Code lists every groma skill twice. groma prints the command that switches the plugin off for that project only; it never runs it and never edits your settings:
+
+```sh
+claude plugin disable groma@groma --scope local
+```
+
+Install for an agent:
 
 | Agent | Command | Status |
 |---|---|---|
@@ -87,7 +97,7 @@ Node.js 22+. Commands:
 | `npx groma-cli next` | Prints the one next action (`--short` for a status line, `--json`); nothing when nothing is open |
 | `npx groma-cli doctor` | Checks prerequisites, config and generated files |
 
-Main `init` flags: `--agents`, `--methodology`, `--workflow`, `--skills`, `--review`, `--ui`, `--yes` (recommended answers, no questions), `--print` (write install commands to `.groma/install.sh` instead of running them), `--dry-run` (show the plan, write nothing), `--force` (`update` only: replace generated files you edited). Skills for agents covered by an installed Claude plugin are not copied; the config lists them in `agents_via_plugin`. Exit codes: 0 ok, 1 failure, 2 usage error, 3 prerequisites missing (for example Node older than 22).
+Main `init` flags: `--agents`, `--methodology`, `--workflow`, `--skills`, `--review`, `--ui`, `--yes` (recommended answers, no questions), `--print` (write install commands to `.groma/install.sh` instead of running them), `--dry-run` (show the plan, write nothing), `--force` (`update` only: replace generated files you edited). When the groma Claude plugin is installed, `init` still copies the skills for Claude and prints how to switch the plugin off for the project; answer no to the question to skip the copies, and the config lists the agent in `agents_via_plugin`. Exit codes: 0 ok, 1 failure, 2 usage error, 3 prerequisites missing (for example Node older than 22).
 
 ## Skills
 
@@ -243,12 +253,12 @@ The full template with comments: [skills/groma/templates/config.yaml](skills/gro
 
 | Installed via | Update |
 |---|---|
-| Claude Code plugin | `claude plugin update groma` |
-| npx skills | `npx skills update` |
+| Claude Code plugin | `claude plugin update groma`, then `/groma` in the project refreshes its copied skills |
+| npx skills | `npx skills update`, then `/groma` in the project refreshes its copied skills |
 | `npx groma-cli init` | `npx groma-cli update` (refreshes copied skills, keeps files you edited unless `--force`, re-runs pending steps) |
 | install.sh | `sh install.sh --ref vX.Y.Z` |
 
-Then run `/groma` in a project: it compares `initialized_with` in the config with the new version and adds only what the new version requires.
+Then run `/groma` in a project: it compares `initialized_with` in the config with the new version, adds only what the new version requires, and refreshes the copied skills with the rules of `npx groma-cli update` (edited copies are kept and reported).
 
 ## Conventions groma sets up
 

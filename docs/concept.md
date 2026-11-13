@@ -11,7 +11,7 @@ sources: [skills/]
 
 ## Solution strategy
 
-groma ships knowledge and procedure, not parsers. Each step is a Markdown skill that an agent executes; the agent already reads any language, so stack knowledge sits in reference tables the agent applies. Small POSIX shell scripts handle what must be deterministic: detection, freshness, config validation, change ids. An orchestrator skill runs its sub-skills in eight steps and stores progress in `.groma/config.yaml`, so every run can resume or update.
+groma ships knowledge and procedure, not parsers. Each step is a Markdown skill that an agent executes; the agent already reads any language, so stack knowledge sits in reference tables the agent applies. Small POSIX shell scripts handle what must be deterministic: detection, freshness, config validation, change ids. An orchestrator skill runs its sub-skills in eight steps and stores progress in `.groma/config.yaml`, so every run can resume or update. The CLI (`npx groma-cli`) is optional: it does the deterministic part faster in a terminal, but `/groma` alone gives a complete, team-ready setup, including the copy of the groma skills in the project that teammates get with the repository.
 
 ## Key capabilities
 

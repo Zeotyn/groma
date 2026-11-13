@@ -1,12 +1,12 @@
 ## 1. Tests first
 
-- [ ] 1.1 `tests/scripts/materialize.bats`: the CLI's materialization scenarios against the script (create, unchanged replaced, edited kept, conflict for a foreign folder, removed skill deleted only when unchanged, `generatedBy` in SKILL.md, `--dry-run` writes nothing)
-- [ ] 1.2 Parity check: one fixture through `materialize.sh` and through `groma init --yes`; copied files and `.groma/generated.json` identical
+- [x] 1.1 `tests/scripts/materialize.bats`: the CLI's materialization scenarios against the script (create, unchanged replaced, edited kept, conflict for a foreign folder, removed skill deleted only when unchanged, `generatedBy` in SKILL.md, `--dry-run` writes nothing)
+- [x] 1.2 Parity check: one fixture through `materialize.sh` and through `groma init --yes`; copied files and `.groma/generated.json` identical
 
 ## 2. Script
 
-- [ ] 2.1 `skills/groma/scripts/materialize.sh` per D1 (`sha256sum` or `shasum -a 256`); shellcheck clean
-- [ ] 2.2 `steps.skills_copy` in the config template and `validate-config.sh`
+- [x] 2.1 `skills/groma/scripts/materialize.sh` per D1 (`sha256sum` or `shasum -a 256`); shellcheck clean
+- [x] 2.2 `steps.skills_copy` in the config template and `validate-config.sh`
 
 ## 3. Skills and CLI
 

@@ -100,6 +100,7 @@ export function applySkills(project, plan, version) {
     }
   }
   mkdirSync(join(project, '.groma'), { recursive: true });
-  const files = Object.fromEntries(Object.entries(plan.records).sort(([a], [b]) => a.localeCompare(b)));
+  // byte order, not localeCompare: the same on every machine and equal to `LC_ALL=C sort` in materialize.sh
+  const files = Object.fromEntries(Object.entries(plan.records).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
   writeFileSync(join(project, GENERATED), JSON.stringify({ generatedBy: `groma@${version}`, files }, null, 2) + '\n');
 }

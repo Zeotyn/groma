@@ -380,3 +380,16 @@ YAML
   [ "$status" -eq 0 ]
   assert_output_contains "summary	errors=0	warnings=0"
 }
+
+@test "steps.skills_copy is a known step, an unknown step is a warning" {
+  printf 'steps:\n  skills_copy: skipped\n' >> "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_not_contains "unknown step"
+  printf '  copy_skills: done\n' >> "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "unknown step 'copy_skills'"
+  run sh "$V" "$TPL"
+  assert_output_not_contains "unknown step"
+}

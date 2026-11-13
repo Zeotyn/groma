@@ -135,6 +135,7 @@ done
 v=$(get initialized_with); [ -z "$v" ] || echo "$v" | grep -Eq '^groma@[0-9]+\.[0-9]+\.[0-9]+' || report error initialized_with "initialized_with must look like groma@1.2.3, got '$v'"
 for s in $(printf '%s\n' "$FLAT" | cut -f1 | grep '^steps\.' || true); do
   v=$(get "$s"); in_set "$v" "done pending skipped" || report error "$s" "$s must be done, pending or skipped, got '$v'"
+  in_set "${s#steps.}" "detect interview config methodology skills docs agents skills_copy summary" || report warning "$s" "unknown step '${s#steps.}' (known: detect, interview, config, methodology, skills, docs, agents, skills_copy, summary)"
 done
 for o in $(get docs.optional | tr ',' ' '); do
   in_set "$o" "constraints quality security operations stakeholders" || report error docs.optional "unknown optional doc '$o'"

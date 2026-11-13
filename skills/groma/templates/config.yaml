@@ -88,4 +88,5 @@ steps:
   skills: pending
   docs: pending
   agents: pending
+  skills_copy: pending             # groma skills copied into the project (part of the agents step, or groma init)
   summary: pending

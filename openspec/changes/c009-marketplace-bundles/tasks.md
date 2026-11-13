@@ -10,6 +10,7 @@
 
 ## 3. Docs
 
-- [x] 3.1 README "Install" bundle table; `docs/architecture.md`; CHANGELOG `[Unreleased]` (CHANGELOG by integrator)
+- [x] 3.1 README "Install" bundle table; `docs/architecture.md`
+- [ ] 3.2 CHANGELOG `[Unreleased]` (CHANGELOG by integrator)
 - [x] Docs: docs/vision.md unchanged, because the README change adds install commands for bundles and no change to who groma is for or what it does.
 - [x] Docs: docs/code-style.md unchanged, because the new tests follow the existing conventions (bats under `tests/scripts/` with `helpers.bash`, pytest for `check.py`) and add no tool or rule.

@@ -72,7 +72,7 @@ The Claude Code marketplace also offers parts of groma, for when you want only s
 | `groma-docs` | groma-detect, groma-survey, groma-lay-out | `claude plugin install groma-docs@groma` |
 | `groma-loop` | groma-loop | `claude plugin install groma-loop@groma` |
 
-Run `claude plugin marketplace add Zeotyn/groma` first. All bundles name their skills `groma:<skill>`, so pick one bundle: installing two adds nothing the larger one lacks. Without the full plugin, a step that hands over to a missing skill (for example groma-loop writing ADR candidates through groma-lay-out) names the skill to add and skips that step. Bundles are tested with Claude Code only; on the Copilot CLI install `groma@groma`.
+Run `claude plugin marketplace add Zeotyn/groma` first. All bundles name their skills `groma:<skill>`, so pick one bundle: installing two adds nothing the larger one lacks. Without the full plugin, a step that hands over to a missing skill (for example groma-loop writing ADR candidates through groma-lay-out) names the skill to add and skips that step. Bundles are tested with Claude Code only (`tests/scripts/bundles.bats`, run in CI, and the manual protocol [tests/manual/claude-bundles.md](tests/manual/claude-bundles.md)); on the Copilot CLI they are untested, so install `groma@groma` there.
 
 
 ## CLI

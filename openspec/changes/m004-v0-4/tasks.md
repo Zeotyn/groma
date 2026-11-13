@@ -9,7 +9,7 @@
 - [ ] 1.7 C013 `c013-effect-measurement` implemented, verified and archived
 - [x] 1.8 C014 `c014-plugin-next-hooks` implemented, verified and archived
 - [ ] 1.9 C015 `c015-user-language` implemented, verified and archived
-- [ ] 1.10 C016 `c016-agent-only-init` implemented, verified and archived, parity test green
+- [x] 1.10 C016 `c016-agent-only-init` implemented, verified and archived, parity test green
 
 ## 2. Release gate
 

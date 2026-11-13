@@ -71,9 +71,9 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0054](0054-give-the-next-action-to-the-agent-at-session-start.md) | Give the next action to the agent at session start, once per session | accepted | 2026-11-13 |
 | [0055](0055-print-commands-instead-of-writing-outside-the-project.md) | Print the flag command instead of writing outside the project | accepted | 2026-11-13 |
 | [0056](0056-ship-a-pill-line-for-existing-status-lines.md) | Ship a pill line for status lines that already render pills | accepted | 2026-11-13 |
-| [0057](0057-mirror-the-cli-materialization-rules-in-a-shell-script.md) | Mirror the CLI's materialization rules in a shell script | proposed | 2026-11-13 |
-| [0058](0058-copy-the-groma-skills-into-the-project-by-default.md) | Copy the groma skills into the project by default on the agent path | proposed | 2026-11-13 |
-| [0059](0059-copy-the-skills-also-when-the-plugin-is-installed.md) | Copy the skills also when the Claude plugin is installed, and print how to switch it off | proposed | 2026-11-13 |
+| [0057](0057-mirror-the-cli-materialization-rules-in-a-shell-script.md) | Mirror the CLI's materialization rules in a shell script | accepted | 2026-11-13 |
+| [0058](0058-copy-the-groma-skills-into-the-project-by-default.md) | Copy the groma skills into the project by default on the agent path | accepted | 2026-11-13 |
+| [0059](0059-copy-the-skills-also-when-the-plugin-is-installed.md) | Copy the skills also when the Claude plugin is installed, and print how to switch it off | accepted | 2026-11-13 |
 | [0071](0071-cap-always-loaded-text-by-characters-and-lines.md) | Cap always-loaded text by characters and lines | accepted | 2026-11-12 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

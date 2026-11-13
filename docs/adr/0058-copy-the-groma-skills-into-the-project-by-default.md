@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-13
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma/SKILL.md, skills/groma/templates/config.yaml, skills/groma/scripts/validate-config.sh, cli/init.js]

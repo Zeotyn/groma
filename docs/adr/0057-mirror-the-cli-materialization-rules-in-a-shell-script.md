@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-13
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma/scripts/materialize.sh, cli/skills.js, tests/scripts/materialize.bats]

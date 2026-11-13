@@ -15,6 +15,14 @@ scripts/test.sh          # structure + script tests (needs: git, sh, node/npx, u
 scripts/test.sh evals    # agent evals, needs ANTHROPIC_API_KEY and costs tokens
 ```
 
+## Eval token report
+
+Every eval run writes `tests/evals/reports/<YYYY-MM-DD>.tsv`, one row per fixture: `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_write_tokens` (summed over every model the run used), `cost_usd`, `turns` and `duration_s`. A row of `-` means the run left no result (claude failed before answering, or `groma init` failed for a `cli-` fixture). The run prints one `fixture` line per fixture and ends with a `summary` line of totals.
+
+When `tests/evals/reports/baseline.tsv` exists, each `fixture` line adds `vs_baseline` with the difference in tokens and cost (`-` is cheaper than the baseline), or `new` for a fixture the baseline lacks; the `summary` difference covers only fixtures in both files. To compare two reports without a run: `sh tests/evals/token-report.sh summary <report.tsv> <baseline.tsv>`.
+
+The baseline changes only by a commit: after a full run (`scripts/test.sh evals`, all fixtures) whose savings you want to keep as the new reference, copy that day's report to `tests/evals/reports/baseline.tsv` and commit it with the change that caused them. For the always-loaded cost per skill without any model call, run `claude --plugin-dir . plugin details groma`.
+
 ## Common contributions
 
 ### Add a stack pattern (data model, ADR or doc locations)

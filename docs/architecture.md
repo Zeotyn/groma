@@ -1,7 +1,7 @@
 ---
 title: Architecture
 status: draft
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 review_after_days: 90
 owner: Eugen Waldschmidt
 sources: [skills/, .claude-plugin/, .codex-plugin/, .cursor-plugin/, gemini-extension.json, install.sh, uninstall.sh, scripts/, tests/]
@@ -30,7 +30,7 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 | Runtime scripts | POSIX sh | Detection, git practice, freshness, style drift, docs impact, config validation, change ids, lifecycle status, reviewer calls, schema dump | `skills/*/scripts/` |
 | Templates and references | Markdown, YAML | Docs, agent file and style config templates, stack tables (signals, data sources, ADR sources, style tools), skill catalog | `skills/*/templates/`, `skills/*/references/`, `skills/groma-skills/catalog.yaml` |
 | Distribution manifests | JSON | Plugin and extension metadata per agent | `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/`, `gemini-extension.json`, `install.sh` |
-| Test suite (not shipped) | sh, bats, Python via uv | Structure checks (including identical shared copies), script tests, standalone installs, invariant, evals; `sync-shared.sh` refreshes the shared copies | `scripts/test.sh`, `scripts/sync-shared.sh`, `tests/` |
+| Test suite (not shipped) | sh, bats, Python via uv | Structure checks (including identical shared copies), script tests, standalone installs, invariant, evals with a token report; `sync-shared.sh` refreshes the shared copies | `scripts/test.sh`, `scripts/sync-shared.sh`, `tests/` |
 
 ## Building blocks
 
@@ -56,6 +56,8 @@ Only procedure hand-offs still point into a sibling folder, listed in `scripts/h
 `status.sh` at session start prints at most one reminder per active change (docs impact open, verify and archive, untested ticks, milestone gate, stale change), one line per ADR still `proposed` after its origin change was archived, and from local git state one line each for uncommitted files and for commits on the main branch not yet on its upstream. A milestone is at its gate when it has open tasks and no active change names it in a `Milestone:` line.
 
 `next.sh` turns those reminders into one next action: the first rung of a fixed ladder (rebase or merge in progress, docs open, verify, uncommitted work, milestone gate, unpushed commits unless `git.push: never`, proposed ADR of an archived change, the active change with the newest commit). It checks the rebase or merge state itself and maps every other rung from one `status.sh` run. The result is cached in `.groma/.cache/next`, keyed on `HEAD`, `git status --porcelain` and the branch and remote refs, and invalidated when a file in the changes folder is newer than the cache. It reaches the user through display-only channels: the Claude Code status line (a snippet the user adds), the Claude Code Stop hook's `systemMessage` through `next-stop.sh`, which shows a line only when it changed or after `next.reshow_minutes`, the AGENTS.md "Session end" line and `npx groma-cli next`. No channel blocks the agent or feeds text back to it.
+
+`scripts/test.sh evals` (on demand only, it costs API tokens) runs `/groma` headless with `claude -p --output-format json` on fresh copies of the fixtures and checks each result with `tests/evals/assert.sh`. `tests/evals/token-report.sh` reads each fixture's JSON result and writes one row to `tests/evals/reports/<date>.tsv`: input, output, cache read and cache write tokens (summed over every model of the run), cost in USD, turns and duration. The run ends with the totals and, when the committed `tests/evals/reports/baseline.tsv` exists, the token and cost difference per fixture against it. Dated reports are git-ignored; the evals workflow uploads them as an artifact.
 
 ## Deployment
 

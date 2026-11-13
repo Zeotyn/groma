@@ -10,4 +10,5 @@
 
 ## 3. Docs
 
-- [ ] 3.1 `docs/architecture.md` testing part; how to read the report; CHANGELOG `[Unreleased]` (CHANGELOG by integrator)
+- [x] 3.1 `docs/architecture.md` testing part; how to read the report; CHANGELOG `[Unreleased]` (CHANGELOG by integrator)
+- [x] Docs: `docs/code-style.md` unchanged, because the new script follows its existing conventions (POSIX sh, awk parsing, tab-separated output ending in a summary line, one bats file per script)

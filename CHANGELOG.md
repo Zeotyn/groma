@@ -6,6 +6,10 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Claude Code bundles (change C009): the marketplace offers `groma` (all skills), `groma-docs` (detect, survey, lay-out) and `groma-loop`, as entries with their own skill list and no copied folders. Bundles share the `groma:` namespace, so install one of them. `scripts/release-check.sh` checks the version of every bundle entry and names the one that differs; the bundle install test now also runs in CI.
+
 ### Changed
 
 - Every groma skill works when installed alone (change R001), for example with `npx skills add Zeotyn/groma --skill groma-survey`. Shared tables, templates and scripts are vendored into each skill that reads them and kept byte-identical by `scripts/sync-shared.sh` and a structure check; only procedure hand-offs between skills remain, each with an "add skill X" message. The full suite behaves as before. ADR 0051.

@@ -63,7 +63,9 @@ Only procedure hand-offs still point into a sibling folder, listed in `scripts/h
 
 Distributed from GitHub (`Zeotyn/groma`) as a Claude Code / Copilot plugin marketplace, via `npx skills add`, as Codex, Cursor and Gemini manifests, through `install.sh`, and on npm as `groma-cli` (`npx groma-cli init`, command `groma`). Nothing runs as a service.
 
-Releases start from a pushed tag `v<version>`: `.github/workflows/release.yml` runs `scripts/release-check.sh` (tag equals every manifest version, `CHANGELOG.md` has the section), test levels 1 to 3, then `npm publish --provenance` through npm trusted publishing (OIDC, no token) and a GitHub release with the CHANGELOG section as notes.
+The Claude Code marketplace (`.claude-plugin/marketplace.json`) lists three bundles, all with `source: "./"` and one shared version: `groma` loads every skill under `skills/`, `groma-docs` lists `skills/groma-detect`, `skills/groma-survey` and `skills/groma-lay-out`, `groma-loop` lists `skills/groma-loop` ([ADR 0050](adr/0050-ship-bundles-and-hooks-through-the-plugin-manifest.md)). No skill folder is copied per bundle; each skill folder is self-contained ([ADR 0051](adr/0051-vendor-shared-files-into-each-skill.md)). Every bundle takes the name of `.claude-plugin/plugin.json`, so skills are prefixed `groma:` whichever bundle is installed and the bundles are alternatives. The structure check `bundles` pins each bundle's skill list and `tests/scripts/bundles.bats` installs each one into an isolated Claude config.
+
+Releases start from a pushed tag `v<version>`: `.github/workflows/release.yml` runs `scripts/release-check.sh` (tag equals every manifest version and every marketplace bundle's version, `CHANGELOG.md` has the section), test levels 1 to 3, then `npm publish --provenance` through npm trusted publishing (OIDC, no token) and a GitHub release with the CHANGELOG section as notes.
 
 ## Decisions
 

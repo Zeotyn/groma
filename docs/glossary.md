@@ -1,7 +1,7 @@
 ---
 title: Glossary
 status: draft
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 review_after_days: 180
 owner: Eugen Waldschmidt
 sources: [README.md, skills/]
@@ -49,3 +49,4 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Ladder | The fixed, ordered list of rungs `next.sh` checks; the first match wins | `next.sh` | a priority score |
 | Vendored copy | A byte-identical copy of a shared table, template or script inside a skill that reads it, listed in `scripts/shared-files.txt`, refreshed by `scripts/sync-shared.sh` | groma repository, ADR 0051 | the source, the only file a contributor edits |
 | Procedure hand-off | A skill following another skill's `SKILL.md`, running a sibling's procedure or writing a sibling's script path into project files; the only allowed `../groma-<name>/` reference, listed in `scripts/handoffs.txt` | skills, ADR 0051 | a vendored copy, which the skill reads from its own folder |
+| Bundle | An entry of `.claude-plugin/marketplace.json` that installs a set of groma skills: `groma` (all), `groma-docs`, `groma-loop`; all share the `groma:` prefix, so they are alternatives | Claude Code marketplace, ADR 0050 | a catalog skill, or a plugin with its own manifest |

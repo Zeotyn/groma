@@ -62,6 +62,18 @@ Other paths:
 | Cursor | Customize → Plugins → From GitHub Repository → `Zeotyn/groma` | best effort |
 | Fallback | `curl -fsSL https://raw.githubusercontent.com/Zeotyn/groma/main/install.sh \| sh` | tested (local checkout) |
 
+### Claude Code bundles
+
+The Claude Code marketplace also offers parts of groma, for when you want only some skills and no CLI. Each bundle installs only its skills and carries the same version as the full plugin.
+
+| Bundle | Skills | Install |
+|---|---|---|
+| `groma` | all eight | `claude plugin install groma@groma` |
+| `groma-docs` | groma-detect, groma-survey, groma-lay-out | `claude plugin install groma-docs@groma` |
+| `groma-loop` | groma-loop | `claude plugin install groma-loop@groma` |
+
+Run `claude plugin marketplace add Zeotyn/groma` first. All bundles name their skills `groma:<skill>`, so pick one bundle: installing two adds nothing the larger one lacks. Without the full plugin, a step that hands over to a missing skill (for example groma-loop writing ADR candidates through groma-lay-out) names the skill to add and skips that step. Bundles are tested with Claude Code only; on the Copilot CLI install `groma@groma`.
+
 
 ## CLI
 
@@ -232,7 +244,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Most contributions are one table row: a 
 
 A pushed tag `v<version>` releases groma. `.github/workflows/release.yml` checks the tag against every manifest version and the CHANGELOG (`scripts/release-check.sh`), runs test levels 1 to 3, publishes `groma-cli` to npm with provenance and creates the GitHub release from the CHANGELOG section.
 
-1. Set the version in the plugin manifests, `.claude-plugin/marketplace.json`, `package.json` and `skills/groma/VERSION`; rename `[Unreleased]` in `CHANGELOG.md` to `[<version>] - <date>`.
+1. Set the version in the plugin manifests, every bundle entry of `.claude-plugin/marketplace.json`, `package.json` and `skills/groma/VERSION`; rename `[Unreleased]` in `CHANGELOG.md` to `[<version>] - <date>`.
 2. Run `sh scripts/release-check.sh v<version>`, commit, push `main`.
 3. `git tag v<version> && git push origin v<version>`.
 

@@ -249,6 +249,64 @@ def test_bundle_versions_are_compared(tmp_path):
     assert any("marketplace.json:groma-docs=0.0.9" in e for e in check.errors)
 
 
+def write_hooks(root, **overrides):
+    def command(script):
+        return f'sh "${{CLAUDE_PLUGIN_ROOT}}/skills/groma-m/scripts/{script}" "$CLAUDE_PROJECT_DIR" 2>/dev/null || true'
+
+    hooks = {
+        "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [{"type": "command", "command": command("next-session.sh")}]}],
+        "Stop": [{"hooks": [{"type": "command", "command": command("next-stop.sh")}]}],
+    }
+    hooks.update(overrides)
+    write(root / "hooks/hooks.json", json.dumps({"hooks": {k: v for k, v in hooks.items() if v is not None}}))
+    for script in ("next-session.sh", "next-stop.sh"):
+        write(root / "skills/groma-m/scripts" / script, "#!/bin/sh\n")
+
+
+def test_valid_plugin_hooks_pass(tmp_path):
+    write_hooks(tmp_path)
+    check.check_hooks(tmp_path)
+    assert check.errors == []
+
+
+def test_shipped_plugin_hooks_pass():
+    check.check_hooks()
+    assert check.errors == []
+
+
+def test_plugin_hooks_file_missing(tmp_path):
+    check.check_hooks(tmp_path)
+    assert check.errors == ["hooks/hooks.json: missing"]
+
+
+def test_plugin_hooks_events_are_fixed(tmp_path):
+    write_hooks(tmp_path, UserPromptSubmit=[{"hooks": []}])
+    check.check_hooks(tmp_path)
+    assert any("must hold exactly ['SessionStart', 'Stop']" in e for e in check.errors)
+    check.errors.clear()
+    write_hooks(tmp_path, Stop=None)
+    check.check_hooks(tmp_path)
+    assert any("must hold exactly" in e for e in check.errors)
+
+
+def test_plugin_hooks_session_matcher(tmp_path):
+    write_hooks(tmp_path, SessionStart=[{"matcher": "startup", "hooks": [{"type": "command", "command": 'sh "${CLAUDE_PLUGIN_ROOT}/skills/groma-m/scripts/next-session.sh" "$CLAUDE_PROJECT_DIR" || true'}]}])
+    check.check_hooks(tmp_path)
+    assert any("SessionStart matcher must be 'startup|resume|clear|compact'" in e for e in check.errors)
+
+
+def test_plugin_hooks_command_must_run_a_shipped_script_and_never_fail(tmp_path):
+    write_hooks(tmp_path, Stop=[{"hooks": [
+        {"type": "command", "command": 'sh "${CLAUDE_PLUGIN_ROOT}/skills/groma-m/scripts/gone.sh" "$CLAUDE_PROJECT_DIR" || true'},
+        {"type": "command", "command": 'sh "${CLAUDE_PLUGIN_ROOT}/skills/groma-m/scripts/next-stop.sh" "$CLAUDE_PROJECT_DIR"'},
+        {"type": "command", "command": "sh /abs/next-stop.sh"},
+    ]}])
+    check.check_hooks(tmp_path)
+    assert any("Stop runs skills/groma-m/scripts/gone.sh, which is not a file under skills/" in e for e in check.errors)
+    assert any("Stop command must end with '|| true'" in e for e in check.errors)
+    assert any("Stop command must be of type command and start with" in e for e in check.errors)
+
+
 def good_agents() -> dict:
     agent = {"skills_dir": ".claude/skills", "home_marker": "~/.claude", "npx_skills_id": "claude-code", "instructions": "CLAUDE.md"}
     hook = {"status": "stable", "event": "Stop", "config": ".claude/settings.local.json", "format": "systemMessage"}

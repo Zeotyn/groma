@@ -178,8 +178,8 @@ for k in $(printf '%s\n' "$FLAT" | cut -f1 | grep '^git\.' || true); do
   in_set "${k#git.}" "integrate branch_per_change commits push" || report warning "$k" "unknown git key '${k#git.}' (known: integrate, branch_per_change, commits, push)"
 done
 
-# --- next action (optional section; missing keys mean off, 30) ----------------------------
-enum next.hook "on off" "on or off"
+# --- next action (optional section; missing keys mean auto, 30) ---------------------------
+enum next.hook "on off auto" "on, off or auto"
 v=$(get next.reshow_minutes)
 if [ -n "$v" ] && ! is_int "$v"; then report error next.reshow_minutes "next.reshow_minutes must be a number >= 0, got '$v'"; fi
 for k in $(printf '%s\n' "$FLAT" | cut -f1 | grep '^next\.' || true); do

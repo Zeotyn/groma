@@ -1,10 +1,14 @@
 #!/bin/sh
 # Claude Code Stop hook: show the next action to the user, debounced.
+# Runs from the groma plugin (hooks/hooks.json) or from a settings file.
 #
 # Usage: next-stop.sh [--stderr] [--now <epoch>] [project]
 #   project defaults to the current directory; --now replaces the clock in tests
 #
-# Does nothing unless next.hook is on in <project>/.groma/config.yaml.
+# Does nothing when <project>/.groma/ is missing (checked first, because a plugin
+# hook runs in every project) or when the next action is off: next.hook in
+# <project>/.groma/config.yaml is on or off; unset or auto means on exactly when
+# the flag file ~/.claude/.groma-next-always exists. That file is only read.
 # Output: one line {"systemMessage":"▶ Next: <next.sh --long>"} when the line
 # differs from the last one shown, or when that showing is next.reshow_minutes
 # old (default 30; 0 shows only on change). Otherwise nothing. The message goes
@@ -18,10 +22,6 @@
 #   --stderr when the line is shown.
 set -u
 
-HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd) || exit 0
-# shellcheck source=SCRIPTDIR/lib-changes.sh
-. "$HERE/lib-changes.sh" || exit 0
-
 NOW=""
 ROOT=.
 STDERR=0
@@ -34,7 +34,13 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-[ "$(cfg_value hook off next)" = on ] || exit 0
+[ -d "$ROOT/.groma" ] || exit 0
+
+HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd) || exit 0
+# shellcheck source=SCRIPTDIR/lib-changes.sh
+. "$HERE/lib-changes.sh" || exit 0
+
+next_on || exit 0
 MINUTES=$(cfg_value reshow_minutes 30 next)
 case "$MINUTES" in ''|*[!0-9]*) MINUTES=30 ;; esac
 MINUTES=${MINUTES#"${MINUTES%%[!0]*}"}   # 08 is decimal, not a bad octal number

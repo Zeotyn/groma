@@ -1,0 +1,28 @@
+{
+  "description": "groma next action: for the agent at session start, for the user after an answer. Silent in projects without .groma/ and when the next action is off.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/skills/groma-methodology/scripts/next-session.sh\" \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/skills/groma-methodology/scripts/next-stop.sh\" \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

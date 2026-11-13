@@ -18,6 +18,18 @@ cfg_value() { # key default [section]
   echo "${v:-$2}"
 }
 
+# Is the next action on for the project in the global $ROOT? next.hook in
+# .groma/config.yaml decides: on or off. Unset or auto follows the user's global
+# flag file ~/.claude/.groma-next-always, which is only read, never written.
+# Any other value counts as off.
+next_on() {
+  case "$(cfg_value hook auto next)" in
+    on) return 0 ;;
+    auto) [ -n "${HOME:-}" ] && [ -e "$HOME/.claude/.groma-next-always" ] ;;
+    *) return 1 ;;
+  esac
+}
+
 # Locate the changes directory of the active methodology.
 # Prints the path or nothing.
 changes_dir() {

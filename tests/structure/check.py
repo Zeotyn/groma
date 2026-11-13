@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Structure checks for the groma repository (test level 1).
 
-Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|bundles|versions|code-style|shared|handoffs|all]
+Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|bundles|hooks|versions|code-style|shared|handoffs|all]
 Exit code 0 when all selected checks pass, 1 otherwise.
 """
 from __future__ import annotations
@@ -395,6 +395,47 @@ def check_bundles(root: Path = ROOT) -> None:
             err(f"{label}: bundle '{name}' missing")
 
 
+PLUGIN_HOOKS = "hooks/hooks.json"
+PLUGIN_HOOK_EVENTS = {"SessionStart": "startup|resume|clear|compact", "Stop": None}
+PLUGIN_HOOK_PATH_RE = re.compile(r'^sh "\$\{CLAUDE_PLUGIN_ROOT\}/([^"]+)" "\$CLAUDE_PROJECT_DIR"')
+
+
+def check_hooks(root: Path = ROOT) -> None:
+    """The Claude Code plugin's hooks (ADR 0050): events, matchers, and commands that run a shipped script."""
+    p = root / PLUGIN_HOOKS
+    if not p.is_file():
+        err(f"{PLUGIN_HOOKS}: missing")
+        return
+    try:
+        hooks = json.loads(p.read_text(encoding="utf-8")).get("hooks")
+    except json.JSONDecodeError as e:
+        err(f"{PLUGIN_HOOKS}: invalid JSON ({e})")
+        return
+    if not isinstance(hooks, dict) or set(hooks) != set(PLUGIN_HOOK_EVENTS):
+        err(f"{PLUGIN_HOOKS}: 'hooks' must hold exactly {sorted(PLUGIN_HOOK_EVENTS)}")
+        return
+    for event, matcher in PLUGIN_HOOK_EVENTS.items():
+        groups = hooks[event]
+        if not isinstance(groups, list) or len(groups) != 1 or not isinstance(groups[0], dict):
+            err(f"{PLUGIN_HOOKS}: {event} must hold one matcher group")
+            continue
+        if groups[0].get("matcher") != matcher:
+            err(f"{PLUGIN_HOOKS}: {event} matcher must be {matcher!r}, got {groups[0].get('matcher')!r}")
+        commands = groups[0].get("hooks") or []
+        if not commands:
+            err(f"{PLUGIN_HOOKS}: {event} has no hook command")
+        for h in commands:
+            command = str(h.get("command", "")) if isinstance(h, dict) else ""
+            m = PLUGIN_HOOK_PATH_RE.match(command)
+            if not isinstance(h, dict) or h.get("type") != "command" or not m:
+                err(f'{PLUGIN_HOOKS}: {event} command must be of type command and start with sh "${{CLAUDE_PLUGIN_ROOT}}/<script>" "$CLAUDE_PROJECT_DIR"')
+                continue
+            if not m.group(1).startswith("skills/") or not (root / m.group(1)).is_file():
+                err(f"{PLUGIN_HOOKS}: {event} runs {m.group(1)}, which is not a file under skills/")
+            if not command.endswith("|| true"):
+                err(f"{PLUGIN_HOOKS}: {event} command must end with '|| true', so that a missing script never fails the hook")
+
+
 CODE_STYLE_TABLE = "skills/groma-lay-out/references/code-style-tools.md"
 CODE_STYLE_TEMPLATES = "skills/groma-lay-out/templates/code-style"
 CODE_STYLE_COLUMNS = ["Stack", "Tool", "Role", "Config patterns", "Check", "Fix", "Install", "Template", "Default"]
@@ -623,6 +664,7 @@ CHECKS = {
     "methodologies": check_methodologies,
     "manifests": check_manifests,
     "bundles": check_bundles,
+    "hooks": check_hooks,
     "versions": check_versions,
     "code-style": check_code_style_table,
     "shared": check_shared,

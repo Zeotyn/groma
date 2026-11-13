@@ -333,12 +333,27 @@ YAML
   assert_output_contains "summary	errors=0	warnings=0"
 }
 
-@test "next.hook must be on or off" {
-  printf 'next:\n  hook: maybe\n' >> "$C"
-  ln=$(grep -n 'hook:' "$C" | cut -d: -f1)
+@test "next.hook auto passes, and so does a next section without hook" {
+  printf 'next:\n  hook: auto\n' >> "$C"
   run sh "$V" "$C"
-  [ "$status" -eq 1 ]
-  assert_output_contains "error	line $ln	next.hook must be on or off, got 'maybe'"
+  [ "$status" -eq 0 ]
+  assert_output_contains "summary	errors=0	warnings=0"
+  sed -i.bak '$d' "$C"
+  echo '  reshow_minutes: 30' >> "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "summary	errors=0	warnings=0"
+}
+
+@test "next.hook must be on, off or auto" {
+  for bad in maybe true always; do
+    sed -i.bak '/^next:/,$d' "$C"
+    printf 'next:\n  hook: %s\n' "$bad" >> "$C"
+    ln=$(grep -n 'hook:' "$C" | cut -d: -f1)
+    run sh "$V" "$C"
+    [ "$status" -eq 1 ]
+    assert_output_contains "error	line $ln	next.hook must be on, off or auto, got '$bad'"
+  done
 }
 
 @test "negative next.reshow_minutes fails with the line number" {
@@ -359,6 +374,8 @@ YAML
 @test "the config template's next section validates" {
   sed -n '/^next:/,/^[^ #]/p' "$TPL" | sed '$d' >> "$C"
   grep -q 'reshow_minutes: 30' "$C"
+  # hook stays unset, so that the global flag file decides
+  if grep -Eq '^[[:space:]]*hook:' "$TPL"; then false; fi
   run sh "$V" "$C"
   [ "$status" -eq 0 ]
   assert_output_contains "summary	errors=0	warnings=0"

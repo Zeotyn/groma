@@ -63,9 +63,10 @@ reminders:
   untested_tasks: true
   uncommitted: true
   unpushed: true
-# Next action (groma-methodology next.sh). The Stop hook shows it after an answer in Claude Code.
+# Next action (groma-methodology next.sh). Claude Code hooks give it to the agent at session
+# start and show it after an answer. hook is unset (auto): the hooks follow your global flag
+# file ~/.claude/.groma-next-always. Add "hook: on" or "hook: off" to decide for this project.
 next:
-  hook: off                       # on | off, on only after you agreed to the Stop hook
   reshow_minutes: 30              # show the same suggestion again after this many minutes, 0 = only when it changes
 
 # Git workflow (skills groma-loop and groma-agents). groma-agents renders the "Git workflow"

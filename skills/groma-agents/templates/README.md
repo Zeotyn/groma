@@ -10,5 +10,6 @@
 | `claude-session-hook.json` | `.claude/settings.local.json` (optional, only on request) | Claude Code |
 | `claude-stop-hook.json` | `.claude/settings.local.json` (optional, only on request) | Claude Code |
 | `statusline-snippet.sh` | none, printed as a snippet in the findings report and summary | Claude Code |
+| `statusline-pill.sh` | none, its last line is printed as a snippet in the findings report and summary | Claude Code |
 
 Codex reads `AGENTS.md` directly and needs no pointer file.

@@ -8,6 +8,9 @@ NX="$ROOT/skills/groma-methodology/scripts/next.sh"
 STOP="$ROOT/skills/groma-methodology/scripts/next-stop.sh"
 
 setup() {
+  # a throwaway home: an unset next.hook follows the flag file $HOME/.claude/.groma-next-always
+  export HOME="$BATS_TEST_TMPDIR/home"
+  mkdir -p "$HOME"
   P="$BATS_TEST_TMPDIR/p"
   make_repo "$P"
   C="$P/openspec/changes"

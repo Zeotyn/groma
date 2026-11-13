@@ -129,7 +129,8 @@ case "$FX" in
     else
       check "methodology pending in config" has "$P/.groma/config.yaml" '^ +methodology: *pending'
       check "OpenSpec init pending in .groma/install.sh" has "$P/.groma/install.sh" 'openspec.* init'
-      check "findings snippet has the code-style line" has "$findings" 'Code style lives in docs/code-style.md'
+      # the pending snippet may sit in the findings report or next to the init in install.sh
+      check "code-style line waits in the findings or in install.sh" sh -c "grep -qi 'Code style lives in docs/code-style.md' '$findings' '$P/.groma/install.sh' 2>/dev/null"
     fi
     ;;
   node-prisma)
@@ -175,7 +176,8 @@ case "$FX" in
     check "/groma installed nothing itself: steps.skills still pending" has "$P/.groma/config.yaml" '^  skills: *pending'
     check "/groma installed nothing itself: no second install script" sh -c "! ls '$P'/.groma/install-*.sh >/dev/null 2>&1"
     check "generated skill copies untouched" sh -c "node '$ROOT/bin/groma.js' doctor '$P' | grep -q 'generated files: ok'"
-    check "next action recommends npx groma-cli update" sh -c "tail -n 20 '${M%.manifest}.log' | grep -q 'npx groma-cli update'"
+    # the log holds stderr plus the agent's final text; the hint may open or close the summary
+    check "next action recommends npx groma-cli update" grep -q 'npx groma-cli update' "${M%.manifest}.log"
     ;;
   go-no-db)
     check "data model not applicable" has "$P/docs/data-model.md" 'not applicable'

@@ -1,5 +1,7 @@
 # test output
 tests/.work/
+# dated eval token reports; only the baseline is committed
+tests/evals/reports/[0-9]*.tsv
 .DS_Store
 
 # OpenSpec tooling for contributors is generated locally (see CONTRIBUTING.md),

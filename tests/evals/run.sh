@@ -8,6 +8,11 @@
 # Env:   GROMA_EVAL_BUDGET  max USD per fixture run (default 3)
 #        GROMA_EVAL_DIR     work folder (default: $TMPDIR/groma-evals)
 #        GROMA_EVAL_MODEL   model alias for claude -p (default: CLI default)
+#        GROMA_EVAL_REPORTS report folder (default: tests/evals/reports)
+# Report: one row per fixture (tokens, cost, turns, duration) in
+#         <reports>/<YYYY-MM-DD>.tsv; the output ends with the totals and, when
+#         <reports>/baseline.tsv exists, the difference per fixture against it.
+#         Each fixture's result JSON is kept as <work>/<fixture>.json.
 set -eu
 
 HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
@@ -17,6 +22,8 @@ ROOT=$(CDPATH='' cd -- "$HERE/../.." && pwd)
 WORK=${GROMA_EVAL_DIR:-"${TMPDIR:-/tmp}/groma-evals"}
 WORK=${WORK%/}
 BUDGET=${GROMA_EVAL_BUDGET:-3}
+REPORTS=${GROMA_EVAL_REPORTS:-"$HERE/reports"}
+REPORTS=${REPORTS%/}
 command -v claude >/dev/null 2>&1 || { echo "claude CLI not found" >&2; exit 3; }
 
 if [ $# -eq 0 ]; then
@@ -49,6 +56,10 @@ for fx in "$@"; do
   esac
 done
 
+mkdir -p "$REPORTS"
+REPORT="$REPORTS/$(date +%Y-%m-%d).tsv"
+sh "$HERE/token-report.sh" header > "$REPORT"
+
 failed=0
 for fx in "$@"; do
   P="$WORK/$fx"
@@ -56,7 +67,8 @@ for fx in "$@"; do
   case "$fx" in
     cli-*) node "$ROOT/bin/groma.js" init "$P" --yes --print --agents claude,copilot \
              --methodology openspec --skills recommended > "$WORK/$fx.cli.log" 2>&1 \
-             || { echo "   FAIL $fx: groma init failed (see $WORK/$fx.cli.log)"; failed=$((failed + 1)); continue; } ;;
+             || { echo "   FAIL $fx: groma init failed (see $WORK/$fx.cli.log)"; failed=$((failed + 1))
+                  sh "$HERE/token-report.sh" row "$fx" "$WORK/$fx.json" >> "$REPORT"; continue; } ;;
   esac
   tools="Bash(sh:*) Bash(grep:*) Bash(find:*) Bash(ls:*) Bash(cat:*) Bash(git log:*) Bash(git config:*) Bash(mkdir:*) Read Write Edit Glob Grep Skill Edit(.groma/**)"
 
@@ -89,10 +101,13 @@ $(cat "$answers")"
       --allowedTools "$tools" \
       --max-budget-usd "$BUDGET" \
       ${GROMA_EVAL_MODEL:+--model "$GROMA_EVAL_MODEL"} \
-      --output-format text > "$WORK/$fx.log" 2>&1)
+      --output-format json > "$WORK/$fx.json" 2> "$WORK/$fx.log")
   rc=$?
   set -e
   [ "$rc" -eq 0 ] || echo "   claude exited $rc (see $WORK/$fx.log)"
+  # the log gets the agent's final text after stderr, as assert.sh reads it
+  sh "$HERE/token-report.sh" text "$WORK/$fx.json" >> "$WORK/$fx.log"
+  sh "$HERE/token-report.sh" row "$fx" "$WORK/$fx.json" >> "$REPORT"
 
   if sh "$HERE/assert.sh" "$fx" "$P" "$WORK/$fx.manifest"; then
     echo "   PASS $fx"
@@ -103,4 +118,10 @@ $(cat "$answers")"
 done
 
 echo "evals: $(($# - failed)) passed, $failed failed"
+echo "== tokens ($REPORT)"
+if [ -f "$REPORTS/baseline.tsv" ]; then
+  sh "$HERE/token-report.sh" summary "$REPORT" "$REPORTS/baseline.tsv"
+else
+  sh "$HERE/token-report.sh" summary "$REPORT"
+fi
 [ "$failed" -eq 0 ]

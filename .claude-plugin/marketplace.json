@@ -8,6 +8,20 @@
       "source": "./",
       "description": "Lays out a project before you build: greenfield/brownfield detection, methodology setup, skill catalog, docs/ with ADRs, read-only survey, AGENTS.md.",
       "version": "0.3.0"
+    },
+    {
+      "name": "groma-docs",
+      "source": "./",
+      "description": "Docs part of groma only: greenfield/brownfield detection, read-only survey, docs/ with ADRs. No methodology or catalog installers.",
+      "version": "0.3.0",
+      "skills": ["./skills/groma-detect", "./skills/groma-survey", "./skills/groma-lay-out"]
+    },
+    {
+      "name": "groma-loop",
+      "source": "./",
+      "description": "Review loop of groma only: runs one change through propose, apply, verify and archive with an independent reviewer model.",
+      "version": "0.3.0",
+      "skills": ["./skills/groma-loop"]
     }
   ]
 }

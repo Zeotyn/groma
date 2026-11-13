@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Structure checks for the groma repository (test level 1).
 
-Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|versions|code-style|shared|handoffs|all]
+Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|bundles|versions|code-style|shared|handoffs|all]
 Exit code 0 when all selected checks pass, 1 otherwise.
 """
 from __future__ import annotations
@@ -332,8 +332,64 @@ def check_manifests(root: Path = ROOT) -> None:
         for f in ("name", "source"):
             if not entry.get(f):
                 err(f".claude-plugin/marketplace.json: plugins[{i}].{f} missing")
-        if names and entry.get("name") and entry["name"] not in names:
-            err(f".claude-plugin/marketplace.json: plugins[{i}].name '{entry['name']}' does not match plugin.json name")
+        ename = entry.get("name")
+        if names and ename and ename not in names and not any(ename.startswith(f"{n}-") for n in names):
+            err(f".claude-plugin/marketplace.json: plugins[{i}].name '{ename}' does not match plugin.json name")
+
+
+# Claude Code marketplace bundles (ADR 0050): entry name -> skill folders it
+# loads, None for every skill under skills/. All share the root manifest name,
+# so their skills are prefixed `groma:` and the bundles are alternatives.
+BUNDLES: dict[str, list[str] | None] = {
+    "groma": None,
+    "groma-docs": ["groma-detect", "groma-survey", "groma-lay-out"],
+    "groma-loop": ["groma-loop"],
+}
+
+
+def check_bundles(root: Path = ROOT) -> None:
+    """Every marketplace entry is a known bundle: root source, a version, exactly its skill folders."""
+    label = ".claude-plugin/marketplace.json"
+    mp = root / label
+    if not mp.is_file():
+        err(f"{label}: missing")
+        return
+    try:
+        plugins = json.loads(mp.read_text(encoding="utf-8")).get("plugins") or []
+    except json.JSONDecodeError as e:
+        err(f"{label}: invalid JSON ({e})")
+        return
+    seen: set[str] = set()
+    for entry in plugins:
+        name = entry.get("name")
+        where = f"{label}: {name}"
+        if name not in BUNDLES:
+            err(f"{label}: '{name}' is not a known bundle {sorted(BUNDLES)} (tests/structure/check.py BUNDLES)")
+            continue
+        if name in seen:
+            err(f"{label}: '{name}' listed twice")
+            continue
+        seen.add(name)
+        if entry.get("source") != "./":
+            err(f"{where}: source must be './' (ADR 0050), got '{entry.get('source')}'")
+        if not isinstance(entry.get("version"), str):
+            err(f"{where}: version missing")
+        expected = BUNDLES[name]
+        skills = entry.get("skills")
+        if expected is None:
+            if skills is not None:
+                err(f"{where}: the full plugin lists no skills (it loads every skill under skills/)")
+            continue
+        want = [f"./skills/{s}" for s in expected]
+        if not isinstance(skills, list) or sorted(skills) != sorted(want):
+            err(f"{where}: skills must be {want}, got {skills}")
+            continue
+        for s in skills:
+            if not (root / s / "SKILL.md").is_file():
+                err(f"{where}: {s} has no SKILL.md")
+    for name in BUNDLES:
+        if name not in seen:
+            err(f"{label}: bundle '{name}' missing")
 
 
 CODE_STYLE_TABLE = "skills/groma-lay-out/references/code-style-tools.md"
@@ -563,6 +619,7 @@ CHECKS = {
     "agents": check_agents,
     "methodologies": check_methodologies,
     "manifests": check_manifests,
+    "bundles": check_bundles,
     "versions": check_versions,
     "code-style": check_code_style_table,
     "shared": check_shared,

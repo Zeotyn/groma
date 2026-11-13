@@ -11,7 +11,13 @@ tree() {
   for m in .claude-plugin/plugin.json .codex-plugin/plugin.json .cursor-plugin/plugin.json gemini-extension.json; do
     printf '{ "name": "groma", "version": "%s" }\n' "$1" > "$R/$m"
   done
-  printf '{ "plugins": [ { "name": "groma", "version": "%s" } ] }\n' "$1" > "$R/.claude-plugin/marketplace.json"
+  cat > "$R/.claude-plugin/marketplace.json" <<EOF
+{ "name": "groma", "owner": { "name": "o" },
+  "plugins": [
+    { "name": "groma", "source": "./", "version": "$1" },
+    { "name": "groma-docs", "source": "./", "version": "$1", "skills": ["./skills/groma-detect"] },
+    { "name": "groma-loop", "source": "./", "version": "$1", "skills": ["./skills/groma-loop"] } ] }
+EOF
   printf '{ "name": "groma-cli", "version": "%s" }\n' "$1" > "$R/package.json"
   printf '%s\n' "$1" > "$R/skills/groma/VERSION"
   cat > "$R/CHANGELOG.md" <<EOF
@@ -66,6 +72,26 @@ EOF
   [ "$status" -eq 1 ]
   [[ "$output" == *"skills/groma/VERSION declares 0.2.2"* ]]
   [[ "$output" == *".claude-plugin/marketplace.json declares 0.2.9"* ]]
+}
+
+@test "every marketplace bundle is checked, not only the first" {
+  tree 0.3.0
+  sed -i.bak 's/"name": "groma-loop", "source": ".\/", "version": "0.3.0"/"name": "groma-loop", "source": ".\/", "version": "0.2.9"/' \
+    "$R/.claude-plugin/marketplace.json"
+  grep -q '"version": "0.2.9"' "$R/.claude-plugin/marketplace.json"
+  run sh "$S" --root "$R" v0.3.0
+  [ "$status" -eq 1 ]
+  [[ "$output" == *".claude-plugin/marketplace.json declares 0.2.9 for groma-loop, tag is 0.3.0"* ]]
+  [[ "$output" != *"for groma-docs"* ]]
+}
+
+@test "a marketplace bundle without a version fails" {
+  tree 0.3.0
+  sed -i.bak 's/"name": "groma-docs", "source": ".\/", "version": "0.3.0",/"name": "groma-docs", "source": ".\/",/' \
+    "$R/.claude-plugin/marketplace.json"
+  run sh "$S" --root "$R" v0.3.0
+  [ "$status" -eq 1 ]
+  [[ "$output" == *".claude-plugin/marketplace.json: 1 plugin entry declares no version"* ]]
 }
 
 @test "a missing manifest version fails" {

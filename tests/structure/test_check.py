@@ -149,6 +149,89 @@ def test_marketplace_plugin_needs_source_and_matching_name(tmp_path):
     assert any("does not match plugin.json name" in e for e in check.errors)
 
 
+def test_marketplace_bundle_name_may_extend_plugin_name(tmp_path):
+    plugins = [{"name": "groma", "source": "./"}, {"name": "groma-docs", "source": "./"}]
+    write_manifests(tmp_path, marketplace={"name": "groma", "owner": {"name": "o"}, "plugins": plugins})
+    check.check_manifests(tmp_path)
+    assert check.errors == []
+
+
+def write_skill(root, name):
+    write(root / f"skills/{name}/SKILL.md", f"---\nname: {name}\ndescription: d\n---\n")
+
+
+def good_bundles() -> list[dict]:
+    entries = []
+    for name, skills in check.BUNDLES.items():
+        e = {"name": name, "source": "./", "version": "0.1.0"}
+        if skills is not None:
+            e["skills"] = [f"./skills/{s}" for s in skills]
+        entries.append(e)
+    return entries
+
+
+def write_bundles(root, plugins):
+    for skills in check.BUNDLES.values():
+        for s in skills or []:
+            write_skill(root, s)
+    write(root / ".claude-plugin/marketplace.json", json.dumps({"name": "groma", "plugins": plugins}))
+
+
+def test_bundles_valid_pass(tmp_path):
+    write_bundles(tmp_path, good_bundles())
+    check.check_bundles(tmp_path)
+    assert check.errors == []
+
+
+def test_bundle_missing_is_named(tmp_path):
+    write_bundles(tmp_path, [e for e in good_bundles() if e["name"] != "groma-loop"])
+    check.check_bundles(tmp_path)
+    assert any("bundle 'groma-loop' missing" in e for e in check.errors)
+
+
+def test_bundle_with_wrong_skills_fails(tmp_path):
+    plugins = good_bundles()
+    plugins[1]["skills"] = ["./skills/groma-detect"]
+    write_bundles(tmp_path, plugins)
+    check.check_bundles(tmp_path)
+    assert any("groma-docs: skills must be" in e for e in check.errors)
+
+
+def test_bundle_skill_folder_must_exist(tmp_path):
+    plugins = good_bundles()
+    write_bundles(tmp_path, plugins)
+    (tmp_path / "skills/groma-loop/SKILL.md").unlink()
+    check.check_bundles(tmp_path)
+    assert any("./skills/groma-loop has no SKILL.md" in e for e in check.errors)
+
+
+def test_bundle_needs_root_source_and_version(tmp_path):
+    plugins = good_bundles()
+    plugins[2]["source"] = "./bundles/loop"
+    del plugins[2]["version"]
+    write_bundles(tmp_path, plugins)
+    check.check_bundles(tmp_path)
+    assert any("groma-loop: source must be './'" in e for e in check.errors)
+    assert any("groma-loop: version missing" in e for e in check.errors)
+
+
+def test_bundle_unknown_or_twice_fails(tmp_path):
+    plugins = good_bundles() + [{"name": "groma-extra", "source": "./", "version": "0.1.0"}, good_bundles()[0]]
+    write_bundles(tmp_path, plugins)
+    check.check_bundles(tmp_path)
+    assert any("'groma-extra' is not a known bundle" in e for e in check.errors)
+    assert any("'groma' listed twice" in e for e in check.errors)
+
+
+def test_bundle_versions_are_compared(tmp_path):
+    plugins = good_bundles()
+    plugins[1]["version"] = "0.0.9"
+    write(tmp_path / ".claude-plugin/plugin.json", json.dumps({"name": "groma", "version": "0.1.0"}))
+    write_bundles(tmp_path, plugins)
+    check.check_versions(tmp_path)
+    assert any("marketplace.json:groma-docs=0.0.9" in e for e in check.errors)
+
+
 def good_agents() -> dict:
     agent = {"skills_dir": ".claude/skills", "home_marker": "~/.claude", "npx_skills_id": "claude-code", "instructions": "CLAUDE.md"}
     hook = {"status": "stable", "event": "Stop", "config": ".claude/settings.local.json", "format": "systemMessage"}

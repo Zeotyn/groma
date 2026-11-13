@@ -12,7 +12,7 @@ When the Claude Code plugin `groma` is installed, `groma init` SHALL still copy 
 - **THEN** no files are written to `.claude/skills/groma*`, and the config records `agents_via_plugin: [claude]`
 
 ### Requirement: Update
-`groma update` SHALL refresh every generated file to the CLI's version: unchanged copies (hash equals `.groma/generated.json`) are replaced, edited copies are kept and reported unless `--force` is given. An unchanged file SHALL be deleted only when groma no longer ships it: the file left a shipped skill, or its skill is listed in `skills/groma/retired-skills.txt`; copies of any other skill are kept. `groma update` SHALL stop with an error, unless `--force` is given, when `.groma/generated.json` was written by a newer groma, and SHALL make no copies when `steps.skills_copy` is `skipped` and no `.groma/generated.json` exists. It SHALL then re-run pending steps and bump `initialized_with`.
+`groma update` SHALL refresh every generated file to the CLI's version: unchanged copies (hash equals `.groma/generated.json`) are replaced, edited copies are kept and reported unless `--force` is given. An unchanged file SHALL be deleted only when groma no longer ships it: the file left a shipped skill, or its skill is listed in `skills/groma/retired-skills.txt`; copies of any other skill are kept. `groma update` and `groma init` SHALL stop with an error, unless `--allow-downgrade` is given, when `.groma/generated.json` was written by a newer groma (`--force` alone does not allow it), SHALL treat a symbolic link at or above a destination path and a skills folder that leads out of the project as conflicts, SHALL record every written file in `.groma/generated.json` even when the run is interrupted, and SHALL make no copies when `steps.skills_copy` is `skipped` and no `.groma/generated.json` exists. It SHALL then re-run pending steps and bump `initialized_with`.
 
 #### Scenario: User edited a generated skill
 - **WHEN** the user changed `.claude/skills/groma-survey/SKILL.md` and runs `groma update`
@@ -20,7 +20,7 @@ When the Claude Code plugin `groma` is installed, `groma init` SHALL still copy 
 
 #### Scenario: Older CLI, newer project
 - **WHEN** `.groma/generated.json` names a newer `generatedBy` than the CLI and the user runs `groma update`
-- **THEN** the command exits with an error, changes nothing and names `--force`
+- **THEN** the command exits with an error, changes nothing and names `--allow-downgrade`, also when `--force` is given
 
 #### Scenario: Declined copy
 - **WHEN** `steps.skills_copy` is `skipped`, no `.groma/generated.json` exists and the user runs `groma update`

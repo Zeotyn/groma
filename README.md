@@ -97,7 +97,7 @@ Node.js 22+. Commands:
 | `npx groma-cli next` | Prints the one next action (`--short` for a status line, `--json`); nothing when nothing is open |
 | `npx groma-cli doctor` | Checks prerequisites, config and generated files |
 
-Main `init` flags: `--agents`, `--methodology`, `--workflow`, `--skills`, `--review`, `--ui`, `--yes` (recommended answers, no questions), `--print` (write install commands to `.groma/install.sh` instead of running them), `--dry-run` (show the plan, write nothing), `--force` (`update` only: replace generated files you edited). When the groma Claude plugin is installed, `init` still copies the skills for Claude and prints how to switch the plugin off for the project; answer no to the question to skip the copies, and the config lists the agent in `agents_via_plugin`. Exit codes: 0 ok, 1 failure, 2 usage error, 3 prerequisites missing (for example Node older than 22).
+Main `init` flags: `--agents`, `--methodology`, `--workflow`, `--skills`, `--review`, `--ui`, `--yes` (recommended answers, no questions), `--print` (write install commands to `.groma/install.sh` instead of running them), `--dry-run` (show the plan, write nothing), `--force` (`update` only: replace generated files you edited), `--allow-downgrade` (replace skill copies of a newer groma with this version; without it `init` and `update` stop). When the groma Claude plugin is installed, `init` still copies the skills for Claude and prints how to switch the plugin off for the project; answer no to the question to skip the copies, and the config lists the agent in `agents_via_plugin`. Exit codes: 0 ok, 1 failure, 2 usage error, 3 prerequisites missing (for example Node older than 22).
 
 ## Skills
 

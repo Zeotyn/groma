@@ -108,3 +108,25 @@ test('update retries only the catalog steps that stayed pending', async () => {
   assert.doesNotMatch(readFileSync(log, 'utf8'), /archify/);
   assert.equal(cfg(p).steps.skills, 'done');
 });
+
+test('update makes no copies when the user declined them (skills_copy skipped, no generated.json)', async () => {
+  const p = tmp();
+  write(p, '.groma/config.yaml', 'schema: 1\ninitialized_with: groma@0.3.0\nagents: [claude]\nmethodology: none\nsteps:\n  skills_copy: skipped\n');
+  const r = await run(['update', p, '--yes'], { env: stubs().env });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(!existsSync(join(p, '.claude')));
+  assert.ok(!existsSync(join(p, '.groma/generated.json')));
+  assert.match(r.out, /declined/);
+});
+
+test('update refuses to downgrade copies of a newer groma; --force goes on', async () => {
+  const { p, s } = await initProject();
+  const f = join(p, '.groma/generated.json');
+  const before = readFileSync(f, 'utf8').replace(/"generatedBy": "[^"]+"/, '"generatedBy": "groma@99.0.0"');
+  writeFileSync(f, before);
+  const r = await run(['update', p, '--yes'], { env: s.env });
+  assert.equal(r.code, 1);
+  assert.match(r.err, /99\.0\.0.*newer/);
+  assert.equal(readFileSync(f, 'utf8'), before);
+  assert.equal((await run(['update', p, '--yes', '--force'], { env: s.env })).code, 0);
+});

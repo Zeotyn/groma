@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { loadData } from './data.js';
-import { planSkills, applySkills, readGenerated } from './skills.js';
+import { planSkills, applySkills, readGenerated, downgrade, GENERATED } from './skills.js';
 import { setInConfig } from './config.js';
 import { writeInstallScript } from './exec.js';
 import { prompts, runSetup, skillSummary, pendingSummary, today, readPending, savePending } from './init.js';
@@ -21,8 +21,16 @@ export default async function update({ project, flags, io, say }) {
   const text = readFileSync(file, 'utf8');
   const cfg = parse(text);
   const viaPlugin = cfg.agents_via_plugin ?? [];
-  const agents = (cfg.agents ?? []).filter((a) => !viaPlugin.includes(a));
-  const plan = planSkills({ project, agents, data, generated: readGenerated(project), force: !!flags.force });
+  // The user declined the project copy (/groma, steps.skills_copy) and none exists: make none.
+  const declined = cfg.steps?.skills_copy === 'skipped' && !existsSync(join(project, GENERATED));
+  const agents = declined ? [] : (cfg.agents ?? []).filter((a) => !viaPlugin.includes(a));
+  const generated = readGenerated(project);
+  const refusal = downgrade(generated, data.version, !!flags.force);
+  if (refusal) {
+    io.stderr.write(`${refusal}\n`);
+    return EXIT.error;
+  }
+  const plan = planSkills({ project, agents, data, generated, force: !!flags.force });
   const pendingSteps = ['methodology', 'skills'].filter((s) => cfg.steps?.[s] === 'pending');
 
   if (flags['dry-run']) {
@@ -34,7 +42,7 @@ export default async function update({ project, flags, io, say }) {
     return EXIT.ok;
   }
 
-  applySkills(project, plan, data.version);
+  if (!declined) applySkills(project, plan, data.version);
   const answers = { agents: cfg.agents ?? [], methodology: cfg.methodology, workflow: cfg.workflow, has_ui: !!cfg.project?.has_ui, skills: cfg.skills ?? {} };
   const p = prompts(io, flags);
   let setup = { pending: [], notes: [], installed: [], postInstall: new Set() };
@@ -52,7 +60,9 @@ export default async function update({ project, flags, io, say }) {
 
   const count = (k) => plan.writes.filter((w) => w.kind === k).length;
   say(`groma ${data.version} · update`);
-  say(`Skills:      ${count('update')} updated, ${count('create')} created, ${plan.removals.length} removed`);
+  say(declined
+    ? 'Skills:      not copied (declined in /groma; set steps.skills_copy to pending to copy them)'
+    : `Skills:      ${count('update')} updated, ${count('create')} created, ${plan.removals.length} removed`);
   for (const n of setup.notes) say(n);
   skillSummary(say, plan);
   pendingSummary(say, setup, script);

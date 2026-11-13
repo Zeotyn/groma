@@ -6,7 +6,7 @@ import { basename, join } from 'node:path';
 import { loadData, SKILLS_SRC } from './data.js';
 import { resolveAnswers, terminalAsk } from './answers.js';
 import { methodologyStep, skillSteps } from './recipes.js';
-import { planSkills, applySkills, readGenerated } from './skills.js';
+import { planSkills, applySkills, readGenerated, downgrade } from './skills.js';
 import { renderConfig } from './config.js';
 import { existingTouches, onPath, runStep, writeInstallScript } from './exec.js';
 import { EXIT } from './main.js';
@@ -149,6 +149,11 @@ export default async function init({ project, flags, io, say }) {
       else viaPlugin = ['claude'];
     }
     const skillAgents = answers.agents.filter((a) => !viaPlugin.includes(a));
+    const refusal = downgrade(readGenerated(project), data.version, false);
+    if (refusal) {
+      io.stderr.write(`${refusal}\n`);
+      return EXIT.error;
+    }
     const plan = planSkills({ project, agents: skillAgents, data, generated: readGenerated(project) });
 
     if (flags['dry-run']) {

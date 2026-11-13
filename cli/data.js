@@ -20,5 +20,6 @@ export function loadData() {
     methodologies: parse(read('groma-methodology/methodologies.yaml')).methodologies,
     catalog: parse(read('groma-skills/catalog.yaml')),
     configTemplate: read('groma/templates/config.yaml'),
+    retired: read('groma/retired-skills.txt').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')),
   };
 }

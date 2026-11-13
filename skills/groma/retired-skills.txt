@@ -1,0 +1,4 @@
+# Skills groma shipped once and no longer ships. One folder name per line.
+# `groma update` and materialize.sh delete the unchanged copies of these skills
+# from a project. A skill that is merely absent from the source (a bundle, an
+# older groma) is never deleted. Add a name in the release that drops the skill.

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadData, SKILLS_SRC } from '../data.js';
-import { planSkills, applySkills, readGenerated, sha256, addGeneratedBy } from '../skills.js';
+import { planSkills, applySkills, readGenerated, sha256, addGeneratedBy, newerThan } from '../skills.js';
 import { tmp, write } from './helpers.js';
 
 const data = loadData();
@@ -89,11 +89,40 @@ test('files of retired skills are removed only when unchanged', () => {
   gen.files['.claude/skills/groma-old/notes.md'] = sha256(Buffer.from('original'));
   write(p, '.groma/generated.json', JSON.stringify(gen));
 
-  const plan = materialize(p, ['claude']);
+  // not shipped and not listed as retired: an older or smaller source must not delete it
+  const kept = materialize(p, ['claude']);
+  assert.deepEqual(kept.removals, []);
+  assert.ok(existsSync(join(p, '.claude/skills/groma-old/SKILL.md')));
+  assert.ok('.claude/skills/groma-old/SKILL.md' in readGenerated(p).files);
+
+  const plan = materialize(p, ['claude'], { data: { ...data, retired: ['groma-old'] } });
   assert.deepEqual(plan.removals, ['.claude/skills/groma-old/SKILL.md']);
   assert.deepEqual(plan.edited, ['.claude/skills/groma-old/notes.md']);
   assert.ok(!existsSync(join(p, '.claude/skills/groma-old/SKILL.md')));
   assert.ok(existsSync(join(p, '.claude/skills/groma-old/notes.md')));
+});
+
+test('files a shipped skill no longer has are removed only when unchanged', () => {
+  const p = tmp();
+  materialize(p, ['claude']);
+  const gen = readGenerated(p);
+  write(p, '.claude/skills/groma-detect/old/a.md', 'old');
+  write(p, '.claude/skills/groma-detect/notes.md', 'edited');
+  gen.files['.claude/skills/groma-detect/old/a.md'] = sha256(Buffer.from('old'));
+  gen.files['.claude/skills/groma-detect/notes.md'] = sha256(Buffer.from('original'));
+  write(p, '.groma/generated.json', JSON.stringify(gen));
+  const plan = materialize(p, ['claude']);
+  assert.deepEqual(plan.removals, ['.claude/skills/groma-detect/old/a.md']);
+  assert.deepEqual(plan.edited, ['.claude/skills/groma-detect/notes.md']);
+  assert.ok(!existsSync(join(p, '.claude/skills/groma-detect/old')));
+});
+
+test('newerThan compares generatedBy with the suite version', () => {
+  assert.equal(newerThan('groma@0.5.0', '0.4.9'), true);
+  assert.equal(newerThan('groma@0.10.0', '0.9.0'), true);
+  assert.equal(newerThan('groma@0.4.0', '0.4.0'), false);
+  assert.equal(newerThan('groma@0.3.9', '0.4.0'), false);
+  assert.equal(newerThan(null, '0.4.0'), false);
 });
 
 test('an unchanged copy needs no write', () => {

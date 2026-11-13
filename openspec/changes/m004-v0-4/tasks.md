@@ -7,7 +7,7 @@
 - [ ] 1.5 C011 `c011-always-loaded-diet` implemented, verified and archived
 - [ ] 1.6 C012 `c012-survey-subagent` implemented, verified and archived
 - [ ] 1.7 C013 `c013-effect-measurement` implemented, verified and archived
-- [ ] 1.8 C014 `c014-plugin-next-hooks` implemented, verified and archived
+- [x] 1.8 C014 `c014-plugin-next-hooks` implemented, verified and archived
 - [ ] 1.9 C015 `c015-user-language` implemented, verified and archived
 - [ ] 1.10 C016 `c016-agent-only-init` implemented, verified and archived, parity test green
 

@@ -8,6 +8,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Next-action hooks in the plugin (change C014): the groma Claude Code plugin ships `hooks/hooks.json`. At session start (also after resume, clear and compaction) the agent gets the next action as one line of context; after each answer the debounced, display-only Stop line shows it to you. Both stay silent in projects without `.groma/` (about 10 ms). Project `next.hook: on|off` wins; unset or `auto` follows the global flag file `~/.claude/.groma-next-always`, which only you create (groma prints the command). A lock and a `--plugin` check keep the line from showing twice when the older settings-file hook is also present. A status-line pill is offered as a snippet; it is safe in zsh. Configs from 0.3.0 keep `hook: off`. ADRs 0052 to 0056.
 - Claude Code bundles (change C009): the marketplace offers `groma` (all skills), `groma-docs` (detect, survey, lay-out) and `groma-loop`, as entries with their own skill list and no copied folders. Bundles share the `groma:` namespace, so install one of them. `scripts/release-check.sh` checks the version of every bundle entry and names the one that differs; the bundle install test now also runs in CI.
 
 ### Changed

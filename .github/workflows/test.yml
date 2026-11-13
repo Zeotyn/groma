@@ -34,5 +34,10 @@ jobs:
           shellcheck --version
       - name: Install CLI dependencies
         run: npm ci
+      # tests/scripts/bundles.bats installs the marketplace bundles into an
+      # isolated config dir; plugin commands need no login and call no model.
+      # Unpinned on purpose: a new release that changes bundle loading fails here.
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
       - name: Levels 1-3 (incl. node --test and npm pack --dry-run)
         run: scripts/test.sh

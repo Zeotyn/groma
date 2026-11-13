@@ -3,12 +3,17 @@
 # .claude-plugin/marketplace.json installs exactly its skills. The marketplace
 # is added from a copy of this checkout into an isolated CLAUDE_CONFIG_DIR
 # under the test's temp dir, so the user's own Claude configuration is never
-# touched. No model is called. Skipped when `claude` is not on PATH.
+# touched. No login is needed and no model is called. Skipped when `claude` is
+# not on PATH, except in CI (`CI` set), where .github/workflows/test.yml
+# installs Claude Code and a missing `claude` fails.
 
 load helpers
 
 setup() {
-  command -v claude >/dev/null 2>&1 || skip "claude not installed"
+  if ! command -v claude >/dev/null 2>&1; then
+    [ -z "${CI:-}" ] || { echo "claude not installed; CI must install Claude Code"; return 1; }
+    skip "claude not installed"
+  fi
   T="$BATS_TEST_TMPDIR"
   mkdir -p "$T/repo"
   cp -R "$ROOT/.claude-plugin" "$ROOT/skills" "$T/repo/"

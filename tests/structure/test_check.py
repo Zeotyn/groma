@@ -149,11 +149,18 @@ def test_marketplace_plugin_needs_source_and_matching_name(tmp_path):
     assert any("does not match plugin.json name" in e for e in check.errors)
 
 
-def test_marketplace_bundle_name_may_extend_plugin_name(tmp_path):
+def test_marketplace_known_bundle_names_pass(tmp_path):
     plugins = [{"name": "groma", "source": "./"}, {"name": "groma-docs", "source": "./"}]
     write_manifests(tmp_path, marketplace={"name": "groma", "owner": {"name": "o"}, "plugins": plugins})
     check.check_manifests(tmp_path)
     assert check.errors == []
+
+
+def test_marketplace_unknown_prefixed_name_fails(tmp_path):
+    plugins = [{"name": "groma", "source": "./"}, {"name": "groma-extra", "source": "./"}]
+    write_manifests(tmp_path, marketplace={"name": "groma", "owner": {"name": "o"}, "plugins": plugins})
+    check.check_manifests(tmp_path)
+    assert any("'groma-extra' does not match plugin.json name" in e for e in check.errors)
 
 
 def write_skill(root, name):
@@ -213,6 +220,16 @@ def test_bundle_needs_root_source_and_version(tmp_path):
     check.check_bundles(tmp_path)
     assert any("groma-loop: source must be './'" in e for e in check.errors)
     assert any("groma-loop: version missing" in e for e in check.errors)
+
+
+def test_bundle_version_must_be_semver(tmp_path):
+    plugins = good_bundles()
+    plugins[1]["version"] = ""
+    plugins[2]["version"] = "latest"
+    write_bundles(tmp_path, plugins)
+    check.check_bundles(tmp_path)
+    assert any("groma-docs: version '' is not SemVer" in e for e in check.errors)
+    assert any("groma-loop: version 'latest' is not SemVer" in e for e in check.errors)
 
 
 def test_bundle_unknown_or_twice_fails(tmp_path):

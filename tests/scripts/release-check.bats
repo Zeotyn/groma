@@ -91,7 +91,37 @@ EOF
     "$R/.claude-plugin/marketplace.json"
   run sh "$S" --root "$R" v0.3.0
   [ "$status" -eq 1 ]
-  [[ "$output" == *".claude-plugin/marketplace.json: 1 plugin entry declares no version"* ]]
+  [[ "$output" == *".claude-plugin/marketplace.json: plugin entry groma-docs declares no version"* ]]
+}
+
+@test "a version outside the plugin entries does not stand in for a missing one" {
+  tree 0.3.0
+  cat > "$R/.claude-plugin/marketplace.json" <<EOF
+{ "name": "groma", "owner": { "name": "o" },
+  "metadata": { "description": "d", "version": "0.3.0" },
+  "plugins": [
+    { "name": "groma", "source": "./", "version": "0.3.0" },
+    { "name": "groma-loop", "source": "./", "skills": ["./skills/groma-loop"] },
+    { "source": "./", "skills": ["./skills/groma-detect"] } ] }
+EOF
+  run sh "$S" --root "$R" v0.3.0
+  [ "$status" -eq 1 ]
+  [[ "$output" == *".claude-plugin/marketplace.json: plugin entry groma-loop declares no version"* ]]
+  [[ "$output" == *".claude-plugin/marketplace.json: plugin entry #3 declares no version"* ]]
+}
+
+@test "a nested name or version inside an entry is not the entry's" {
+  tree 0.3.0
+  cat > "$R/.claude-plugin/marketplace.json" <<EOF
+{ "name": "groma", "owner": { "name": "o" },
+  "plugins": [
+    { "name": "groma", "author": { "name": "x", "version": "9.9.9" }, "source": "./", "version": "0.3.0" },
+    { "name": "groma-docs", "source": { "source": "github", "repo": "a/b", "version": "0.3.0" } } ] }
+EOF
+  run sh "$S" --root "$R" v0.3.0
+  [ "$status" -eq 1 ]
+  [[ "$output" != *"9.9.9"* ]]
+  [[ "$output" == *"plugin entry groma-docs declares no version"* ]]
 }
 
 @test "a missing manifest version fails" {

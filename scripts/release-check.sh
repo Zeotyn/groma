@@ -56,22 +56,49 @@ json_version() {
   sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1" | head -n 1
 }
 
-# every plugin entry of a marketplace: `version<TAB><entry name><TAB><v>` per
-# "version" (named after the last "name" before it), then `missing<TAB><n>` when
-# fewer versions than "source" keys exist
+# every object of the top-level "plugins" array of a marketplace, read with a
+# small JSON scanner: only an entry's own "name" and "version" count, not keys
+# of nested objects or outside the array. One line per entry:
+#   version<TAB><name><TAB><v>   or   missing<TAB><name>
+# An entry without a string "name" is named #<position>.
 marketplace_versions() {
-  awk '{ s = s $0 " " }
+  awk '{ s = s $0 "\n" }
     END {
-      re = "\"(name|source|version)\"[[:space:]]*:[[:space:]]*\"[^\"]*\""
-      while (match(s, re)) {
-        t = substr(s, RSTART, RLENGTH); s = substr(s, RSTART + RLENGTH)
-        k = t; sub(/^"/, "", k); sub(/".*/, "", k)
-        v = t; sub(/^"[^"]*"[[:space:]]*:[[:space:]]*"/, "", v); sub(/"$/, "", v)
-        if (k == "name") n = v
-        else if (k == "source") src++
-        else { ver++; printf "version\t%s\t%s\n", n, v }
+      len = length(s); d = 0; arr = 0; ent = 0; n = 0; key = ""
+      for (i = 1; i <= len; i++) {
+        c = substr(s, i, 1)
+        if (c == "\"") {
+          str = ""
+          for (i++; i <= len; i++) {
+            c = substr(s, i, 1)
+            if (c == "\\") { i++; str = str substr(s, i, 1); continue }
+            if (c == "\"") break
+            str = str c
+          }
+          j = i + 1
+          while (j <= len && substr(s, j, 1) ~ /[ \t\r\n]/) j++
+          if (substr(s, j, 1) == ":") { key = str; kd = d; continue }
+          if (ent && d == ent && kd == ent) {
+            if (key == "name") name = str
+            else if (key == "version") ver = str
+          }
+          key = ""
+        } else if (c == "{" || c == "[") {
+          d++
+          if (c == "[" && key == "plugins" && kd == 1 && !arr) arr = d
+          if (c == "{" && arr && d == arr + 1) { ent = d; n++; name = ""; ver = "" }
+          key = ""
+        } else if (c == "}" || c == "]") {
+          if (c == "}" && ent && d == ent) {
+            if (name == "") name = "#" n
+            if (ver == "") printf "missing\t%s\n", name
+            else printf "version\t%s\t%s\n", name, ver
+            ent = 0
+          }
+          if (c == "]" && arr && d == arr) arr = -1
+          d--
+        } else if (c == ",") key = ""
       }
-      if (src > ver) printf "missing\t%d\n", src - ver
     }' "$1"
 }
 
@@ -85,16 +112,13 @@ if [ -f "$ROOT/$mp" ]; then
         found=1
         [ "$v" = "$VERSION" ] || fail "$mp declares $v for $name, tag is $VERSION" ;;
       missing)
-        if [ "$name" -eq 1 ]; then
-          fail "$mp: 1 plugin entry declares no version"
-        else
-          fail "$mp: $name plugin entries declare no version"
-        fi ;;
+        found=1
+        fail "$mp: plugin entry $name declares no version" ;;
     esac
   done <<EOF
 $(marketplace_versions "$ROOT/$mp")
 EOF
-  [ "$found" -eq 1 ] || fail "$mp declares no version"
+  [ "$found" -eq 1 ] || fail "$mp lists no plugin entries"
 fi
 
 for m in .claude-plugin/plugin.json .codex-plugin/plugin.json .cursor-plugin/plugin.json \

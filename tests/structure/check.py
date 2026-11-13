@@ -333,7 +333,7 @@ def check_manifests(root: Path = ROOT) -> None:
             if not entry.get(f):
                 err(f".claude-plugin/marketplace.json: plugins[{i}].{f} missing")
         ename = entry.get("name")
-        if names and ename and ename not in names and not any(ename.startswith(f"{n}-") for n in names):
+        if names and ename and ename not in names and ename not in BUNDLES:
             err(f".claude-plugin/marketplace.json: plugins[{i}].name '{ename}' does not match plugin.json name")
 
 
@@ -372,8 +372,11 @@ def check_bundles(root: Path = ROOT) -> None:
         seen.add(name)
         if entry.get("source") != "./":
             err(f"{where}: source must be './' (ADR 0050), got '{entry.get('source')}'")
-        if not isinstance(entry.get("version"), str):
+        version = entry.get("version")
+        if version is None:
             err(f"{where}: version missing")
+        elif not isinstance(version, str) or not SEMVER_RE.match(version):
+            err(f"{where}: version '{version}' is not SemVer")
         expected = BUNDLES[name]
         skills = entry.get("skills")
         if expected is None:

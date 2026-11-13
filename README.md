@@ -132,15 +132,35 @@ push 3
 
 A warm run takes well under 300 ms: the result is cached in `.groma/.cache/` until `HEAD`, the working tree, the refs or the changes folder change. The folder ignores itself, so it never shows up in `git status`.
 
+**In Claude Code with the groma plugin.** The plugin ships two hooks in `hooks/hooks.json`, so no settings file changes:
+
+- `SessionStart` (startup, resume, `/clear`, compaction) gives the long line to the agent as context, once per session start, so it knows where the work stands.
+- `Stop` runs `next-stop.sh`, which shows `▶ Next: …` as a message to you, only when the suggestion changed or after `next.reshow_minutes` (default 30, `0` = only on change). It never blocks or prompts the agent.
+
+Both are silent, and return within milliseconds, in a project without `.groma/` and while the next action is off. On and off:
+
+| `next.hook` in `.groma/config.yaml` | Next action |
+|---|---|
+| `on` | on in this project |
+| `off` | off in this project |
+| unset or `auto` (the template) | on exactly when the file `~/.claude/.groma-next-always` exists |
+
+```sh
+touch ~/.claude/.groma-next-always   # on in every groma project
+rm ~/.claude/.groma-next-always      # off again
+```
+
+groma prints these commands and never runs them: it deliberately neither looks nor writes outside your project.
+
+**Without the plugin (opt-in).** groma-agents offers the same Stop hook through `.claude/settings.local.json`, installs it only after you agree and sets `next.hook: on`. Copilot CLI (stderr with exit 2), Gemini CLI and Codex have experimental adapters in `skills/groma/agents.yaml`; Cursor has none and relies on the `AGENTS.md` line that asks agents to name the next action at the end of a session.
+
 **Status line (Claude Code).** groma never edits your status line. Add this to your status line script, with `$project_dir` set to `workspace.project_dir` from the JSON Claude Code passes on stdin:
 
 ```sh
 n=$(sh /path/to/groma-methodology/scripts/next.sh --short "$project_dir") && [ -n "$n" ] && printf ' ▶ %s' "$n"
 ```
 
-No status line yet? `skills/groma-agents/templates/statusline-snippet.sh` is a complete one.
-
-**After each answer (Claude Code, opt-in).** The Stop hook runs `next-stop.sh`, which shows `▶ Next: …` as a message to you, only when the suggestion changed or after `next.reshow_minutes` (default 30, `0` = only on change). It never blocks or prompts the agent. groma installs it only after you agree and sets `next.hook: on`. Copilot CLI (stderr with exit 2), Gemini CLI and Codex have experimental adapters in `skills/groma/agents.yaml`; Cursor has none and relies on the `AGENTS.md` line that asks agents to name the next action at the end of a session.
+Your status line already renders pills? `skills/groma-agents/templates/statusline-pill.sh` holds the same line as a colored pill. No status line yet? `skills/groma-agents/templates/statusline-snippet.sh` is a complete one.
 
 ## Living docs
 

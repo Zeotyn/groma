@@ -1,0 +1,51 @@
+---
+status: proposed
+date: 2026-11-13
+decision-makers: Eugen Waldschmidt
+evidence: [skills/groma-agents/templates/statusline-pill.sh, skills/groma-agents/templates/statusline-snippet.sh, skills/groma-agents/SKILL.md, tests/scripts/next-session.bats]
+origin: c014-plugin-next-hooks#D5
+---
+
+# Ship a pill line for status lines that already render pills
+
+## Context and Problem Statement
+
+C007 ships a standalone status-line script and a plain `▶ push 3` line. Many users already have a status line built from colored pills, one per tool. They had to adapt the plain line by hand.
+
+## Decision Drivers
+
+* A line that can be pasted as it is
+* groma never edits a status line (ADR 0044)
+
+## Considered Options
+
+* A one-line pill (`▶ <next.sh --short>` on a colored background) as a snippet, next to the standalone script
+* Only the standalone script and the plain line
+
+## Decision Outcome
+
+Chosen option: "a one-line pill as a snippet", because it fits status lines that already render pills and stays inside ADR 0044.
+
+Details:
+- `templates/statusline-pill.sh` holds the line. It prints nothing when there is no next action.
+- The line finds `next.sh` through a pattern, so that a plugin install survives a plugin update: the version folder of the plugin cache is a `*`.
+- The pill shows the next action whenever the user pasted it; the on/off rule of ADR 0053 is for the hooks.
+
+### Consequences
+
+* Good, because users with their own status line paste one line.
+* Bad, because the pill's colors are groma's guess; the user adapts them to the neighbours.
+
+### Confirmation
+
+`tests/scripts/next-session.bats` runs the pill line of the template against a project and checks the output with and without a next action. groma-agents step 5 says never to edit a status line.
+
+## Pros and Cons of the Options
+
+### Only the standalone script
+
+* Bad, because users with their own status line would have to adapt it.
+
+## More Information
+
+From design decision D5 of c014-plugin-next-hooks. Related: ADR 0044.

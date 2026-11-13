@@ -66,5 +66,10 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0049](0049-publish-releases-directly-not-staged.md) | Publish releases directly, not staged | accepted | 2026-11-12 |
 | [0050](0050-ship-bundles-and-hooks-through-the-plugin-manifest.md) | Ship bundles and hooks through the plugin manifest | accepted | 2026-11-12 |
 | [0051](0051-vendor-shared-files-into-each-skill.md) | Vendor shared files into each skill, kept identical by a sync script and a check | accepted | 2026-11-12 |
+| [0052](0052-ship-the-next-action-hooks-in-the-plugin.md) | Ship the next-action hooks in the plugin | proposed | 2026-11-13 |
+| [0053](0053-let-the-project-decide-and-fall-back-to-a-global-flag-file.md) | Let the project decide the next action and fall back to a global flag file | proposed | 2026-11-13 |
+| [0054](0054-give-the-next-action-to-the-agent-at-session-start.md) | Give the next action to the agent at session start, once per session | proposed | 2026-11-13 |
+| [0055](0055-print-commands-instead-of-writing-outside-the-project.md) | Print the flag command instead of writing outside the project | proposed | 2026-11-13 |
+| [0056](0056-ship-a-pill-line-for-existing-status-lines.md) | Ship a pill line for status lines that already render pills | proposed | 2026-11-13 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

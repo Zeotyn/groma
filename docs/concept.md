@@ -25,7 +25,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 | Agents (`groma-agents`) | One canonical `AGENTS.md` and pointer files for each agent |
 | Loop (`groma-loop`) | Each change proposed, applied, verified and archived with an independent reviewer model and a tests gate that includes the style checks; branched, committed per review unit, integrated and pushed by the git settings |
 | Lifecycle reminders (`status.sh`) | One reminder per open change at session start: docs to update, verify and archive, untested ticks, milestone gates, stale work, pending ADRs; then uncommitted and unpushed work |
-| Next action (`next.sh`) | The single next step, deterministic and without tokens, in the status line, after each answer (Claude Code Stop hook) or with `npx groma-cli next` |
+| Next action (`next.sh`) | The single next step, deterministic and without tokens, in the status line, in the agent's context at session start and after each answer (Claude Code hooks, shipped with the plugin) or with `npx groma-cli next` |
 
 ## Crosscutting concepts
 

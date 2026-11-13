@@ -1,0 +1,9 @@
+fixture	input_tokens	output_tokens	cache_read_tokens	cache_write_tokens	cost_usd	turns	duration_s
+empty	50	22118	1498329	83349	1.4090	75	178
+node-prisma	70	24509	1881125	79916	1.5060	95	227
+java-flyway	58	23666	1724581	86223	1.5083	73	202
+python-django-stale-docs	42	21782	1134331	78126	1.2877	69	177
+go-no-db	46	22321	1327996	81731	1.3661	73	182
+loop-openspec	70	14855	1666284	52241	1.0486	54	242
+cli-node-prisma	56	21529	1512744	68602	1.2822	45	193
+conflict-loop-openspec	66	13925	1562384	47087	0.9679	50	155

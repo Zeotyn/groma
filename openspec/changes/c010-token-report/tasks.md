@@ -6,7 +6,7 @@
 
 - [x] 2.1 `run.sh` with JSON output per fixture; report script; totals and baseline difference
 - [x] 2.2 Nightly workflow uploads the report as an artifact (the on-demand evals workflow; there is no nightly run since f006)
-- [ ] 2.3 Full eval run; commit the result as `tests/evals/reports/baseline.tsv` (needs one eval run (cost), not run: `scripts/test.sh evals`, then copy the report it names (`== tokens, report: <path>`) to `tests/evals/reports/baseline.tsv`; up to 24 USD)
+- [x] 2.3 Full eval run; commit the result as `tests/evals/reports/baseline.tsv` (2026-11-13, main at 4acb1c0 before C011: 8 fixtures, 10.38 USD, 164,705 output and 12.3 M cache-read tokens; 6 of 8 passed, the 2 failures were strict assertions, fixed by F007 and re-asserted green on the same run)
 - [ ] 2.4 Record the token difference of C011's diet against the baseline (C011 before/after), and `claude plugin details` estimates
 
 ## 3. Docs

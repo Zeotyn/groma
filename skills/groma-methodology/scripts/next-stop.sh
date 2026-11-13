@@ -67,7 +67,7 @@ mkdir -p "$ROOT/.groma/.cache" 2>/dev/null
 # One copy at a time. A cache folder that cannot be written means no lock and no state.
 LOCK="$ROOT/.groma/.cache/next-stop.lock"
 LOCKED=0
-# shellcheck disable=SC2329  # called by the EXIT trap
+# shellcheck disable=SC2317,SC2329  # called by the EXIT trap (SC2317 in shellcheck 0.10, SC2329 in 0.11)
 unlock() {
   [ "$LOCKED" -eq 0 ] || { rm -f "$LOCK/at" 2>/dev/null; rmdir "$LOCK" 2>/dev/null; }
   LOCKED=0

@@ -71,5 +71,6 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0054](0054-give-the-next-action-to-the-agent-at-session-start.md) | Give the next action to the agent at session start, once per session | accepted | 2026-11-13 |
 | [0055](0055-print-commands-instead-of-writing-outside-the-project.md) | Print the flag command instead of writing outside the project | accepted | 2026-11-13 |
 | [0056](0056-ship-a-pill-line-for-existing-status-lines.md) | Ship a pill line for status lines that already render pills | accepted | 2026-11-13 |
+| [0071](0071-cap-always-loaded-text-by-characters-and-lines.md) | Cap always-loaded text by characters and lines | accepted | 2026-11-12 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

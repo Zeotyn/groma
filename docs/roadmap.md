@@ -56,13 +56,13 @@ Generated from change proposals. Edit the milestone proposals, then run `roadmap
 
 - Goal: Every groma skill installed alone with `npx skills add Zeotyn/groma --skill <name>` passes its standalone test; the marketplace offers the bundles the spike confirms (at least `groma` and `groma-docs`); the eval run writes a token and cost report per fixture with a recorded baseline, and the always-loaded diet and the survey subagent are measured against it; the effect measurement compares one task with and without groma docs; with the plugin installed and the next action switched on, a new Claude Code session starts with the next action in the agent context and no settings file was written; groma talks to the user in the user's language; `/groma` with the plugin only copies the skills into the project by default and gives the same project result as `npx groma-cli init`. `v0.4.0` tagged and published through the release workflow, all test levels green.
 - Status: active
-- Progress: 4/10 done
+- Progress: 5/10 done
 
 | Id | Change | Status |
 |---|---|---|
 | C009 | `c009-marketplace-bundles` | done |
 | C010 | `c010-token-report` | active |
-| C011 | `c011-always-loaded-diet` | active |
+| C011 | `c011-always-loaded-diet` | done |
 | C012 | `c012-survey-subagent` | active |
 | C013 | `c013-effect-measurement` | active |
 | C014 | `c014-plugin-next-hooks` | done |

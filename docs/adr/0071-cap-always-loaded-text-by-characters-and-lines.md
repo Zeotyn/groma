@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-12
 decision-makers: Eugen Waldschmidt
 evidence: [tests/structure/check.py, skills/groma-agents/templates/AGENTS.md]

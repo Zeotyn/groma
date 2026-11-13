@@ -103,23 +103,48 @@ test('init refuses an initialized project', async () => {
   assert.match(r.err, /npx groma-cli update/);
 });
 
-test('Claude plugin installed: claude skills are skipped and recorded', async () => {
+test('Claude plugin installed: the skills are still copied and the output says how to switch the plugin off', async () => {
   const p = tmp();
   const s = stubs({ plugins: '  ❯ groma@groma' });
   const r = await run(['init', p, ...FLAGS, '--skills', 'none', '--methodology', 'none', '--yes'], { env: s.env });
   assert.equal(r.code, 0, r.err);
-  assert.ok(!existsSync(join(p, '.claude/skills')));
+  assert.ok(existsSync(join(p, '.claude/skills/groma/SKILL.md')));
   assert.ok(existsSync(join(p, '.github/skills/groma/SKILL.md')));
-  assert.deepEqual(parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8')).agents_via_plugin, ['claude']);
+  assert.match(r.out, /claude plugin disable groma@groma --scope local/);
+  const cfg = parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8'));
+  assert.equal(cfg.agents_via_plugin, undefined);
+  assert.equal(cfg.steps.skills_copy, 'done');
+  // groma prints the command, it never runs it and never writes settings
+  assert.doesNotMatch(s.calls(), /plugin disable/);
+  assert.ok(!existsSync(join(p, '.claude/settings.local.json')) && !existsSync(join(p, '.claude/settings.json')));
 });
 
-test('Claude plugin question: answering no copies the skills', async () => {
+test('Claude plugin question: answering no skips the copies and records agents_via_plugin', async () => {
   const p = tmp();
   const s = stubs({ plugins: '  ❯ groma@groma' });
-  const ask = async (q) => (q.key === 'plugin' ? 'no' : q.recommended);
+  let question;
+  const ask = async (q) => { if (q.key === 'plugin') { question = q; return 'no'; } return q.recommended; };
   const r = await run(['init', p, ...FLAGS, '--skills', 'none', '--methodology', 'none'], { env: s.env, isTTY: true, ask });
   assert.equal(r.code, 0, r.err);
-  assert.ok(existsSync(join(p, '.claude/skills/groma/SKILL.md')));
+  assert.equal(question.recommended, 'yes');
+  assert.ok(!existsSync(join(p, '.claude/skills')));
+  assert.ok(existsSync(join(p, '.github/skills/groma/SKILL.md')));
+  assert.doesNotMatch(r.out, /plugin disable/);
+  const cfg = parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8'));
+  assert.deepEqual(cfg.agents_via_plugin, ['claude']);
+  assert.equal(cfg.steps.skills_copy, 'done');
+});
+
+test('without the plugin there is no hint; skipping the only agent records skills_copy skipped', async () => {
+  const p = tmp();
+  const r = await run(['init', p, ...FLAGS, '--skills', 'none', '--methodology', 'none', '--yes'], { env: stubs().env });
+  assert.doesNotMatch(r.out, /plugin disable/);
+  assert.equal(parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8')).steps.skills_copy, 'done');
+
+  const q = tmp();
+  const ask = async (x) => (x.key === 'plugin' ? 'no' : x.recommended);
+  await run(['init', q, '--agents', 'claude', '--skills', 'none', '--methodology', 'none'], { env: stubs({ plugins: '  ❯ groma@groma' }).env, isTTY: true, ask });
+  assert.equal(parse(readFileSync(join(q, '.groma/config.yaml'), 'utf8')).steps.skills_copy, 'skipped');
 });
 
 test('a foreign skill folder is reported as conflict and left alone', async () => {

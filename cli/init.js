@@ -25,6 +25,11 @@ function claudePluginInstalled(env) {
   return /(^|\s)groma@/m.test(r.stdout ?? '');
 }
 
+// A project copy plus the enabled plugin lists every skill twice in Claude Code
+// (ADR 0050). groma prints the command; it never runs it and never edits settings.
+export const PLUGIN_DISABLE = 'claude plugin disable groma@groma --scope local';
+const PLUGIN_HINT = `Plugin:      the groma Claude Code plugin is installed too, so Claude Code lists every groma skill twice in this project.\n             To switch the plugin off for this project only, run here: ${PLUGIN_DISABLE}`;
+
 // Shared by init and update: interactive prompt plumbing.
 export function prompts(io, flags) {
   const tty = !!io.stdin.isTTY;
@@ -132,12 +137,16 @@ export default async function init({ project, flags, io, say }) {
   try {
     const answers = await resolveAnswers({ flags, data, project, home: io.env.HOME ?? homedir(), projectType: type, interactive: p.interactive, ask: p.ask, note: say });
 
+    // The project copy is what the team gets, so it is the default also when
+    // the plugin is installed; the user switches the plugin off for this project.
     let viaPlugin = [];
+    let pluginHint = false;
     if (answers.agents.includes('claude') && claudePluginInstalled(io.env)) {
-      const skip = p.interactive
-        ? (await p.ask({ key: 'plugin', text: 'The groma Claude Code plugin is installed. Skip copying the skills for Claude?', select: 'single', options: [{ id: 'yes', hint: 'avoids two copies of every skill' }, { id: 'no', hint: '' }], recommended: 'yes' })) === 'yes'
+      const copy = p.interactive
+        ? (await p.ask({ key: 'plugin', text: 'The groma Claude Code plugin is installed. Copy the skills for Claude into the project too?', select: 'single', options: [{ id: 'yes', hint: 'the team gets them with the repository' }, { id: 'no', hint: 'Claude keeps using the plugin, nothing is copied for it' }], recommended: 'yes' })) === 'yes'
         : true;
-      if (skip) viaPlugin = ['claude'];
+      if (copy) pluginHint = true;
+      else viaPlugin = ['claude'];
     }
     const skillAgents = answers.agents.filter((a) => !viaPlugin.includes(a));
     const plan = planSkills({ project, agents: skillAgents, data, generated: readGenerated(project) });
@@ -151,6 +160,7 @@ export default async function init({ project, flags, io, say }) {
       if (m?.command && !m.detect.some((d) => existsSync(join(project, d)))) say(`  ${m.command}`);
       for (const s of skillSteps(answers, data)) for (const c of s.commands) say(`  ${c}`);
       skillSummary(say, plan);
+      if (pluginHint) say(PLUGIN_HINT);
       say('\nNext: run without --dry-run');
       return EXIT.ok;
     }
@@ -162,7 +172,7 @@ export default async function init({ project, flags, io, say }) {
     savePending(project, setup);
     writeFileSync(join(project, CONFIG), renderConfig(data, {
       name: basename(project), projectType: type, answers, agentsViaPlugin: viaPlugin,
-      steps: { config: 'done', methodology: setup.methodology, skills: setup.skills },
+      steps: { config: 'done', methodology: setup.methodology, skills: setup.skills, skills_copy: skillAgents.length ? 'done' : 'skipped' },
     }));
 
     say(`\ngroma ${data.version} · ${type}`);
@@ -170,6 +180,7 @@ export default async function init({ project, flags, io, say }) {
     for (const n of setup.notes) say(n);
     say(`Created:     ${plan.writes.length} skill files, ${CONFIG}, .groma/generated.json`);
     skillSummary(say, plan);
+    if (pluginHint) say(PLUGIN_HINT);
     pendingSummary(say, setup, script);
     say('\nNext: open this project in your agent and run /groma');
     return EXIT.ok;

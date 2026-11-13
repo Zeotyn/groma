@@ -15,9 +15,9 @@ Sibling skills live next to this folder (`../groma-detect/`, `../groma-survey/`,
 ## Mode
 
 - `<project>/.groma/config.yaml` absent: **init mode**, all steps.
-- Present: run `sh scripts/validate-config.sh <project>/.groma/config.yaml --catalog catalog.yaml` ([catalog.yaml](catalog.yaml) is a copy of groma-skills' catalog). Exit 3: stop and print the update command. Errors: show them with line numbers and ask the user to fix or let you reconfigure. Valid: **update mode**: resume at the first step whose `steps.<name>` is `pending`; when all are `done`, run steps 6 to 8 again (missing docs, freshness, summary) and offer to reconfigure skills or agents. Compare `initialized_with` with [VERSION](VERSION) and apply the rows of [references/upgrades.md](references/upgrades.md) in between, naming the version that introduced each addition. To refresh the copied skill files, tell the user to run `npx groma-cli update` in a terminal.
+- Present: run `sh scripts/validate-config.sh <project>/.groma/config.yaml --catalog catalog.yaml` ([catalog.yaml](catalog.yaml) is a copy of groma-skills' catalog). Exit 3: stop and print the update command. Errors: show them with line numbers and ask the user to fix or let you reconfigure. Valid: **update mode**: resume at the first step whose `steps.<name>` is `pending`; when all are `done`, run steps 6 to 8 again (missing docs, freshness, summary) and offer to reconfigure skills or agents. Compare `initialized_with` with [VERSION](VERSION) and apply the rows of [references/upgrades.md](references/upgrades.md) in between, naming the version that introduced each addition. Refresh the copied groma skills yourself, see "Skill copies"; this needs no CLI.
 
-**CLI hand-off.** `npx groma-cli init` may already have done the config, methodology and skills steps. When `steps.config`, `steps.methodology` and `steps.skills` are all `done`, do not repeat them or ask their questions (agents, methodology, skills); go on with detect, the content interview (purpose, users, vision, UI only if unknown), docs and agents. When `steps.methodology` or `steps.skills` is `pending`, do not install yourself: recommend `npx groma-cli update` in a terminal (or `npx groma-cli init` when no config exists and the user prefers the terminal), and make the summary's Next action "Run `npx groma-cli update` in a terminal". Agents listed in `agents_via_plugin` get their skills from the plugin, so no copies exist for them.
+**CLI hand-off.** `npx groma-cli init` may already have done the config, methodology and skills steps. When `steps.config`, `steps.methodology` and `steps.skills` are all `done`, do not repeat them or ask their questions (agents, methodology, skills); go on with detect, the content interview (purpose, users, vision, UI only if unknown), docs and agents. When `steps.methodology` or `steps.skills` is `pending`, third-party installs are still open: offer once to run them now (steps 4 and 5 with their consent flow) and name `npx groma-cli update` in a terminal as the alternative. Without a yes, install nothing, leave the step `pending` and make the summary's Next action "Run `npx groma-cli update` in a terminal". Copying and refreshing the groma skills never needs the CLI ("Skill copies"). Agents listed in `agents_via_plugin` are agents for which the user declined the copy in the CLI: they get their skills from the plugin, and no copies are made for them.
 
 ## Steps
 
@@ -43,7 +43,8 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
    - greenfield: follow `../groma-lay-out/SKILL.md` with the interview answers.
    When the interview chose style tools, groma-lay-out's "Style setup" runs first: config files at free paths, one accepted ADR per tool, installs through the consent flow (`.groma/install.sh` when declined). "document only" and "none" create no config and no ADR; the doc records the decision. Update mode never creates tool configs unless the user asks.
 
-7. **agents**: follow `../groma-agents/SKILL.md`.
+7. **agents**: follow `../groma-agents/SKILL.md`, then do "Skill copies" below.
+   Done when the agent files exist and `steps.skills_copy` is `done` or `skipped`.
 
 8. **summary**: print
    ```
@@ -52,12 +53,25 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
    Created:   <files, grouped by folder>
    Untouched: <existing files that got a snippet in docs/_groma/findings-*.md>
    Findings:  <n high> high · <n medium> medium · <n low> low   → docs/_groma/findings-<date>.md
+   Skills:    <n groma skill files copied for <agents>, or "not copied (declined)">
+   Plugin:    <only after a `plugin` line: the reason and the disable command, see "Skill copies">
    Pending:   <commands in .groma/install.sh, or "none">
 
    Next: <one concrete action, e.g. "Review docs/adr/0003-use-postgresql.md (proposed)",
           or when nothing is open: "Start your first change with groma-loop">
    ```
    Done when the summary names exactly one next action.
+
+## Skill copies
+
+The groma skills belong into the project, so a teammate who clones the repository gets them. [scripts/materialize.sh](scripts/materialize.sh) copies the groma skill folders installed next to this one into each agent's project skill folder, with the rules of `npx groma-cli init`: copied `SKILL.md` files carry `metadata.generatedBy: groma@<version>`, every file is recorded with its SHA-256 in `.groma/generated.json`, and a file or folder groma did not create is never touched. Never copy or edit skill files yourself; when the script fails (for example neither `sha256sum` nor `shasum` exists), report its message and leave `steps.skills_copy: pending`.
+
+- **Init, in step 7.** When `steps.skills_copy` is `done` or `skipped` (set by `npx groma-cli init` or an earlier run), ask nothing. Otherwise ask once, in the user's language, with yes recommended: "Put the groma skills into the project so the team gets them with the repository?"
+  - Yes: run `sh scripts/materialize.sh --agents <agents, comma-separated> <project>` and set `steps.skills_copy: done`.
+  - No: write no skill folder and set `steps.skills_copy: skipped`.
+- **Update mode.** When `steps.skills_copy` is `done`, or the key is missing and `.groma/generated.json` exists, run `sh scripts/materialize.sh --update <project>` (agents come from the config, without `agents_via_plugin`) before step 6. Unchanged copies move to the new version, files of removed skills are deleted only when unchanged. When the key is missing and no `.groma/generated.json` exists, ask the init question once. `skipped`: do nothing.
+- **Output.** `create`, `update` and `remove` lines are done work; count them for the summary. For each `edited` line tell the user the file was edited by hand and kept (`--force` replaces it; use it only when the user asks). For each `conflict` line tell the user the path was not created by groma and was left untouched. `--dry-run` shows the plan without writing.
+- **Plugin.** A line `plugin<TAB>claude<TAB><command>` means the groma Claude Code plugin is active as well. The copy is made all the same, because it is what the team gets. Tell the user in their language: Claude Code now lists every groma skill twice in this project, once from the plugin and once from the project copy, and the command `claude plugin disable groma@groma --scope local`, run in the project, switches the plugin off for this project only (it stays on everywhere else). Print the command unchanged. Never run it and never edit a settings file. Repeat the command once in the summary.
 
 ## Rules for every step
 

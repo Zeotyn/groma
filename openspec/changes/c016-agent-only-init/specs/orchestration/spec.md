@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Agent-side skill materialization
-When the CLI has not copied the groma skills, `/groma` SHALL offer once, recommended yes, to put them into the project skill folder of each selected agent, and on yes SHALL run `materialize.sh`, which applies the same rules as `groma init`: copied SKILL.md files carry `metadata.generatedBy: groma@<version>`, every generated file is recorded with its SHA-256 in `.groma/generated.json`, and a folder groma did not create is never touched. In update mode `/groma` SHALL refresh the copies with `materialize.sh --update`: unchanged copies are replaced, edited copies are kept and reported, files of removed skills are deleted only when unchanged.
+When the CLI has not copied the groma skills, `/groma` SHALL offer once, recommended yes, to put them into the project skill folder of each selected agent, and on yes SHALL run `materialize.sh`, which applies the same rules as `groma init`: copied SKILL.md files carry `metadata.generatedBy: groma@<version>`, every generated file is recorded with its SHA-256 in `.groma/generated.json`, and a folder groma did not create is never touched. In update mode `/groma` SHALL refresh the copies with `materialize.sh --update`: unchanged copies are replaced, edited copies are kept and reported, and a file is deleted only when it is unchanged and groma no longer ships it (the file left a copied skill, or its skill is listed as retired). Copies of skills that the running groma merely does not contain SHALL be kept. `materialize.sh` SHALL refuse to run from the project's own copies, SHALL refuse without `--force` to replace copies of a newer groma, and SHALL never write through a symbolic link.
 
 #### Scenario: Plugin-only setup
 - **WHEN** a user with only the groma plugin runs `/groma` in a fresh repository with agents claude and copilot and accepts the default
@@ -14,6 +14,14 @@ When the CLI has not copied the groma skills, `/groma` SHALL offer once, recomme
 #### Scenario: Edited copy on update
 - **WHEN** the user edited `.claude/skills/groma-survey/SKILL.md` and `/groma` runs in update mode
 - **THEN** that file is kept and reported as edited, and the other copies move to the new version
+
+#### Scenario: Smaller or older source
+- **WHEN** `/groma` runs in update mode from a bundle with three skills, or from an older groma, in a project that holds copies of all skills
+- **THEN** no copy of a skill outside that source is deleted, and an older groma changes nothing without `--force`
+
+#### Scenario: Run from the project's own copies
+- **WHEN** a teammate without the plugin runs `/groma` from `.claude/skills/groma/` of the project
+- **THEN** `materialize.sh` writes nothing, and groma tells the user how to update the copies
 
 #### Scenario: Declined
 - **WHEN** the user answers no

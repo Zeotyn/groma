@@ -30,7 +30,7 @@ With hooks in the plugin (ADR 0052), the next action could appear in every groma
 Chosen option: "project wins, unset or `auto` follows the flag file", because it gives both switches a clear order.
 
 Details:
-- `next_on` in `lib-changes.sh` is the one implementation, used by `next-session.sh` and `next-stop.sh`: `on` is on, `off` is off, a missing key or `auto` is on exactly when `$HOME/.claude/.groma-next-always` exists. Any other value counts as off.
+- `next_on` in `lib-changes.sh` is the one implementation, used by `next-session.sh` and `next-stop.sh`: `on` is on, `off` is off, a missing key, an empty value (`hook:`) or `auto` is on exactly when `$HOME/.claude/.groma-next-always` exists. Any other value counts as off.
 - The config template leaves `hook` unset and explains the three values in a comment. The validator accepts `on`, `off` and `auto` and rejects everything else with the line number.
 - The scripts only test whether the flag file exists. groma never creates or removes it (ADR 0055).
 

@@ -152,7 +152,7 @@ rm ~/.claude/.groma-next-always      # off again
 
 groma prints these commands and never runs them: it deliberately neither looks nor writes outside your project.
 
-**Without the plugin (opt-in).** groma-agents offers the same Stop hook through `.claude/settings.local.json`, installs it only after you agree and sets `next.hook: on`. Copilot CLI (stderr with exit 2), Gemini CLI and Codex have experimental adapters in `skills/groma/agents.yaml`; Cursor has none and relies on the `AGENTS.md` line that asks agents to name the next action at the end of a session.
+**Without the plugin (opt-in).** groma-agents offers the same Stop hook through `.claude/settings.local.json`, installs it only after you agree and sets `next.hook: on`. A project that has this hook and the plugin still shows the line once: the plugin's Stop hook steps aside when a settings file of the project names `next-stop.sh`. You can then remove the block from the settings file. Copilot CLI (stderr with exit 2), Gemini CLI and Codex have experimental adapters in `skills/groma/agents.yaml`; Cursor has none and relies on the `AGENTS.md` line that asks agents to name the next action at the end of a session.
 
 **Status line (Claude Code).** groma never edits your status line. Add this to your status line script, with `$project_dir` set to `workspace.project_dir` from the JSON Claude Code passes on stdin:
 

@@ -247,33 +247,147 @@ TABLE
   done
 }
 
+# --- two Stop hooks at once: lock, and the plugin steps aside -------------------------------
+
+@test "stop hook: two copies started together show the line exactly once, 20 times in a row" {
+  config 'next:\n  hook: on\n'
+  i=0
+  while [ "$i" -lt 20 ]; do
+    rm -f "$P/.groma/.cache/next-shown"
+    sh "$STOP" --now 1000000 "$P" > "$BATS_TEST_TMPDIR/a.out" &
+    sh "$STOP" --plugin --now 1000000 "$P" > "$BATS_TEST_TMPDIR/b.out" &
+    wait
+    n=$(cat "$BATS_TEST_TMPDIR/a.out" "$BATS_TEST_TMPDIR/b.out" | grep -c 'Next:' || true)
+    if [ "$n" -ne 1 ]; then echo "round $i: $n lines"; return 1; fi
+    [ ! -e "$P/.groma/.cache/next-stop.lock" ]
+    i=$((i + 1))
+  done
+  [ "$(ls "$P/.groma/.cache")" = "$(printf 'next\nnext-shown')" ]
+}
+
+@test "stop hook: a held lock silences the run, a stale lock is taken over" {
+  config 'next:\n  hook: on\n'
+  mkdir -p "$P/.groma/.cache/next-stop.lock"
+  run sh "$STOP" --now 1000000 "$P"          # just taken: no time written yet
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+  date +%s > "$P/.groma/.cache/next-stop.lock/at"
+  run sh "$STOP" --now 1000000 "$P"
+  [ -z "$output" ]
+  [ -d "$P/.groma/.cache/next-stop.lock" ]
+  echo $(($(date +%s) - 60)) > "$P/.groma/.cache/next-stop.lock/at"
+  run sh "$STOP" --now 1000000 "$P"
+  [ "$output" = "{\"systemMessage\":\"▶ Next: $LINE\"}" ]
+  [ ! -e "$P/.groma/.cache/next-stop.lock" ]
+}
+
+@test "stop hook: the lock is released when nothing is shown and with --stderr" {
+  config 'next:\n  hook: on\n'
+  run sh "$STOP" --stderr --now 1000000 "$P"
+  [ "$status" -eq 2 ]
+  [ ! -e "$P/.groma/.cache/next-stop.lock" ]
+  run sh "$STOP" --now 1000000 "$P"
+  [ -z "$output" ]
+  [ ! -e "$P/.groma/.cache/next-stop.lock" ]
+  git -C "$P" checkout -q -- src/a.js
+  run sh "$STOP" --now 1000000 "$P"
+  [ -z "$output" ]
+  [ ! -e "$P/.groma/.cache/next-stop.lock" ]
+}
+
+@test "stop hook --plugin: steps aside when a project settings file has the Stop hook" {
+  config 'next:\n  hook: on\n'
+  printf '.groma/\n.claude/\n' > "$P/.git/info/exclude"
+  mkdir -p "$P/.claude"
+  for f in settings.local.json settings.json; do
+    rm -f "$P/.claude"/settings*.json
+    sed 's|{{next_stop_script_absolute}}|/opt/skills/groma-methodology/scripts/next-stop.sh|' \
+      "$ROOT/skills/groma-agents/templates/claude-stop-hook.json" > "$P/.claude/$f"
+    run sh "$STOP" --plugin --now 1000000 "$P"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    [ ! -e "$P/.groma/.cache/next-shown" ]
+  done
+  run sh "$STOP" --now 1000000 "$P"          # the settings-file hook itself still shows
+  [ "$output" = "{\"systemMessage\":\"▶ Next: $LINE\"}" ]
+  rm -f "$P/.groma/.cache/next-shown"
+  echo '{"hooks":{}}' > "$P/.claude/settings.json"   # a settings file without the hook
+  run sh "$STOP" --plugin --now 1000000 "$P"
+  [ "$output" = "{\"systemMessage\":\"▶ Next: $LINE\"}" ]
+}
+
+@test "stop hook: an empty project argument means the current directory" {
+  config 'next:\n  hook: on\n'
+  cd "$P"
+  run sh "$STOP" --now 1000000 ""
+  [ "$output" = "{\"systemMessage\":\"▶ Next: $LINE\"}" ]
+}
+
+@test "hooks.json: the Stop command passes --plugin" {
+  case "$(hook_command Stop)" in *'next-stop.sh" --plugin "$CLAUDE_PROJECT_DIR"'*) ;; *) false ;; esac
+}
+
 # --- status-line pill (snippet only) --------------------------------------------------------
 
-pill() { # pattern: the template's last line with the pattern filled in, run for $P
+pill() { # shell pattern: the template's last line with the pattern filled in, run for $P
   line=$(tail -n 1 "$ROOT/skills/groma-agents/templates/statusline-pill.sh")
-  line=${line%%"{{next_script_pattern}}"*}$1${line#*"{{next_script_pattern}}"}
-  project_dir="$P" sh -c "$line"
+  line=${line%%"{{next_script_pattern}}"*}$2${line#*"{{next_script_pattern}}"}
+  project_dir="$P" "$1" -c "$line"
+}
+
+plugin_cache() { # version...: a plugin cache with one copy of the scripts per version
+  cache="$BATS_TEST_TMPDIR/my home/plugins/cache/groma/groma"
+  for v in "$@"; do
+    mkdir -p "$cache/$v/skills/groma-methodology"
+    cp -R "$ROOT/skills/groma-methodology/scripts" "$cache/$v/skills/groma-methodology/scripts"
+  done
+  PATTERN="\"$cache/\"*\"/skills/groma-methodology/scripts/next.sh\""
 }
 
 @test "pill: one colored pill with the short action, nothing without a next action" {
   nx="$ROOT/skills/groma-methodology/scripts/next.sh"
-  run pill "\"$nx\""
+  run pill sh "\"$nx\""
   [ "$status" -eq 0 ]
   [ "$output" = "$(printf ' \033[48;5;25m\033[38;5;255m ▶ commit 1 \033[0m')" ]
   git -C "$P" checkout -q -- src/a.js
-  run pill "\"$nx\""
+  run pill sh "\"$nx\""
+  [ "$status" -eq 0 ]
   [ -z "$output" ]
 }
 
 @test "pill: a * for the plugin's version folder finds the script, a missing script prints nothing" {
-  cache="$BATS_TEST_TMPDIR/my home/plugins/cache/groma/groma"
-  mkdir -p "$cache/0.3.0/skills/groma-methodology"
-  cp -R "$ROOT/skills/groma-methodology/scripts" "$cache/0.3.0/skills/groma-methodology/scripts"
-  run pill "\"$cache/\"*\"/skills/groma-methodology/scripts/next.sh\""
+  plugin_cache 0.3.0
+  run pill sh "$PATTERN"
   assert_output_contains "▶ commit 1"
   rm -rf "$cache/0.3.0"
-  run --separate-stderr pill "\"$cache/\"*\"/skills/groma-methodology/scripts/next.sh\""
+  run --separate-stderr pill sh "$PATTERN"
+  [ "$status" -eq 0 ]
   [ -z "$output" ]
+  [ -z "$stderr" ]
+}
+
+@test "pill: the highest version wins, 0.10.0 over 0.4.0" {
+  plugin_cache 0.4.0 0.10.0
+  printf '#!/bin/sh\necho old\n' > "$cache/0.4.0/skills/groma-methodology/scripts/next.sh"
+  run pill sh "$PATTERN"
+  assert_output_contains "▶ commit 1"
+  assert_output_not_contains old
+}
+
+@test "pill: works in a zsh status line, also when the pattern matches nothing" {
+  command -v zsh >/dev/null || skip "zsh not installed"
+  plugin_cache 0.3.0
+  run --separate-stderr pill zsh "$PATTERN"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$(printf ' \033[48;5;25m\033[38;5;255m ▶ commit 1 \033[0m')" ]
+  rm -rf "$cache/0.3.0"
+  # a status line script: the pill must not abort it
+  line=$(tail -n 1 "$ROOT/skills/groma-agents/templates/statusline-pill.sh")
+  line=${line%%"{{next_script_pattern}}"*}$PATTERN${line#*"{{next_script_pattern}}"}
+  run --separate-stderr env project_dir="$P" zsh -c "printf before; $line
+printf after"
+  [ "$status" -eq 0 ]
+  [ "$output" = beforeafter ]
   [ -z "$stderr" ]
 }
 

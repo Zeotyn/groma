@@ -397,7 +397,7 @@ def check_bundles(root: Path = ROOT) -> None:
 
 PLUGIN_HOOKS = "hooks/hooks.json"
 PLUGIN_HOOK_EVENTS = {"SessionStart": "startup|resume|clear|compact", "Stop": None}
-PLUGIN_HOOK_PATH_RE = re.compile(r'^sh "\$\{CLAUDE_PLUGIN_ROOT\}/([^"]+)" "\$CLAUDE_PROJECT_DIR"')
+PLUGIN_HOOK_PATH_RE = re.compile(r'^sh "\$\{CLAUDE_PLUGIN_ROOT\}/([^"]+)" (?:--plugin )?"\$CLAUDE_PROJECT_DIR"')
 
 
 def check_hooks(root: Path = ROOT) -> None:
@@ -428,12 +428,15 @@ def check_hooks(root: Path = ROOT) -> None:
             command = str(h.get("command", "")) if isinstance(h, dict) else ""
             m = PLUGIN_HOOK_PATH_RE.match(command)
             if not isinstance(h, dict) or h.get("type") != "command" or not m:
-                err(f'{PLUGIN_HOOKS}: {event} command must be of type command and start with sh "${{CLAUDE_PLUGIN_ROOT}}/<script>" "$CLAUDE_PROJECT_DIR"')
+                err(f'{PLUGIN_HOOKS}: {event} command must be of type command and start with sh "${{CLAUDE_PLUGIN_ROOT}}/<script>" [--plugin] "$CLAUDE_PROJECT_DIR"')
                 continue
             if not m.group(1).startswith("skills/") or not (root / m.group(1)).is_file():
                 err(f"{PLUGIN_HOOKS}: {event} runs {m.group(1)}, which is not a file under skills/")
-            if not command.endswith("|| true"):
-                err(f"{PLUGIN_HOOKS}: {event} command must end with '|| true', so that a missing script never fails the hook")
+            if not command.endswith(" 2>/dev/null || true"):
+                err(f"{PLUGIN_HOOKS}: {event} command must end with '2>/dev/null || true', so that a missing script never fails the hook or prints")
+            timeout = h.get("timeout")
+            if not isinstance(timeout, int) or isinstance(timeout, bool) or not 0 < timeout <= 60:
+                err(f"{PLUGIN_HOOKS}: {event} command needs a 'timeout' of 1 to 60 seconds")
 
 
 CODE_STYLE_TABLE = "skills/groma-lay-out/references/code-style-tools.md"

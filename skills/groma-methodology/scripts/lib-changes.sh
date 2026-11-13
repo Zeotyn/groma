@@ -19,7 +19,7 @@ cfg_value() { # key default [section]
 }
 
 # Is the next action on for the project in the global $ROOT? next.hook in
-# .groma/config.yaml decides: on or off. Unset or auto follows the user's global
+# .groma/config.yaml decides: on or off. Unset, empty ("hook:") or auto follows the user's global
 # flag file ~/.claude/.groma-next-always, which is only read, never written.
 # Any other value counts as off.
 next_on() {

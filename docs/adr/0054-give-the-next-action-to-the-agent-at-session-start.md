@@ -25,7 +25,7 @@ ADR 0042 keeps the next action on display-only channels: the user sees it, the a
 
 ## Decision Outcome
 
-Chosen option: "SessionStart prints the long line as `additionalContext`", because one line per session start costs almost nothing and starts no turn. This extends ADR 0042, which covered the Stop channel: the Stop hook stays display-only and debounced.
+Chosen option: "SessionStart prints the long line as `additionalContext`", because one line per session start costs almost nothing and starts no turn. This amends the scope of ADR 0042, whose title says "never steer the agent": the rule now holds for every channel except this one. The Stop hook, the status line and every other channel stay display-only; SessionStart alone gives the agent one line of context per session start, labelled as orientation, and still starts no turn.
 
 Details:
 - `next-session.sh` prints one JSON line `{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"…"}}`; the text is the line of `next.sh --long` behind a short label that says it is for orientation. No next action: no output.
@@ -36,6 +36,7 @@ Details:
 
 * Good, because the agent can answer "where were we" without running a script.
 * Bad, because an agent may act on the line unasked; the label tells it to wait for the user.
+* Neutral, because ADR 0042 is no longer the whole rule: read it together with this ADR.
 * Bad, because `clear` and `compact` are known from the docs only; they exist only in interactive sessions.
 
 ### Confirmation

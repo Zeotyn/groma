@@ -254,8 +254,8 @@ def write_hooks(root, **overrides):
         return f'sh "${{CLAUDE_PLUGIN_ROOT}}/skills/groma-m/scripts/{script}" "$CLAUDE_PROJECT_DIR" 2>/dev/null || true'
 
     hooks = {
-        "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [{"type": "command", "command": command("next-session.sh")}]}],
-        "Stop": [{"hooks": [{"type": "command", "command": command("next-stop.sh")}]}],
+        "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [{"type": "command", "command": command("next-session.sh"), "timeout": 10}]}],
+        "Stop": [{"hooks": [{"type": "command", "command": command("next-stop.sh").replace(' "$CLAUDE_PROJECT', ' --plugin "$CLAUDE_PROJECT'), "timeout": 10}]}],
     }
     hooks.update(overrides)
     write(root / "hooks/hooks.json", json.dumps({"hooks": {k: v for k, v in hooks.items() if v is not None}}))
@@ -289,6 +289,14 @@ def test_plugin_hooks_events_are_fixed(tmp_path):
     assert any("must hold exactly" in e for e in check.errors)
 
 
+def test_plugin_hooks_command_must_silence_stderr(tmp_path):
+    write_hooks(tmp_path, Stop=[{"hooks": [
+        {"type": "command", "command": 'sh "${CLAUDE_PLUGIN_ROOT}/skills/groma-m/scripts/next-stop.sh" "$CLAUDE_PROJECT_DIR" || true', "timeout": 10},
+    ]}])
+    check.check_hooks(tmp_path)
+    assert check.errors == ["hooks/hooks.json: Stop command must end with '2>/dev/null || true', so that a missing script never fails the hook or prints"]
+
+
 def test_plugin_hooks_session_matcher(tmp_path):
     write_hooks(tmp_path, SessionStart=[{"matcher": "startup", "hooks": [{"type": "command", "command": 'sh "${CLAUDE_PLUGIN_ROOT}/skills/groma-m/scripts/next-session.sh" "$CLAUDE_PROJECT_DIR" || true'}]}])
     check.check_hooks(tmp_path)
@@ -303,7 +311,8 @@ def test_plugin_hooks_command_must_run_a_shipped_script_and_never_fail(tmp_path)
     ]}])
     check.check_hooks(tmp_path)
     assert any("Stop runs skills/groma-m/scripts/gone.sh, which is not a file under skills/" in e for e in check.errors)
-    assert any("Stop command must end with '|| true'" in e for e in check.errors)
+    assert any("Stop command must end with '2>/dev/null || true'" in e for e in check.errors)
+    assert any("Stop command needs a 'timeout' of 1 to 60 seconds" in e for e in check.errors)
     assert any("Stop command must be of type command and start with" in e for e in check.errors)
 
 

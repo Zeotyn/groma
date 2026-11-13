@@ -28,7 +28,8 @@ Chosen option: "a one-line pill as a snippet", because it fits status lines that
 
 Details:
 - `templates/statusline-pill.sh` holds the line. It prints nothing when there is no next action.
-- The line finds `next.sh` through a pattern, so that a plugin install survives a plugin update: the version folder of the plugin cache is a `*`.
+- The line finds `next.sh` through a pattern, so that a plugin install survives a plugin update: the version folder of the plugin cache is a `*`, and the highest version wins (`sort -V`, so 0.10.0 beats 0.4.0).
+- A child `sh -c` expands the pattern, so the line behaves the same in a zsh or bash status line; in zsh a pattern without a match would otherwise abort the user's whole script.
 - The pill shows the next action whenever the user pasted it; the on/off rule of ADR 0053 is for the hooks.
 
 ### Consequences
@@ -38,7 +39,7 @@ Details:
 
 ### Confirmation
 
-`tests/scripts/next-session.bats` runs the pill line of the template against a project and checks the output with and without a next action. groma-agents step 5 says never to edit a status line.
+`tests/scripts/next-session.bats` runs the pill line of the template against a project and checks the output with and without a next action, with two cached versions, and in zsh with a pattern that matches nothing. groma-agents step 5 says never to edit a status line.
 
 ## Pros and Cons of the Options
 

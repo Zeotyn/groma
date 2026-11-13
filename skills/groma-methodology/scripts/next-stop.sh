@@ -2,13 +2,17 @@
 # Claude Code Stop hook: show the next action to the user, debounced.
 # Runs from the groma plugin (hooks/hooks.json) or from a settings file.
 #
-# Usage: next-stop.sh [--stderr] [--now <epoch>] [project]
-#   project defaults to the current directory; --now replaces the clock in tests
+# Usage: next-stop.sh [--plugin] [--stderr] [--now <epoch>] [project]
+#   project defaults to the current directory (also when it is given as an empty
+#   string); --now replaces the clock in tests
 #
 # Does nothing when <project>/.groma/ is missing (checked first, because a plugin
 # hook runs in every project) or when the next action is off: next.hook in
 # <project>/.groma/config.yaml is on or off; unset or auto means on exactly when
 # the flag file ~/.claude/.groma-next-always exists. That file is only read.
+# With --plugin (the plugin's hooks.json passes it) it also does nothing when
+# <project>/.claude/settings.local.json or <project>/.claude/settings.json names
+# next-stop.sh: that project has the settings-file hook, which shows the line.
 # Output: one line {"systemMessage":"▶ Next: <next.sh --long>"} when the line
 # differs from the last one shown, or when that showing is next.reshow_minutes
 # old (default 30; 0 shows only on change). Otherwise nothing. The message goes
@@ -18,6 +22,10 @@
 # "▶ Next: <line>" with exit 2, and stdout stays empty.
 # State: <project>/.groma/.cache/next-shown (epoch, line); removed when there is no
 # next action. Stdin is ignored.
+# Lock: Claude Code starts matching hooks in parallel, so two copies of this
+# script can run at once. The folder <project>/.groma/.cache/next-stop.lock is
+# held from before the state is read until exit; a second copy exits silently.
+# A lock older than 15 seconds is taken over.
 # Exit codes: 0, so that the hook never disturbs the session; 2 only with
 #   --stderr when the line is shown.
 set -u
@@ -25,16 +33,21 @@ set -u
 NOW=""
 ROOT=.
 STDERR=0
+PLUGIN=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --now) NOW=${2:-}; shift; [ $# -eq 0 ] || shift ;;
     --stderr) STDERR=1; shift ;;
+    --plugin) PLUGIN=1; shift ;;
     -*) shift ;;
-    *) ROOT=$1; shift ;;
+    *) [ -z "$1" ] || ROOT=$1; shift ;;
   esac
 done
 
 [ -d "$ROOT/.groma" ] || exit 0
+if [ "$PLUGIN" -eq 1 ] && grep -qs 'next-stop\.sh' "$ROOT/.claude/settings.local.json" "$ROOT/.claude/settings.json"; then
+  exit 0
+fi
 
 HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd) || exit 0
 # shellcheck source=SCRIPTDIR/lib-changes.sh
@@ -50,6 +63,30 @@ case "$NOW" in ''|*[!0-9]*) NOW=$(date +%s) ;; esac
 STATE="$ROOT/.groma/.cache/next-shown"
 mkdir -p "$ROOT/.groma/.cache" 2>/dev/null
 [ -e "$ROOT/.groma/.cache/.gitignore" ] || echo '*' > "$ROOT/.groma/.cache/.gitignore" 2>/dev/null
+
+# One copy at a time. A cache folder that cannot be written means no lock and no state.
+LOCK="$ROOT/.groma/.cache/next-stop.lock"
+LOCKED=0
+# shellcheck disable=SC2329  # called by the EXIT trap
+unlock() {
+  [ "$LOCKED" -eq 0 ] || { rm -f "$LOCK/at" 2>/dev/null; rmdir "$LOCK" 2>/dev/null; }
+  LOCKED=0
+}
+trap unlock EXIT
+trap 'exit 0' HUP INT TERM
+if mkdir "$LOCK" 2>/dev/null; then
+  LOCKED=1
+elif [ -d "$LOCK" ]; then
+  locked_at=""
+  [ ! -f "$LOCK/at" ] || IFS= read -r locked_at < "$LOCK/at" || true
+  case "$locked_at" in ''|*[!0-9]*) exit 0 ;; esac   # just taken, its time is not written yet
+  [ $(($(date +%s) - locked_at)) -gt 15 ] || exit 0
+  rm -f "$LOCK/at" 2>/dev/null; rmdir "$LOCK" 2>/dev/null
+  mkdir "$LOCK" 2>/dev/null || exit 0
+  LOCKED=1
+fi
+[ "$LOCKED" -eq 0 ] || date +%s > "$LOCK/at" 2>/dev/null
+
 line=$(sh "$HERE/next.sh" --long "$ROOT" 2>/dev/null || true)
 if [ -z "$line" ]; then
   rm -f "$STATE" 2>/dev/null
@@ -68,7 +105,9 @@ show=0
 if [ "$MINUTES" -gt 0 ] && [ $((NOW - shown_at)) -ge $((MINUTES * 60)) ]; then show=1; fi
 [ "$show" -eq 1 ] || exit 0
 
-printf '%s\n%s\n' "$NOW" "$line" > "$STATE" 2>/dev/null || true
+if printf '%s\n%s\n' "$NOW" "$line" > "$STATE.$$" 2>/dev/null; then
+  mv "$STATE.$$" "$STATE" 2>/dev/null || rm -f "$STATE.$$" 2>/dev/null
+fi
 if [ "$STDERR" -eq 1 ]; then
   printf '▶ Next: %s\n' "$line" >&2
   exit 2

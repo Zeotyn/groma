@@ -7,6 +7,10 @@ The groma Claude Code plugin SHALL register its next-action hooks through its ow
 - **WHEN** a session starts in a repository without `.groma/` and the plugin is enabled
 - **THEN** both hooks print nothing and return within 50 ms
 
+#### Scenario: Plugin and settings-file hook together
+- **WHEN** the plugin is enabled in a project whose `.claude/settings.local.json` also runs `next-stop.sh` on Stop, and both hooks start at the same moment
+- **THEN** the next-action line is shown at most once
+
 ### Requirement: Next action at session start
 When the next action is on, the `SessionStart` hook SHALL print the long next-action line so that it reaches the agent's context, once per session start, resume, clear or compaction.
 

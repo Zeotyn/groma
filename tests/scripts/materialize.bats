@@ -354,11 +354,34 @@ stub_claude() { # <plugin list output>
   grep -q 'generatedBy: groma@9.1.0' "$P/.claude/skills/groma/SKILL.md"
   run sh "$M" --update --dry-run --agents claude "$P"
   [ "$status" -eq 1 ]
+  assert_output_contains "--allow-downgrade"
+  # --force alone still refuses a downgrade
   run sh "$M" --update --force --agents claude "$P"
+  [ "$status" -eq 1 ]
+  cmp "$W/before" "$P/.groma/generated.json"
+  grep -q 'generatedBy: groma@9.1.0' "$P/.claude/skills/groma/SKILL.md"
+  run sh "$M" --update --allow-downgrade --agents claude "$P"
   [ "$status" -eq 0 ]
   assert_output_contains "removed=0"
+  grep -q "generatedBy: groma@$VERSION" "$P/.claude/skills/groma/SKILL.md"
   [ -f "$P/.claude/skills/groma-future/SKILL.md" ]
   grep -q 'groma-future/SKILL.md' "$P/.groma/generated.json"
+}
+
+@test "a pre-release is older than its release" {
+  suite "$W/rel"
+  echo 9.1.0 > "$W/rel/skills/groma/VERSION"
+  suite "$W/pre"
+  echo 9.1.0-rc.1 > "$W/pre/skills/groma/VERSION"
+  sh "$W/rel/skills/groma/scripts/materialize.sh" --agents claude "$P" >/dev/null
+  run sh "$W/pre/skills/groma/scripts/materialize.sh" --update --agents claude "$P"
+  [ "$status" -eq 1 ]
+  assert_output_contains "newer"
+  # the other way round is an upgrade
+  mkdir "$W/p2"
+  sh "$W/pre/skills/groma/scripts/materialize.sh" --agents claude "$W/p2" >/dev/null
+  run sh "$W/rel/skills/groma/scripts/materialize.sh" --update --agents claude "$W/p2"
+  [ "$status" -eq 0 ]
 }
 
 @test "retired skills are removed only when listed in retired-skills.txt and inside the --skills selection" {
@@ -398,6 +421,12 @@ stub_claude() { # <plugin list output>
   [ ! -e "$P/.groma/generated.json" ]
   run sh "$M" --update --agents claude "$P"
   [ ! -e "$P/.claude" ]
+  printf 'schema: 1\nagents: [claude]\nsteps:\n  skills_copy: "skipped"\n' > "$P/.groma/config.yaml"
+  run sh "$M" --update "$P"
+  [ ! -e "$P/.claude" ]
+  printf 'schema: 1\nagents: [claude]\nsteps: { agents: done, skills_copy: skipped }\n' > "$P/.groma/config.yaml"
+  run sh "$M" --update "$P"
+  [ ! -e "$P/.claude" ]
   # asked for explicitly without --update: copies
   run sh "$M" --agents claude "$P"
   [ -f "$P/.claude/skills/groma/SKILL.md" ]
@@ -405,23 +434,77 @@ stub_claude() { # <plugin list output>
 
 # --- where the script refuses to run or write -------------------------------------
 
-@test "run from the project's own copy: refused, nothing changes" {
+@test "run from copies that groma made: refused, nothing changes" {
   sh "$M" --agents claude,codex "$P" >/dev/null
   printf 'my edit' > "$P/.claude/skills/groma-survey/SKILL.md"
   echo mine > "$P/.claude/skills/groma/notes-of-mine.md"
   cp "$P/.groma/generated.json" "$W/before"
+  cp "$P/.claude/skills/groma/SKILL.md" "$W/skill-before"
   run sh "$P/.claude/skills/groma/scripts/materialize.sh" --update --agents claude,codex "$P"
   [ "$status" -eq 1 ]
-  assert_output_contains "inside the project"
-  assert_output_contains "npx skills add Zeotyn/groma"
+  assert_output_contains "copy that groma made"
+  assert_output_contains "npx groma-cli update"
   cmp "$W/before" "$P/.groma/generated.json"
   [ ! -e "$P/.agents/skills/groma/notes-of-mine.md" ]
   run grep -c 'my edit' "$P/.agents/skills/groma-survey/SKILL.md"
   [ "$output" = 0 ]
-  # also through a symlinked path to the same folder
-  ln -s "$P/.claude/skills" "$W/alias"
-  run sh "$W/alias/groma/scripts/materialize.sh" --update --agents claude "$P"
+  # through a link to the project, and through another spelling of its path
+  ln -s "$P" "$W/alias"
+  run sh "$W/alias/.claude/skills/groma/scripts/materialize.sh" --update --agents claude "$P"
   [ "$status" -eq 1 ]
+  run sh "$W/alias/.claude/skills/groma/scripts/materialize.sh" --update --agents claude "$W/alias"
+  [ "$status" -eq 1 ]
+  UP=$(printf '%s' "$P" | tr '[:lower:]' '[:upper:]')
+  if [ -d "$UP/.claude" ]; then
+    run sh "$UP/.claude/skills/groma/scripts/materialize.sh" --update --agents claude "$P"
+    [ "$status" -eq 1 ]
+  fi
+  # the copies of another project are no source either
+  mkdir "$W/other"
+  run sh "$P/.claude/skills/groma/scripts/materialize.sh" --agents claude "$W/other"
+  [ "$status" -eq 1 ]
+  [ -z "$(ls -A "$W/other")" ]
+  cmp "$W/skill-before" "$P/.claude/skills/groma/SKILL.md"
+  [ "$(grep -c '^  generatedBy:' "$P/.claude/skills/groma/SKILL.md")" -eq 1 ]
+}
+
+@test "a project-level install as source: other agents get copies, the source folder is never overwritten" {
+  # npx skills add (project level): real folders in .agents/skills, links in .claude/skills
+  mkdir -p "$P/.agents/skills" "$P/.claude/skills"
+  cp -R "$ROOT"/skills/* "$P/.agents/skills/"
+  for s in "$ROOT"/skills/*/; do ln -s "../../.agents/skills/$(basename "$s")" "$P/.claude/skills/$(basename "$s")"; done
+  (cd "$P" && find .agents -type f -exec cksum {} + | LC_ALL=C sort -k 3) > "$W/src-before"
+  run sh "$P/.claude/skills/groma/scripts/materialize.sh" --agents claude,codex,copilot "$P"
+  [ "$status" -eq 0 ]
+  assert_output_contains "note	.agents/skills"
+  assert_output_contains "conflict	.claude/skills/groma"
+  assert_output_not_contains "create	.agents"
+  assert_output_not_contains "create	.claude"
+  [ -f "$P/.github/skills/groma/SKILL.md" ]
+  grep -q "generatedBy: groma@$VERSION" "$P/.github/skills/groma/SKILL.md"
+  (cd "$P" && find .agents -type f -exec cksum {} + | LC_ALL=C sort -k 3) > "$W/src-after"
+  cmp "$W/src-before" "$W/src-after"
+  [ -L "$P/.claude/skills/groma" ]
+  run grep -c '"\.agents\|"\.claude' "$P/.groma/generated.json"
+  [ "$output" = 0 ]
+  # the whole skills folder linked to the source folder
+  rm -rf "$P/.claude/skills" && ln -s ../.agents/skills "$P/.claude/skills"
+  run sh "$P/.agents/skills/groma/scripts/materialize.sh" --update --agents claude,copilot "$P"
+  [ "$status" -eq 0 ]
+  assert_output_contains "note	.claude/skills"
+  (cd "$P" && find .agents -type f -exec cksum {} + | LC_ALL=C sort -k 3) > "$W/src-after"
+  cmp "$W/src-before" "$W/src-after"
+}
+
+@test "groma's own repository is refused with a clear message" {
+  R="$W/repo"
+  suite "$R"
+  mkdir -p "$R/.claude-plugin"
+  run sh "$R/skills/groma/scripts/materialize.sh" --agents claude "$R"
+  [ "$status" -eq 1 ]
+  assert_output_contains "source repository"
+  [ ! -e "$R/.claude/skills" ]
+  [ ! -e "$R/.groma" ]
 }
 
 @test "a symlinked skill folder or subfolder is a conflict and is never written into" {
@@ -506,6 +589,23 @@ stub_claude() { # <plugin list output>
   [ -f "$P/.claude/skills/groma-survey/SKILL.md" ]
 }
 
+@test "killed while writing: the next run owns the files already written" {
+  # cp that kills the script after 30 copies into the project
+  printf '#!/bin/sh\n/bin/cp "$@"\ncase "$*" in *"%s/"*) n=$(cat "%s" 2>/dev/null || echo 0); n=$((n + 1)); echo $n > "%s"; [ $n -lt 30 ] || kill -9 $PPID ;; esac\nexit 0\n' "$P" "$W/n" "$W/n" > "$W/stubs/cp"
+  chmod +x "$W/stubs/cp"
+  run sh "$M" --agents claude "$P"
+  [ "$status" -ne 0 ]
+  rm "$W/stubs/cp"
+  [ "$(find "$P/.claude" -type f | wc -l | tr -d ' ')" -ge 29 ]
+  [ -f "$P/.groma/generated.json" ]
+  run sh "$M" --agents claude "$P"
+  [ "$status" -eq 0 ]
+  assert_output_contains "updated=0	removed=0	edited=0	conflicts=0"
+  run sh "$M" --update --agents claude "$P"
+  [ "$output" = "summary	created=0	updated=0	removed=0	edited=0	conflicts=0	agents=claude	version=$VERSION	dry_run=0" ]
+  [ -z "$(find "$P/.claude" -name '.groma-tmp*')" ]
+}
+
 @test "generatedBy: the script writes the same bytes as the CLI for odd frontmatter" {
   command -v node >/dev/null 2>&1 || skip "node not installed"
   S="$W/odd/skills"
@@ -530,6 +630,7 @@ stub_claude() { # <plugin list output>
   c nofm '# title\n\n---\nname: x\n---\n'
   c unclosed '---\nname: x\nbody\n'
   c latemeta '---\nname: x\n---\nmetadata:\n---\n'
+  c hasgenlater '---\nname: x\nmetadata:\n  a: b\n  generatedBy: groma@0.1.0\n  c: d\n---\nbody\n'
   c blank '\n---\nname: x\n---\n'
   c onlydash '---\n'
   run sh "$S/groma/scripts/materialize.sh" --agents claude "$P"
@@ -620,4 +721,38 @@ same_result() { # <cli project> <script project>
   [ -f "$B/.claude/skills/groma-gone/SKILL.md" ]
   grep -q 'groma-gone/SKILL.md' "$B/.groma/generated.json"
   [ "$(cat "$B/.github/skills/groma-survey/SKILL.md")" = 'my edit' ]
+}
+
+@test "parity: a skills folder linked to another one inside the project" {
+  command -v node >/dev/null 2>&1 || skip "node not installed"
+  for c in npx openspec; do
+    printf '#!/bin/sh\nexit 0\n' > "$W/stubs/$c"
+    chmod +x "$W/stubs/$c"
+  done
+  A="$W/cli-link"
+  B="$W/sh-link"
+  for d in "$A" "$B"; do
+    mkdir -p "$d/.agents/skills" "$d/.claude"
+    ln -s ../.agents/skills "$d/.claude/skills"
+  done
+  run node "$GROMA" init "$A" --agents claude,codex --methodology none --skills none --yes
+  [ "$status" -eq 0 ]
+  run sh "$M" --agents claude,codex "$B"
+  [ "$status" -eq 0 ]
+  diff -r "$A/.agents" "$B/.agents"
+  cmp "$A/.groma/generated.json" "$B/.groma/generated.json"
+  grep -q '".claude/skills/groma/SKILL.md"' "$B/.groma/generated.json"
+  for d in "$A" "$B"; do
+    P=$d
+    printf 'old version' > "$d/.agents/skills/groma-detect/SKILL.md"
+    record .agents/skills/groma-detect/SKILL.md 'old version'
+    record .claude/skills/groma-detect/SKILL.md 'old version'
+  done
+  run node "$GROMA" update "$A" --yes
+  [ "$status" -eq 0 ]
+  run sh "$M" --update --agents claude,codex "$B"
+  [ "$status" -eq 0 ]
+  assert_output_contains "edited=0	conflicts=0"
+  diff -r "$A/.agents" "$B/.agents"
+  cmp "$A/.groma/generated.json" "$B/.groma/generated.json"
 }

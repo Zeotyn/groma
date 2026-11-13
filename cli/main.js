@@ -26,6 +26,7 @@ Options for init and update:
   --print                       write commands to .groma/install.sh instead of running them
   --dry-run                     show planned files and commands, change nothing
   --force                       update: replace generated files you edited
+  --allow-downgrade             replace skill copies of a newer groma with this version
 
   -h, --help                    show this help
   -v, --version                 print the groma version
@@ -49,6 +50,7 @@ const OPTIONS = {
   print: { type: 'boolean' },
   'dry-run': { type: 'boolean' },
   force: { type: 'boolean' },
+  'allow-downgrade': { type: 'boolean' },
   short: { type: 'boolean' },
   json: { type: 'boolean' },
 };

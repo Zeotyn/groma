@@ -119,7 +119,7 @@ test('update makes no copies when the user declined them (skills_copy skipped, n
   assert.match(r.out, /declined/);
 });
 
-test('update refuses to downgrade copies of a newer groma; --force goes on', async () => {
+test('update refuses to downgrade copies of a newer groma; --force alone too, --allow-downgrade goes on', async () => {
   const { p, s } = await initProject();
   const f = join(p, '.groma/generated.json');
   const before = readFileSync(f, 'utf8').replace(/"generatedBy": "[^"]+"/, '"generatedBy": "groma@99.0.0"');
@@ -128,5 +128,37 @@ test('update refuses to downgrade copies of a newer groma; --force goes on', asy
   assert.equal(r.code, 1);
   assert.match(r.err, /99\.0\.0.*newer/);
   assert.equal(readFileSync(f, 'utf8'), before);
-  assert.equal((await run(['update', p, '--yes', '--force'], { env: s.env })).code, 0);
+  // --force alone still refuses a downgrade
+  const forced = await run(['update', p, '--yes', '--force'], { env: s.env });
+  assert.equal(forced.code, 1);
+  assert.match(forced.err, /--allow-downgrade/);
+  assert.equal(readFileSync(f, 'utf8'), before);
+  const doc = await run(['doctor', p], { env: s.env });
+  assert.match(doc.out, /newer than this CLI.*groma-cli@latest/);
+  assert.equal((await run(['update', p, '--yes', '--allow-downgrade'], { env: s.env })).code, 0);
+});
+
+test('init refuses before any question when the copies come from a newer groma', async () => {
+  const p = tmp();
+  write(p, '.groma/generated.json', JSON.stringify({ generatedBy: 'groma@99.0.0', files: {} }));
+  let asked = 0;
+  const ask = async (q) => { asked++; return q.recommended; };
+  const r = await run(['init', p, '--agents', 'claude'], { env: stubs().env, isTTY: true, ask });
+  assert.equal(r.code, 1);
+  assert.equal(asked, 0);
+  assert.match(r.err, /--allow-downgrade/);
+  const ok = await run(['init', p, '--agents', 'claude', '--methodology', 'none', '--skills', 'none', '--yes', '--allow-downgrade'], { env: stubs().env });
+  assert.equal(ok.code, 0, ok.err);
+});
+
+test('update --dry-run names why a file would be removed', async () => {
+  const { p, s } = await initProject();
+  const f = join(p, '.groma/generated.json');
+  const gen = JSON.parse(readFileSync(f, 'utf8'));
+  write(p, '.claude/skills/groma-detect/old.md', 'old');
+  const { createHash } = await import('node:crypto');
+  gen.files['.claude/skills/groma-detect/old.md'] = createHash('sha256').update('old').digest('hex');
+  writeFileSync(f, JSON.stringify(gen));
+  const r = await run(['update', p, '--yes', '--dry-run'], { env: s.env });
+  assert.match(r.out, /groma-detect\/old\.md \(remove, no longer part of groma-detect\)/);
 });

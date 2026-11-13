@@ -25,7 +25,7 @@ export default async function update({ project, flags, io, say }) {
   const declined = cfg.steps?.skills_copy === 'skipped' && !existsSync(join(project, GENERATED));
   const agents = declined ? [] : (cfg.agents ?? []).filter((a) => !viaPlugin.includes(a));
   const generated = readGenerated(project);
-  const refusal = downgrade(generated, data.version, !!flags.force);
+  const refusal = downgrade(generated, data.version, !!flags['allow-downgrade']);
   if (refusal) {
     io.stderr.write(`${refusal}\n`);
     return EXIT.error;
@@ -36,7 +36,7 @@ export default async function update({ project, flags, io, say }) {
   if (flags['dry-run']) {
     say('Dry run: nothing is written or run.\n\nWould write:');
     for (const w of plan.writes) say(`  ${w.path} (${w.kind})`);
-    for (const r of plan.removals) say(`  ${r} (remove, retired)`);
+    for (const r of plan.removals) say(`  ${r} (remove, ${plan.reasons[r]})`);
     if (pendingSteps.length) say(`Would re-run pending steps: ${pendingSteps.join(', ')}`);
     skillSummary(say, plan);
     return EXIT.ok;

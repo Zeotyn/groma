@@ -132,6 +132,12 @@ export default async function init({ project, flags, io, say }) {
     io.stderr.write(`${CONFIG} exists: this project is initialized. Run: npx groma-cli update\n`);
     return EXIT.error;
   }
+  // before any question: copies of a newer groma are not replaced by older ones
+  const refusal = downgrade(readGenerated(project), data.version, !!flags['allow-downgrade']);
+  if (refusal) {
+    io.stderr.write(`${refusal}\n`);
+    return EXIT.error;
+  }
   const type = projectType(project);
   const p = prompts(io, flags);
   try {
@@ -149,11 +155,6 @@ export default async function init({ project, flags, io, say }) {
       else viaPlugin = ['claude'];
     }
     const skillAgents = answers.agents.filter((a) => !viaPlugin.includes(a));
-    const refusal = downgrade(readGenerated(project), data.version, false);
-    if (refusal) {
-      io.stderr.write(`${refusal}\n`);
-      return EXIT.error;
-    }
     const plan = planSkills({ project, agents: skillAgents, data, generated: readGenerated(project) });
 
     if (flags['dry-run']) {

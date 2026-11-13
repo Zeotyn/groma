@@ -3,7 +3,7 @@
 # `groma init` and `groma update` (cli/skills.js): a file is groma's to replace
 # only when .groma/generated.json lists it and its hash still matches.
 #
-# Usage: materialize.sh [--update] [--dry-run] [--force] [--agents <a,b>] [--skills <s,t>] <project>
+# Usage: materialize.sh [--update] [--dry-run] [--force] [--allow-downgrade] [--agents <a,b>] [--skills <s,t>] <project>
 #   --agents   agents from agents.yaml whose skill folder gets the copies.
 #              Required, except with --update: then the default is `agents`
 #              minus `agents_via_plugin` from <project>/.groma/config.yaml
@@ -11,16 +11,19 @@
 #              does nothing when the config says `steps.skills_copy: skipped`
 #              and no .groma/generated.json exists (the user declined the copy)
 #   --dry-run  print the plan, write nothing
-#   --force    also replace generated files the user edited, and go on when
-#              the project's copies come from a newer groma
+#   --force    also replace generated files the user edited
+#   --allow-downgrade  go on when the project's copies come from a newer groma
+#              (they are replaced by this, older version)
 #   --skills   copy only these skill folders (default: every groma skill
 #              folder installed next to this script's skill)
 #
 # Source: the folders `groma` and `groma-*` with a SKILL.md next to this
 # script's skill folder; version from ../VERSION, skill folders per agent from
 # ../agents.yaml, retired skills from ../retired-skills.txt. Needs `sha256sum`
-# or `shasum`. The source must lie outside <project>: a project's own copies
-# cannot refresh themselves (exit 1).
+# or `shasum`. The source must be groma itself, not a copy groma made: a
+# source whose SKILL.md carries `generatedBy` is refused (exit 1), and so is
+# groma's own repository as the project. An agent skills folder of the project
+# that is the source folder itself is skipped with a note.
 #
 # Writes only below <agent skills_dir>/groma*/ and .groma/generated.json:
 #   - missing file: created
@@ -59,14 +62,15 @@ GENERATED=.groma/generated.json
 CONFIG=.groma/config.yaml
 DISABLE_CMD="claude plugin disable groma@groma --scope local"
 
-usage() { echo "usage: materialize.sh [--update] [--dry-run] [--force] [--agents <a,b>] [--skills <s,t>] <project>" >&2; exit 2; }
+usage() { echo "usage: materialize.sh [--update] [--dry-run] [--force] [--allow-downgrade] [--agents <a,b>] [--skills <s,t>] <project>" >&2; exit 2; }
 
-UPDATE=0 DRY=0 FORCE=0 AGENTS="" ONLY="" PROJECT=""
+UPDATE=0 DRY=0 FORCE=0 DOWNGRADE=0 AGENTS="" ONLY="" PROJECT=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --update) UPDATE=1; shift ;;
     --dry-run) DRY=1; shift ;;
     --force) FORCE=1; shift ;;
+    --allow-downgrade) DOWNGRADE=1; shift ;;
     --agents) [ $# -ge 2 ] || usage; AGENTS=$2; shift 2 ;;
     --skills) [ $# -ge 2 ] || usage; ONLY=$2; shift 2 ;;
     -*) echo "unknown option: $1" >&2; usage ;;
@@ -95,14 +99,30 @@ summary() { # created updated removed edited conflicts
   printf 'summary\tcreated=%d\tupdated=%d\tremoved=%d\tedited=%d\tconflicts=%d\tagents=%s\tversion=%s\tdry_run=%d\n' "$1" "$2" "$3" "$4" "$5" "$AGENTS" "$VERSION" "$DRY"
 }
 
-# A project's own copies are not a source: they carry the user's edits and
-# files, which would spread to other agents' folders as groma content.
-refuse_source() {
-  echo "the groma skills at $SRC are inside the project: its own copies cannot refresh themselves." >&2
-  echo "Run groma from outside the project instead: the Claude plugin (claude plugin update groma), a global install (npx skills add Zeotyn/groma --all -g), or the CLI (npx groma-cli update)." >&2
-  exit 1
+# 0 when both paths are the same folder (links and spellings resolved)
+same_file() { # a b
+  [ -d "$1" ] && [ -d "$2" ] || return 1
+  # shellcheck disable=SC2012
+  [ "$(ls -di "$1/." 2>/dev/null | awk '{ print $1 }')" = "$(ls -di "$2/." 2>/dev/null | awk '{ print $1 }')" ] || return 1
+  [ "$(df -P "$1" | awk 'NR == 2 { print $1 }')" = "$(df -P "$2" | awk 'NR == 2 { print $1 }')" ]
 }
-case "$SRC/" in "$PROJECT"/*) refuse_source ;; esac
+
+# The source must be groma itself. Copies that groma made carry generatedBy in
+# their SKILL.md, wherever they lie and however their path is spelled; they
+# hold the user's edits and files, which must not spread as groma content.
+if [ -f "$HERE/../SKILL.md" ] && LC_ALL=C awk '
+    NR == 1 { if ($0 != "---") exit 1; next }
+    /^---/ && NR > 2 { exit 1 }
+    /^[ \t]+generatedBy:/ { found = 1; exit 0 }
+    END { exit !found }' "$HERE/../SKILL.md"; then
+  echo "the groma skills at $SRC are a copy that groma made for a project (their SKILL.md carries generatedBy): copies cannot refresh themselves or serve as a source." >&2
+  echo "Use groma itself instead: the Claude plugin (claude plugin update groma), npx skills add Zeotyn/groma --all, or the CLI (npx groma-cli update)." >&2
+  exit 1
+fi
+if same_file "$SRC" "$PROJECT/skills"; then
+  echo "$PROJECT is groma's source repository (its skills/ folder is the source of this run): nothing to copy here." >&2
+  exit 1
+fi
 
 # --- agents ------------------------------------------------------------------
 # A list value of the config, inline ([a, b]) or block (- a), one item per line.
@@ -131,7 +151,11 @@ fi
 
 # The user declined the project copy and none exists: an update makes none.
 if [ "$UPDATE" -eq 1 ] && [ -f "$PROJECT/$CONFIG" ] && [ ! -e "$PROJECT/$GENERATED" ]; then
-  state=$(awk '/^[^ \t#]/ { steps = ($0 ~ /^steps:/) } steps && /^  skills_copy:/ { print $2; exit }' "$PROJECT/$CONFIG")
+  state=$(awk '
+    /^[^ \t#]/ { steps = ($0 ~ /^steps:/) }
+    steps && match($0, /(^  |[{,][ \t]*)skills_copy:[ \t]*["\047]?[a-z]+/) {
+      v = substr($0, RSTART, RLENGTH); sub(/.*skills_copy:[ \t]*["\047]?/, "", v); print v; exit
+    }' "$PROJECT/$CONFIG")
   if [ "$state" = skipped ]; then
     printf 'note\tsteps.skills_copy is skipped: the copy was declined, nothing to refresh\n'
     summary 0 0 0 0 0
@@ -140,15 +164,23 @@ if [ "$UPDATE" -eq 1 ] && [ -f "$PROJECT/$CONFIG" ] && [ ! -e "$PROJECT/$GENERAT
 fi
 
 # No downgrade: copies of a newer groma are not replaced by older ones.
-if [ -s "$PROJECT/$GENERATED" ] && [ "$FORCE" -eq 0 ]; then
-  theirs=$(sed -n 's/.*"generatedBy"[[:space:]]*:[[:space:]]*"groma@\([^"]*\)".*/\1/p' "$PROJECT/$GENERATED" | head -n 1)
-  if [ -n "$theirs" ] && awk -v a="$theirs" -v b="$VERSION" 'BEGIN {
-      split(a, x, /[.-]/); split(b, y, /[.-]/)
-      for (i = 1; i <= 3; i++) { if (x[i] + 0 > y[i] + 0) exit 0; if (x[i] + 0 < y[i] + 0) exit 1 }
-      exit 1 }'; then
-    echo "$GENERATED was written by groma@$theirs, which is newer than this groma ($VERSION): update groma first, or pass --force to go back to $VERSION" >&2
-    exit 1
-  fi
+# A pre-release (1.2.3-rc.1) is older than its release (1.2.3).
+OLD_TAG=""
+if [ -s "$PROJECT/$GENERATED" ]; then
+  OLD_TAG=$(sed -n 's/.*"generatedBy"[[:space:]]*:[[:space:]]*"\(groma@[^"]*\)".*/\1/p' "$PROJECT/$GENERATED" | head -n 1)
+fi
+if [ -n "$OLD_TAG" ] && [ "$DOWNGRADE" -eq 0 ] && awk -v a="${OLD_TAG#groma@}" -v b="$VERSION" 'BEGIN {
+    pa = a; pb = b
+    if (sub(/^[^-]*-/, "", pa) == 0) pa = ""
+    if (sub(/^[^-]*-/, "", pb) == 0) pb = ""
+    sub(/-.*/, "", a); sub(/-.*/, "", b)
+    split(a, x, "."); split(b, y, ".")
+    for (i = 1; i <= 3; i++) { if (x[i] + 0 > y[i] + 0) exit 0; if (x[i] + 0 < y[i] + 0) exit 1 }
+    if (pa == pb) exit 1
+    if (pa == "" || pb == "") exit (pa == "" ? 0 : 1)
+    exit (pa > pb ? 0 : 1) }'; then
+  echo "$GENERATED was written by $OLD_TAG, which is newer than this groma ($VERSION): update groma first. Only to go back to $VERSION on purpose, pass --allow-downgrade" >&2
+  exit 1
 fi
 
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/groma-materialize.XXXXXX")
@@ -177,24 +209,30 @@ real_inside() { # rel
 
 : > "$WORK/dirs"
 : > "$WORK/blocked"
+: > "$WORK/source-dirs"
 has_claude=0
 for a in $(printf '%s' "$AGENTS" | tr ',' ' '); do
   d=$(awk -F "$TAB" -v a="$a" '$1 == a { print $2; exit }' "$WORK/agent-table")
   [ -n "$d" ] || { echo "unknown agent: $a (known: $(cut -f1 "$WORK/agent-table" | tr '\n' ' ' | sed 's/ $//'))" >&2; exit 2; }
   [ "$a" != claude ] || has_claude=1
-  if grep -qxF "$d" "$WORK/dirs" "$WORK/blocked"; then continue; fi
+  if grep -qxF "$d" "$WORK/dirs" "$WORK/blocked" "$WORK/source-dirs"; then continue; fi
   if [ -z "$(real_inside "$d")" ]; then
     # a symbolic link leads out of the project: never write there
     printf '%s\n' "$d" >> "$WORK/blocked"
+    continue
+  fi
+  if same_file "$SRC" "$PROJECT/$d"; then
+    # this folder is the source of the run: nothing to copy onto itself
+    printf '%s\n' "$d" >> "$WORK/source-dirs"
     continue
   fi
   printf '%s\n' "$d" >> "$WORK/dirs"
 done
 
 # --- source: staged copies with generatedBy ----------------------------------
-# Mirrors addGeneratedBy byte for byte: the line goes below the first
-# `metadata:` key of the frontmatter, or a new `metadata:` block goes before
-# the closing `---`. A file that does not start with the bytes `---\n` (a BOM,
+# Mirrors addGeneratedBy byte for byte: the line replaces an existing
+# `  generatedBy:` line of the frontmatter, else goes below the first
+# `metadata:` key, else a new `metadata:` block goes before the closing `---`. A file that does not start with the bytes `---\n` (a BOM,
 # CRLF, no frontmatter) is copied unchanged.
 add_generated_by() { # file tag
   if [ "$(head -c 4 "$1" | od -An -tx1 | tr -d ' \n')" != 2d2d2d0a ]; then cat "$1"; return 0; fi
@@ -203,14 +241,16 @@ add_generated_by() { # file tag
     function put(s) { printf "%s%s", (out++ ? "\n" : ""), s }
     { line[NR] = $0 }
     END {
-      n = NR; close_at = 0; meta = 0
+      n = NR; close_at = 0; meta = 0; old = 0
       for (i = 3; i <= n; i++) if (substr(line[i], 1, 3) == "---") { close_at = i; break }
       # the closing line must be followed by a line break only when it is the
       # last line; the metadata key needs its line break inside the head
-      if (close_at) for (i = 2; i < close_at; i++) if (line[i] ~ /^metadata:[ \t]*$/) { meta = i; break }
+      if (close_at) for (i = 1; i < close_at; i++) if (line[i] ~ /^  generatedBy:/) { old = i; break }
+      if (close_at && !old) for (i = 2; i < close_at; i++) if (line[i] ~ /^metadata:[ \t]*$/) { meta = i; break }
       out = 0
       for (i = 1; i <= n; i++) {
-        if (close_at && !meta && i == close_at) { put("metadata:"); put("  generatedBy: " tag) }
+        if (i == old) { put("  generatedBy: " tag); continue }
+        if (close_at && !old && !meta && i == close_at) { put("metadata:"); put("  generatedBy: " tag) }
         put(line[i])
         if (meta && i == meta) put("  generatedBy: " tag)
       }
@@ -294,7 +334,6 @@ fi
 : > "$WORK/links"
 while IFS= read -r d; do
   [ -d "$PROJECT/$d" ] || continue
-  case "$SRC/" in "$(real_inside "$d")"/*) refuse_source ;; esac
   (cd "$PROJECT" && hash_files -H "$d" -path "$d/groma*" | awk -F "$TAB" '{ printf "%s\t%s\n", $2, $1 }') >> "$WORK/current"
   (cd "$PROJECT" && find -H "$d" -path "$d/groma*" -type l) >> "$WORK/links"
   while IFS= read -r s; do
@@ -374,16 +413,16 @@ awk -F "$TAB" -v force="$FORCE" '
 # --- apply ---------------------------------------------------------------------
 # generated.json from the plan. Writes that are not listed in <done> count as
 # not made: a create has no record, an update or removal keeps its old record.
-write_generated() { # done-file | "" (everything was written)
+write_generated() { # done-file | "" (everything was written), generatedBy
   awk -F "$TAB" -v all="$([ -n "$1" ] && echo 0 || echo 1)" '
     FILENAME == ARGV[1] { done[$1] = 1; next }
     FILENAME == ARGV[2] { known[$1] = $2; next }
     $1 == "conflict" { next }
     $1 == "remove" { if (!all && !($2 in done)) printf "%s\t%s\n", $2, $3; next }
-    ($1 == "create" || $1 == "update") && !all && !($2 in done) { if ($1 == "update") printf "%s\t%s\n", $2, known[$2]; next }
+    $1 == "update" && !all && !($2 in done) { printf "%s\t%s\n", $2, known[$2]; next }
     { printf "%s\t%s\n", $2, $3 }
   ' "${1:-/dev/null}" "$WORK/known" "$WORK/plan" | LC_ALL=C sort -t "$TAB" -k 1,1 \
-    | awk -F "$TAB" -v tag="$TAG" '
+    | awk -F "$TAB" -v tag="$2" '
       function esc(s) { gsub(/\\/, "\\\\", s); gsub(/"/, "\\\"", s); return s }
       { path[NR] = $1; hash[NR] = $2 }
       END {
@@ -400,20 +439,30 @@ write_generated() { # done-file | "" (everything was written)
   cat "$WORK/generated.json" > "$PROJECT/$GENERATED"
 }
 
+# generated.json is written before the first file is touched: planned creates
+# at their new hash, updates and removals at their old one, under the old
+# generatedBy. A run that fails or is killed midway leaves every file it wrote
+# recorded, so the next run owns it. Each file is copied beside its place and
+# renamed, so no half-written file appears under its name.
 if [ "$DRY" -eq 0 ]; then
   : > "$WORK/done"
-  # a write that fails stops the run; the files written so far stay recorded
-  trap 'if [ -f "$WORK/applying" ]; then write_generated "$WORK/done" || true; echo "stopped while writing: $GENERATED records the files written so far, run again after fixing the cause" >&2; fi; rm -rf "$WORK"' EXIT
+  if grep -Eq "^(create|update|remove)$TAB" "$WORK/plan"; then
+    write_generated "$WORK/done" "${OLD_TAG:-$TAG}"
+  fi
+  trap 'if [ -f "$WORK/applying" ]; then write_generated "$WORK/done" "${OLD_TAG:-$TAG}" || true; echo "stopped while writing: $GENERATED records the files written so far, run again after fixing the cause" >&2; fi; rm -rf "$WORK"' EXIT
   : > "$WORK/applying"
   while IFS="$TAB" read -r action path _ src; do
+    [ -n "$path" ] || continue
+    dst="${PROJECT:?}/${path:?}"
     case "$action" in
       create|update)
-        mkdir -p "$(dirname "$PROJECT/$path")"
-        rm -f "$PROJECT/$path"
-        cp -p "$STAGE/$src" "$PROJECT/$path"
+        tmp="$(dirname "$dst")/.groma-tmp-$(basename "$dst")"
+        mkdir -p "$(dirname "$dst")"
+        cp -p "$STAGE/$src" "$tmp"
+        mv -f "$tmp" "$dst"
         ;;
       remove)
-        rm -f "$PROJECT/$path"
+        unlink "$dst"
         # drop folders the removal left empty, up to the skill folder
         d=$(dirname "$path")
         while [ "$(printf '%s' "$d" | tr -cd '/' | wc -c)" -ge 2 ] && rmdir "$PROJECT/$d" 2>/dev/null; do
@@ -424,11 +473,14 @@ if [ "$DRY" -eq 0 ]; then
     esac
     printf '%s\n' "$path" >> "$WORK/done"
   done < "$WORK/plan"
-  write_generated ""
-  rm -f "$WORK/applying"
+  write_generated "" "$TAG"
+  unlink "$WORK/applying"
 fi
 
 # --- report --------------------------------------------------------------------
+while IFS= read -r d; do
+  printf 'note\t%s is the source folder of this run, nothing is copied onto it\n' "$d"
+done < "$WORK/source-dirs"
 awk -F "$TAB" '$1 != "same" && $1 != "carry" { printf "%s\t%s\n", $1, $2 }' "$WORK/plan"
 
 # The groma Claude plugin and a project copy list every skill twice (ADR 0050).

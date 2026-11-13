@@ -66,9 +66,12 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
 
 The groma skills belong into the project, so a teammate who clones the repository gets them. [scripts/materialize.sh](scripts/materialize.sh) copies the groma skill folders installed next to this one into each agent's project skill folder, with the rules of `npx groma-cli init`: copied `SKILL.md` files carry `metadata.generatedBy: groma@<version>`, every file is recorded with its SHA-256 in `.groma/generated.json`, and a file or folder groma did not create is never touched. Never copy or edit skill files yourself; when the script fails (for example neither `sha256sum` nor `shasum` exists), report its message and leave `steps.skills_copy` as it was.
 
-The script refuses in two cases (exit 1, nothing written); do not work around either:
-- **The skills you run are the project's own copies** (message "inside the project"): a teammate without the plugin runs `/groma` from `.claude/skills/groma/`. Copies cannot refresh themselves. Tell the user the copies stay as they are and how to update them: install or update groma outside the project (`claude plugin update groma`, or `npx skills add Zeotyn/groma --all -g`) and run `/groma` again, or run `npx groma-cli update` in a terminal. Go on with the other steps.
-- **The project's copies come from a newer groma** (message "newer than this groma"): tell the user to update their groma first. Do not pass `--force`.
+The script refuses in three cases (exit 1, nothing written); do not work around any of them:
+- **The skills you run are a copy that groma made** (message "a copy that groma made"): for example a teammate without the plugin runs `/groma` from the project's `.claude/skills/groma/`. Copies cannot refresh themselves. Tell the user the copies stay as they are and how to update them: install or update groma itself (`claude plugin update groma`, or `npx skills add Zeotyn/groma --all`) and run `/groma` again, or run `npx groma-cli update` in a terminal. Go on with the other steps.
+- **The project's copies come from a newer groma** (message "newer than this groma"): tell the user to update their groma first. Never pass `--allow-downgrade`, unless the user explicitly asks to go back to an older groma; `--force` does not lift this refusal.
+- **The project is groma's own repository** (message "source repository"): nothing to copy; set `steps.skills_copy: skipped`.
+
+When the skills you run were installed into the project with `npx skills add` (they lie in `.agents/skills/` without `generatedBy`), the script copies them to the other agents' folders, prints a `note` for the folder that is the source itself and `conflict` lines for the links `npx skills` created; that is expected, pass it on briefly.
 
 - **Init, in step 7.** When `steps.skills_copy` is `done` or `skipped` (set by `npx groma-cli init` or an earlier run), ask nothing. Otherwise ask once, in the user's language, with yes recommended: "Put the groma skills into the project so the team gets them with the repository?"
   - Yes: run `sh scripts/materialize.sh --agents <agents, comma-separated> <project>` and set `steps.skills_copy: done`.

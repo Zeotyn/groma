@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { SKILLS_SRC, version } from './data.js';
-import { readGenerated, sha256 } from './skills.js';
+import { readGenerated, sha256, newerThan } from './skills.js';
 import { EXIT } from './main.js';
 
 const sh = (script, args, env) => spawnSync('sh', [join(SKILLS_SRC, script), ...args], { encoding: 'utf8', env });
@@ -31,7 +31,9 @@ export default function doctor({ project, io, say }) {
   const gen = readGenerated(project);
   let warnings = 0;
   if (gen.generatedBy && gen.generatedBy !== `groma@${version()}`) {
-    say(`warning: skill copies are ${gen.generatedBy}, this CLI is groma@${version()}: run npx groma-cli update`);
+    say(newerThan(gen.generatedBy, version())
+      ? `warning: skill copies are ${gen.generatedBy}, newer than this CLI (groma@${version()}): use the current CLI, npx groma-cli@latest update`
+      : `warning: skill copies are ${gen.generatedBy}, this CLI is groma@${version()}: run npx groma-cli update`);
     warnings++;
   }
   for (const [path, hash] of Object.entries(gen.files)) {

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, symlinkSync, mkdirSync, chmodSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadData, SKILLS_SRC } from '../data.js';
 import { planSkills, applySkills, readGenerated, sha256, addGeneratedBy, newerThan } from '../skills.js';
@@ -19,6 +19,8 @@ function materialize(project, agents, opts = {}) {
 test('addGeneratedBy adds metadata to the frontmatter', () => {
   assert.equal(addGeneratedBy('---\nname: x\n---\nbody\n', 'groma@1.2.3'), '---\nname: x\nmetadata:\n  generatedBy: groma@1.2.3\n---\nbody\n');
   assert.equal(addGeneratedBy('---\nname: x\nmetadata:\n  a: b\n---\n', 'groma@1'), '---\nname: x\nmetadata:\n  generatedBy: groma@1\n  a: b\n---\n');
+  // an existing line is replaced, never doubled
+  assert.equal(addGeneratedBy('---\nname: x\nmetadata:\n  a: b\n  generatedBy: groma@0.1.0\n---\n', 'groma@1'), '---\nname: x\nmetadata:\n  a: b\n  generatedBy: groma@1\n---\n');
 });
 
 test('init copies every skill for claude and copilot with generatedBy and hashes', () => {
@@ -123,6 +125,11 @@ test('newerThan compares generatedBy with the suite version', () => {
   assert.equal(newerThan('groma@0.4.0', '0.4.0'), false);
   assert.equal(newerThan('groma@0.3.9', '0.4.0'), false);
   assert.equal(newerThan(null, '0.4.0'), false);
+  // a pre-release is older than its release
+  assert.equal(newerThan('groma@0.4.0', '0.4.0-rc.1'), true);
+  assert.equal(newerThan('groma@0.4.0-rc.1', '0.4.0'), false);
+  assert.equal(newerThan('groma@0.4.0-rc.2', '0.4.0-rc.1'), true);
+  assert.equal(newerThan('groma@0.4.1-rc.1', '0.4.0'), true);
 });
 
 test('an unchanged copy needs no write', () => {
@@ -165,4 +172,69 @@ test('a file already holding the new content is not reported as edited', () => {
   const plan = materialize(p, ['claude']);
   assert.deepEqual(plan.edited, []);
   assert.equal(readGenerated(p).files['.claude/skills/groma/SKILL.md'], sha256(readFileSync(join(p, '.claude/skills/groma/SKILL.md'))));
+});
+
+test('a skills folder that leads out of the project is a conflict, nothing is written there', () => {
+  const p = tmp();
+  const outside = tmp();
+  mkdirSync(join(p, '.claude'));
+  symlinkSync(outside, join(p, '.claude/skills'));
+  symlinkSync(outside, join(p, '.github'));
+  const plan = materialize(p, ['claude', 'copilot', 'codex']);
+  assert.deepEqual(plan.conflicts, ['.claude/skills', '.github/skills']);
+  assert.deepEqual(readdirSync(outside), []);
+  assert.ok(existsSync(join(p, '.agents/skills/groma/SKILL.md')));
+  assert.ok(!Object.keys(readGenerated(p).files).some((f) => !f.startsWith('.agents/')));
+});
+
+test('a symlinked skill folder or subfolder is a conflict and is never written into', () => {
+  const p = tmp();
+  const fork = tmp();
+  materialize(p, ['claude']);
+  renameSync(join(p, '.claude/skills/groma-survey'), join(fork, 'groma-survey'));
+  symlinkSync(join(fork, 'groma-survey'), join(p, '.claude/skills/groma-survey'));
+  renameSync(join(p, '.claude/skills/groma-detect/scripts'), join(fork, 'scripts'));
+  symlinkSync(join(fork, 'scripts'), join(p, '.claude/skills/groma-detect/scripts'));
+  write(fork, 'groma-survey/SKILL.md', 'theirs');
+  write(fork, 'scripts/detect.sh', 'theirs');
+  const plan = materialize(p, ['claude'], { force: true });
+  assert.deepEqual(plan.conflicts, ['.claude/skills/groma-detect/scripts', '.claude/skills/groma-survey']);
+  assert.deepEqual(plan.writes, []);
+  assert.deepEqual(plan.removals, []);
+  assert.equal(readFileSync(join(fork, 'groma-survey/SKILL.md'), 'utf8'), 'theirs');
+  assert.equal(readFileSync(join(fork, 'scripts/detect.sh'), 'utf8'), 'theirs');
+  assert.ok('.claude/skills/groma-survey/SKILL.md' in readGenerated(p).files);
+});
+
+test('a skills folder linked to another one inside the project works', () => {
+  const p = tmp();
+  mkdirSync(join(p, '.agents/skills'), { recursive: true });
+  mkdirSync(join(p, '.claude'));
+  symlinkSync('../.agents/skills', join(p, '.claude/skills'));
+  const plan = materialize(p, ['claude', 'codex']);
+  assert.deepEqual(plan.conflicts, []);
+  assert.ok(existsSync(join(p, '.agents/skills/groma/SKILL.md')));
+  const again = materialize(p, ['claude', 'codex']);
+  assert.deepEqual([again.writes.length, again.edited.length, again.conflicts.length], [0, 0, 0]);
+});
+
+test('a write that fails midway leaves the files already written recorded', () => {
+  const p = tmp();
+  materialize(p, ['claude']);
+  const before = readGenerated(p);
+  before.generatedBy = 'groma@0.0.1';
+  write(p, '.groma/generated.json', JSON.stringify(before));
+  rmSync(join(p, '.claude/skills/groma-agents'), { recursive: true });
+  rmSync(join(p, '.claude/skills/groma-survey/SKILL.md'));
+  chmodSync(join(p, '.claude/skills/groma-survey'), 0o555);
+  assert.throws(() => materialize(p, ['claude']));
+  chmodSync(join(p, '.claude/skills/groma-survey'), 0o755);
+  const gen = readGenerated(p);
+  // the failed run does not stamp its version
+  assert.equal(gen.generatedBy, 'groma@0.0.1');
+  assert.ok('.claude/skills/groma-agents/SKILL.md' in gen.files);
+  const plan = materialize(p, ['claude']);
+  assert.deepEqual(plan.conflicts, []);
+  assert.ok(existsSync(join(p, '.claude/skills/groma-survey/SKILL.md')));
+  assert.equal(readGenerated(p).generatedBy, tag);
 });

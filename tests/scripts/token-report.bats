@@ -56,10 +56,28 @@ report() { # file rows...
   [ "${lines[2]}" = "Next: npx groma-cli update" ]
 }
 
-@test "text prints nothing for a result without text or a missing file" {
+@test "row prints dashes for a result without token counts or cost" {
+  printf '{"type":"result","is_error":true,"total_cost_usd":0.5,"num_turns":3,"duration_ms":1000}\n' > "$BATS_TEST_TMPDIR/r.json"
+  run sh "$S" row empty "$BATS_TEST_TMPDIR/r.json"
+  [ "$output" = "empty${TAB}-${TAB}-${TAB}-${TAB}-${TAB}-${TAB}-${TAB}-" ]
+  printf '{"usage":{"input_tokens":5,"output_tokens":1}}\n' > "$BATS_TEST_TMPDIR/r.json"
+  run sh "$S" row empty "$BATS_TEST_TMPDIR/r.json"
+  [ "$output" = "empty${TAB}-${TAB}-${TAB}-${TAB}-${TAB}-${TAB}-${TAB}-" ]
+}
+
+@test "row prints a dash for missing turns or duration only" {
+  printf '{"total_cost_usd":0.5,"usage":{"input_tokens":5,"output_tokens":1}}\n' > "$BATS_TEST_TMPDIR/r.json"
+  run sh "$S" row empty "$BATS_TEST_TMPDIR/r.json"
+  [ "$output" = "empty${TAB}5${TAB}1${TAB}0${TAB}0${TAB}0.5000${TAB}-${TAB}-" ]
+}
+
+@test "text names subtype and is_error when the result has no text" {
   run sh "$S" text "$SAMPLES/result-budget.json"
   [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  [ "$output" = "no result text: subtype=error_max_budget_usd is_error=true" ]
+}
+
+@test "text prints nothing for a missing file" {
   run sh "$S" text "$BATS_TEST_TMPDIR/none.json"
   [ "$status" -eq 0 ]
   [ -z "$output" ]
@@ -93,7 +111,24 @@ report() { # file rows...
   run sh "$S" summary "$BATS_TEST_TMPDIR/r.tsv" "$BATS_TEST_TMPDIR/b.tsv"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "fixture${TAB}empty${TAB}no result${TAB}vs_baseline${TAB}-" ]
-  [ "${lines[2]}" = "summary${TAB}fixtures=2${TAB}no_result=1${TAB}input=200${TAB}output=20${TAB}cache_read=2000${TAB}cache_write=150${TAB}cost_usd=0.5000${TAB}turns=5${TAB}duration_s=40${TAB}vs_baseline${TAB}input=+0${TAB}output=+0${TAB}cache_read=+0${TAB}cache_write=+0${TAB}cost_usd=+0.0000" ]
+  [ "${lines[2]}" = "summary${TAB}fixtures=2${TAB}no_result=1${TAB}input=200${TAB}output=20${TAB}cache_read=2000${TAB}cache_write=150${TAB}cost_usd=0.5000${TAB}turns=5${TAB}duration_s=40${TAB}vs_baseline${TAB}-" ]
+}
+
+@test "summary says no baseline when the baseline row has no result" {
+  report "$BATS_TEST_TMPDIR/b.tsv" "empty - - - - - - -"
+  report "$BATS_TEST_TMPDIR/r.tsv" "empty 100 10 1000 50 1.5000 10 60"
+  run sh "$S" summary "$BATS_TEST_TMPDIR/r.tsv" "$BATS_TEST_TMPDIR/b.tsv"
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "fixture${TAB}empty${TAB}input=100${TAB}output=10${TAB}cache_read=1000${TAB}cache_write=50${TAB}cost_usd=1.5000${TAB}turns=10${TAB}duration_s=60${TAB}vs_baseline${TAB}no baseline" ]
+  # no fixture in common: no difference in the totals
+  [ "${lines[1]}" = "summary${TAB}fixtures=1${TAB}input=100${TAB}output=10${TAB}cache_read=1000${TAB}cache_write=50${TAB}cost_usd=1.5000${TAB}turns=10${TAB}duration_s=60${TAB}vs_baseline${TAB}-" ]
+}
+
+@test "summary shows a dash for missing turns and counts it as 0" {
+  report "$BATS_TEST_TMPDIR/r.tsv" "empty 100 10 1000 50 1.5000 - -" "go-no-db 200 20 2000 150 0.5000 5 40"
+  run sh "$S" summary "$BATS_TEST_TMPDIR/r.tsv"
+  [ "${lines[0]}" = "fixture${TAB}empty${TAB}input=100${TAB}output=10${TAB}cache_read=1000${TAB}cache_write=50${TAB}cost_usd=1.5000${TAB}turns=-${TAB}duration_s=-" ]
+  [ "${lines[2]}" = "summary${TAB}fixtures=2${TAB}input=300${TAB}output=30${TAB}cache_read=3000${TAB}cache_write=200${TAB}cost_usd=2.0000${TAB}turns=5${TAB}duration_s=40" ]
 }
 
 @test "usage errors exit 2" {
@@ -117,8 +152,15 @@ report() { # file rows...
   # the stub writes no files, so the assertions fail; the report is still written
   [ "$status" -eq 1 ]
   f=$(ls "$BATS_TEST_TMPDIR/reports"/[0-9]*.tsv)
+  case "$f" in */[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9].tsv) ;; *) false ;; esac
+  assert_output_contains "report: $f"
   [ "$(sed -n 2p "$f")" = "empty${TAB}3120${TAB}15200${TAB}900000${TAB}45000${TAB}1.2346${TAB}42${TAB}183" ]
   assert_output_contains "vs_baseline${TAB}input=+120"
   case "${lines[${#lines[@]}-1]}" in "summary${TAB}fixtures=1${TAB}"*) ;; *) false ;; esac
   grep -q "Next: npx groma-cli update" "$BATS_TEST_TMPDIR/work/empty.log"
+  # a second run writes its own report instead of overwriting the first
+  sleep 1
+  PATH="$BATS_TEST_TMPDIR/bin:$PATH" GROMA_EVAL_DIR="$BATS_TEST_TMPDIR/work" \
+    GROMA_EVAL_REPORTS="$BATS_TEST_TMPDIR/reports" run sh "$ROOT/tests/evals/run.sh" empty
+  [ "$(ls "$BATS_TEST_TMPDIR/reports"/[0-9]*.tsv | wc -l | tr -d ' ')" -eq 2 ]
 }

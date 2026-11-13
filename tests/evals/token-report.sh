@@ -1,6 +1,7 @@
 #!/bin/sh
 # Token report of the agent evals, from `claude -p --output-format json` results.
-# Read-only; never calls a model.
+# Read-only; never calls a model. Expects the single JSON object that
+# `-p --output-format json` prints, not stream-json or the array of --verbose.
 #
 # Usage: token-report.sh header
 #        token-report.sh row <fixture> <result.json>
@@ -10,14 +11,20 @@
 # header   prints the report's column line.
 # row      prints one report row: tokens summed over every model in `modelUsage`
 #          (else the top-level `usage`), `total_cost_usd` to four decimals,
-#          `num_turns`, `duration_ms` in whole seconds. A missing, empty or
-#          non-JSON result gives a row of `-`.
-# text     prints the `result` text, unescaped (for the eval log and assertions).
+#          `num_turns`, `duration_ms` in whole seconds. A result without token
+#          counts (`usage` or `modelUsage`) or without `total_cost_usd`, and a
+#          missing, empty or non-JSON file, give a row of `-`; a missing
+#          `num_turns` or `duration_ms` alone gives `-` in that column.
+# text     prints the `result` text, unescaped (`\uXXXX` stays as is), for the
+#          eval log and assertions. A JSON result without a `result` text gives
+#          one line `no result text: subtype=<s> is_error=<b>`.
 # summary  reads a report (and a baseline report in the same format) and prints
 #          one line per fixture, then the totals. With a baseline every line adds
-#          `vs_baseline` and the token and cost difference, or `new` for a
-#          fixture the baseline lacks; the totals compare only fixtures present
-#          in both with a result.
+#          `vs_baseline` and the token and cost difference, `new` for a
+#          fixture the baseline lacks, or `no baseline` when its baseline row
+#          is `-`; the totals compare only fixtures present in both with a
+#          result (`vs_baseline<TAB>-` when there is none). A `-` in turns or
+#          duration counts as 0 in the totals.
 #
 # Report columns (tab-separated, first line is the header):
 #   fixture input_tokens output_tokens cache_read_tokens cache_write_tokens cost_usd turns duration_s
@@ -28,7 +35,7 @@
 # Exit 0. Usage errors exit 2.
 set -eu
 
-usage() { sed -n '5,8p' "$0" | sed 's/^# //' >&2; exit 2; }
+usage() { sed -n '6,9p' "$0" | sed 's/^# //' >&2; exit 2; }
 
 # Walks a JSON document character by character and keeps the path of keys in
 # key[1..depth]; only values at known paths are used, so text inside strings
@@ -38,8 +45,11 @@ json_awk='
 function emit(v, isstr) {
   if (depth == 1) {
     k = key[1]
-    if (mode == "text" && k == "result" && isstr) text = v
-    else if (k == "total_cost_usd") { cost = v; seen = 1 }
+    obj = 1
+    if (k == "result" && isstr) text = v
+    else if (k == "subtype") subtype = v
+    else if (k == "is_error") is_error = v
+    else if (k == "total_cost_usd") { cost = v; has_cost = 1 }
     else if (k == "num_turns") turns = v
     else if (k == "duration_ms") dur = v
   } else if (depth == 2 && key[1] == "usage") {
@@ -92,23 +102,33 @@ END {
     }
     else i++
   }
-  if (mode == "text") { if (text != "") print text; exit }
-  if (!seen) { print fx "\t-\t-\t-\t-\t-\t-\t-"; exit }
+  if (mode == "text") {
+    if (text != "") print text
+    else if (obj) print "no result text: subtype=" (subtype == "" ? "-" : subtype) " is_error=" (is_error == "" ? "-" : is_error)
+    exit
+  }
+  if (!seen || !has_cost) { print fx "\t-\t-\t-\t-\t-\t-\t-"; exit }
   if (!models) { m_in = u_in; m_out = u_out; m_cr = u_cr; m_cw = u_cw }
-  printf "%s\t%d\t%d\t%d\t%d\t%.4f\t%d\t%d\n", fx, m_in, m_out, m_cr, m_cw, cost, turns, int(dur / 1000 + 0.5)
+  printf "%s\t%d\t%d\t%d\t%d\t%.4f\t%s\t%s\n", fx, m_in, m_out, m_cr, m_cw, cost,
+    (turns == "" ? "-" : sprintf("%d", turns)), (dur == "" ? "-" : sprintf("%d", int(dur / 1000 + 0.5)))
 }'
 
 # shellcheck disable=SC2016 # awk program, expanded by awk
 summary_awk='
 BEGIN { FS = "\t"; split("input output cache_read cache_write cost_usd turns duration_s", name, " ") }
-function fmt(c, x) { return c == 5 ? sprintf("%.4f", x) : sprintf("%d", x) }
+function fmt(c, x) { return x == "-" ? "-" : c == 5 ? sprintf("%.4f", x) : sprintf("%d", x) }
 function sfmt(c, x) { return c == 5 ? sprintf("%+.4f", x) : sprintf("%+d", x) }
 function deltas(cur, base,   c, o) {
   o = "\tvs_baseline"
   for (c = 1; c <= 5; c++) o = o "\t" name[c] "=" sfmt(c, cur[c] - base[c])
   return o
 }
-FILENAME == bfile { if ($1 != "fixture" && $2 != "-") { inbase[$1] = 1; for (c = 1; c <= 7; c++) b[$1, c] = $(c + 1) } ; next }
+FILENAME == bfile {
+  if ($1 == "fixture") next
+  if ($2 == "-") { nobase[$1] = 1; next }
+  inbase[$1] = 1; for (c = 1; c <= 7; c++) b[$1, c] = $(c + 1)
+  next
+}
 $1 == "fixture" { next }
 {
   fixtures++
@@ -121,9 +141,11 @@ $1 == "fixture" { next }
   for (c = 1; c <= 7; c++) { tot[c] += $(c + 1); line = line "\t" name[c] "=" fmt(c, $(c + 1)) }
   if (bfile != "") {
     if ($1 in inbase) {
+      common++
       for (c = 1; c <= 7; c++) { cur[c] = $(c + 1); base[c] = b[$1, c]; tcur[c] += cur[c]; tbase[c] += base[c] }
       line = line deltas(cur, base)
-    } else line = line "\tvs_baseline\tnew"
+    } else if ($1 in nobase) line = line "\tvs_baseline\tno baseline"
+    else line = line "\tvs_baseline\tnew"
   }
   print line
 }
@@ -131,7 +153,7 @@ END {
   line = "summary\tfixtures=" fixtures + 0
   if (no_result) line = line "\tno_result=" no_result
   for (c = 1; c <= 7; c++) line = line "\t" name[c] "=" fmt(c, tot[c])
-  if (bfile != "") line = line deltas(tcur, tbase)
+  if (bfile != "") line = line (common ? deltas(tcur, tbase) : "\tvs_baseline\t-")
   print line
 }'
 

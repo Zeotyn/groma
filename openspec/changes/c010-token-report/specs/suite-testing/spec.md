@@ -5,7 +5,7 @@ Each eval run SHALL write, per fixture, the input, output and cache tokens, the 
 
 #### Scenario: Report after a run
 - **WHEN** `scripts/test.sh evals` finishes
-- **THEN** `tests/evals/reports/<date>.tsv` has one row per fixture with tokens and cost, and the output ends with the totals
+- **THEN** the run's own report `tests/evals/reports/<date>T<time>.tsv` has one row per fixture with tokens and cost, and the output ends with the totals
 
 #### Scenario: Comparison with the baseline
 - **WHEN** `tests/evals/reports/baseline.tsv` exists and a run finishes

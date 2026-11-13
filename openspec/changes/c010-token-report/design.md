@@ -22,7 +22,7 @@
 `claude -p` may use more than one model in a run (a small model for auxiliary calls, subagents). The row sums `inputTokens`, `outputTokens`, `cacheReadInputTokens` and `cacheCreationInputTokens` over all entries of `modelUsage`, which matches `total_cost_usd`; without `modelUsage` it falls back to the top-level `usage`.
 
 ### D3: Dated reports ignored, baseline committed
-`tests/evals/reports/<YYYY-MM-DD>.tsv` is git-ignored and uploaded by the evals workflow; `tests/evals/reports/baseline.tsv` is committed by hand after a full run. The totals' difference covers only fixtures present in both files, so a partial run compares like with like.
+`tests/evals/reports/<YYYY-MM-DDTHHMMSS>.tsv` (one per run) is git-ignored and uploaded by the evals workflow; `tests/evals/reports/baseline.tsv` is committed by hand after a full run. The totals' difference covers only fixtures present in both files, so a partial run compares like with like.
 
 ## Risks / Trade-offs
 
@@ -36,6 +36,9 @@
 - **`GROMA_EVAL_REPORTS`** overrides the report folder. `tests/scripts/token-report.bats` uses it to run `run.sh` with a stub `claude` on the `empty` fixture, so the wiring is tested without a model call.
 - **Workflow.** The proposal says "nightly"; the evals workflow has run on demand only since f006 (ADR 0008 amendment). The upload step was added to that on-demand workflow, together with the per-fixture JSON results.
 - **A cli fixture whose `groma init` fails** gets a row of `-`, so every requested fixture appears in the report.
-- **Same-day runs** overwrite that day's report; the report is per run, not cumulative.
-- **Baseline (task 2.3) not run.** It needs one full eval run, which costs money and is the maintainer's call: `scripts/test.sh evals`, then `cp tests/evals/reports/$(date +%Y-%m-%d).tsv tests/evals/reports/baseline.tsv` and a commit `test(c010-token-report): eval token baseline`. Eight fixtures at `GROMA_EVAL_BUDGET=3` cap the run at 24 USD.
+- **One report per run** (review fix): the name carries the start time, so a partial run no longer overwrites the day's full report; the spec scenario names `<date>T<time>.tsv` instead of the proposal's `<date>.tsv`. The path is printed in the `== tokens, report: <path>` line right before the per-fixture lines, not after the totals, because the spec requires the output to end with the totals.
+- **Rows without tokens or cost** (review fix): a result with `total_cost_usd` but neither `usage` nor `modelUsage` (or the reverse) gives a row of `-`, so an error result does not add zeros to totals and baseline differences; a missing `num_turns` or `duration_ms` alone gives `-` in that column. A baseline row of `-` shows `no baseline`; totals with no common fixture show `vs_baseline -`.
+- **Log for runs without text** (review fix): when the result has no `result` text (error or budget stop), `token-report.sh text` writes `no result text: subtype=<s> is_error=<b>` to the log.
+- **Upload pattern** `tests/evals/reports/[0-9]*.tsv`, so the committed baseline is not uploaded as a run report.
+- **Baseline (task 2.3) not run.** It needs one full eval run, which costs money and is the maintainer's call: `scripts/test.sh evals`, then `cp <path from the run's "== tokens, report: <path>" line> tests/evals/reports/baseline.tsv` and a commit `test(c010-token-report): eval token baseline`. Eight fixtures at `GROMA_EVAL_BUDGET=3` cap the run at 24 USD.
 - **CHANGELOG** is left to the integrator.

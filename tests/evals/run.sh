@@ -10,7 +10,8 @@
 #        GROMA_EVAL_MODEL   model alias for claude -p (default: CLI default)
 #        GROMA_EVAL_REPORTS report folder (default: tests/evals/reports)
 # Report: one row per fixture (tokens, cost, turns, duration) in
-#         <reports>/<YYYY-MM-DD>.tsv; the output ends with the totals and, when
+#         <reports>/<YYYY-MM-DDTHHMMSS>.tsv (one file per run, named at its
+#         start); the output names the file and ends with the totals and, when
 #         <reports>/baseline.tsv exists, the difference per fixture against it.
 #         Each fixture's result JSON is kept as <work>/<fixture>.json.
 set -eu
@@ -57,7 +58,7 @@ for fx in "$@"; do
 done
 
 mkdir -p "$REPORTS"
-REPORT="$REPORTS/$(date +%Y-%m-%d).tsv"
+REPORT="$REPORTS/$(date +%Y-%m-%dT%H%M%S).tsv"
 sh "$HERE/token-report.sh" header > "$REPORT"
 
 failed=0
@@ -118,7 +119,7 @@ $(cat "$answers")"
 done
 
 echo "evals: $(($# - failed)) passed, $failed failed"
-echo "== tokens ($REPORT)"
+echo "== tokens, report: $REPORT"
 if [ -f "$REPORTS/baseline.tsv" ]; then
   sh "$HERE/token-report.sh" summary "$REPORT" "$REPORTS/baseline.tsv"
 else

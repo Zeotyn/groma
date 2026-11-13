@@ -6,7 +6,7 @@
 
 - [x] 2.1 `run.sh` with JSON output per fixture; report script; totals and baseline difference
 - [x] 2.2 Nightly workflow uploads the report as an artifact (the on-demand evals workflow; there is no nightly run since f006)
-- [ ] 2.3 Full eval run; commit the result as `tests/evals/reports/baseline.tsv` (needs one eval run (cost), not run: `scripts/test.sh evals`, then copy that day's report to `tests/evals/reports/baseline.tsv`; up to 24 USD)
+- [ ] 2.3 Full eval run; commit the result as `tests/evals/reports/baseline.tsv` (needs one eval run (cost), not run: `scripts/test.sh evals`, then copy the report it names (`== tokens, report: <path>`) to `tests/evals/reports/baseline.tsv`; up to 24 USD)
 
 ## 3. Docs
 

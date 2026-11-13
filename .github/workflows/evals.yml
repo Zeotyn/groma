@@ -42,5 +42,5 @@ jobs:
         with:
           name: eval-token-report
           path: |
-            tests/evals/reports/*.tsv
+            tests/evals/reports/[0-9]*.tsv
             ${{ runner.temp }}/groma-evals/*.json

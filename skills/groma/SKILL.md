@@ -7,6 +7,8 @@ description: Initializes or updates a project for AI-assisted work - methodology
 
 Lay out a project before building on it. Eight steps, each announced, each safe to re-run.
 
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+
 **Writes are additive.** groma creates files only at paths that do not exist, plus its own `.groma/` and `docs/_groma/`. Anything that would change an existing file becomes a snippet in the findings report. Third-party installers run only after the user agreed when they touch existing files.
 
 Sibling skills live next to this folder (`../groma-detect/`, `../groma-survey/`, ...). Run a step by following that skill's `SKILL.md`. If a sibling is missing, skip its step and print its install command:
@@ -60,7 +62,7 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
    Next: <one concrete action, e.g. "Review docs/adr/0003-use-postgresql.md (proposed)",
           or when nothing is open: "Start your first change with groma-loop">
    ```
-   Done when the summary names exactly one next action.
+   Translate the labels (`Created`, `Next`, ...); paths and commands stay literal. Done when the summary names exactly one next action.
 
 ## Skill copies
 
@@ -73,12 +75,12 @@ The script refuses in three cases (exit 1, nothing written); do not work around 
 
 When the skills you run were installed into the project with `npx skills add` (they lie in `.agents/skills/` without `generatedBy`), the script copies them to the other agents' folders, prints a `note` for the folder that is the source itself and `conflict` lines for the links `npx skills` created; that is expected, pass it on briefly.
 
-- **Init, in step 7.** When `steps.skills_copy` is `done` or `skipped` (set by `npx groma-cli init` or an earlier run), ask nothing. Otherwise ask once, in the user's language, with yes recommended: "Put the groma skills into the project so the team gets them with the repository?"
+- **Init, in step 7.** When `steps.skills_copy` is `done` or `skipped` (set by `npx groma-cli init` or an earlier run), ask nothing. Otherwise ask once, with yes recommended: "Put the groma skills into the project so the team gets them with the repository?"
   - Yes: run `sh scripts/materialize.sh --agents <agents, comma-separated> <project>` and set `steps.skills_copy: done`.
   - No: write no skill folder and set `steps.skills_copy: skipped`.
 - **Update mode.** When `steps.skills_copy` is `done`, or the key is missing and `.groma/generated.json` exists, run `sh scripts/materialize.sh --update <project>` (agents come from the config, without `agents_via_plugin`) before step 6. Unchanged copies move to the new version. Files are deleted only when unchanged and only when groma no longer ships them (a file that left a skill, or a skill listed in [retired-skills.txt](retired-skills.txt)); copies of skills that your groma install merely does not contain stay. When the key is missing and no `.groma/generated.json` exists, ask the init question once. `skipped`: do nothing.
 - **Output.** `create`, `update` and `remove` lines are done work; count them for the summary. For each `edited` line tell the user the file was edited by hand and kept (`--force` replaces it; use it only when the user asks). For each `conflict` line tell the user the path was not created by groma, or is or leads through a symbolic link, and was left untouched. Pass on `note` lines. `--dry-run` shows the plan without writing.
-- **Plugin.** A line `plugin<TAB>claude<TAB><command>` means the groma Claude Code plugin is active as well. The copy is made all the same, because it is what the team gets. Tell the user in their language: Claude Code now lists every groma skill twice in this project, once from the plugin and once from the project copy, and the command `claude plugin disable groma@groma --scope local`, run in the project, switches the plugin off for this project only (it stays on everywhere else). Print the command unchanged. Never run it and never edit a settings file. Repeat the command once in the summary.
+- **Plugin.** A line `plugin<TAB>claude<TAB><command>` means the groma Claude Code plugin is active as well. The copy is made all the same, because it is what the team gets. Tell the user: Claude Code now lists every groma skill twice in this project, once from the plugin and once from the project copy, and the command `claude plugin disable groma@groma --scope local`, run in the project, switches the plugin off for this project only (it stays on everywhere else). Print the command unchanged. Never run it and never edit a settings file. Repeat the command once in the summary.
 
 ## Rules for every step
 

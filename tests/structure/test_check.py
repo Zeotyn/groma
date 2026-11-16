@@ -649,3 +649,28 @@ def test_agents_template_over_char_budget(tmp_path):
     write(tmp_path / "skills/groma-agents/templates/AGENTS.md", "x" * 3200 + "\n")
     check.check_skills(tmp_path)
     assert check.errors == ["skills/groma-agents/templates/AGENTS.md: 3201 chars, max 3200"]
+
+
+USER_LANGUAGE_RULE = "**User language.** Talk to the user in the language of their latest message."
+
+
+def test_user_language_same_line_passes(tmp_path):
+    for name in ("groma", "groma-a"):
+        write(tmp_path / f"skills/{name}/SKILL.md", f"# {name}\n\n{USER_LANGUAGE_RULE}\n")
+    check.check_user_language(tmp_path)
+    assert check.errors == []
+
+
+def test_user_language_missing_or_different_line_fails(tmp_path):
+    write(tmp_path / "skills/groma/SKILL.md", f"# groma\n\n{USER_LANGUAGE_RULE}\n")
+    write(tmp_path / "skills/groma-a/SKILL.md", "# groma-a\n\n**User language.** Talk German.\n")
+    write(tmp_path / "skills/groma-b/SKILL.md", "# groma-b\n")
+    check.check_user_language(tmp_path)
+    assert len(check.errors) == 2
+    assert all("copy the line from skills/groma/SKILL.md" in e for e in check.errors)
+
+
+def test_user_language_source_needs_the_rule(tmp_path):
+    write(tmp_path / "skills/groma/SKILL.md", "# groma\n")
+    check.check_user_language(tmp_path)
+    assert any("no line starting with" in e for e in check.errors)

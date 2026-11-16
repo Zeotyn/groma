@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Structure checks for the groma repository (test level 1).
 
-Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|bundles|hooks|versions|code-style|shared|handoffs|all]
+Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|bundles|hooks|versions|code-style|shared|handoffs|user-language|all]
 Exit code 0 when all selected checks pass, 1 otherwise.
 """
 from __future__ import annotations
@@ -675,6 +675,27 @@ def check_handoffs(root: Path = ROOT) -> None:
             err(f"{rel}: hand-off to {sibling} needs the message `{INSTALL_HINT}{sibling}` for when it is missing")
 
 
+USER_LANGUAGE_SOURCE = "skills/groma/SKILL.md"
+USER_LANGUAGE_PREFIX = "**User language.** "
+
+
+def check_user_language(root: Path = ROOT) -> None:
+    """Every SKILL.md carries the user-language rule line of the groma skill, word for word (ADR 0070)."""
+    source = root / USER_LANGUAGE_SOURCE
+    if not source.is_file():
+        err(f"{USER_LANGUAGE_SOURCE}: missing")
+        return
+    rule = next((l for l in source.read_text(encoding="utf-8").splitlines() if l.startswith(USER_LANGUAGE_PREFIX)), None)
+    if rule is None:
+        err(f"{USER_LANGUAGE_SOURCE}: no line starting with '{USER_LANGUAGE_PREFIX.strip()}'")
+        return
+    for md in sorted((root / "skills").glob("*/SKILL.md")):
+        lines = md.read_text(encoding="utf-8").splitlines()
+        if rule not in lines:
+            rel = md.relative_to(root).as_posix()
+            err(f"{rel}: user-language rule missing or different; copy the line from {USER_LANGUAGE_SOURCE}")
+
+
 CHECKS = {
     "skills": check_skills,
     "links": check_links,
@@ -689,6 +710,7 @@ CHECKS = {
     "code-style": check_code_style_table,
     "shared": check_shared,
     "handoffs": check_handoffs,
+    "user-language": check_user_language,
 }
 
 

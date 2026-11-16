@@ -7,6 +7,8 @@ description: Installs third-party skills the user picks from the groma catalog (
 
 Offer the curated [catalog.yaml](catalog.yaml) one category at a time, record the picks, install them project-scoped for every configured agent.
 
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+
 ## Steps
 
 1. **Load.** Read `catalog.yaml` and `<project>/.groma/config.yaml` (`agents`, `project.has_ui`, `skills`, `workflow`). Missing config: ask which agents the project uses (claude, copilot, gemini, cursor, codex) and whether it has a UI.

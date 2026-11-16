@@ -7,6 +7,8 @@ description: Read-only survey of an existing repository - code map, docs and ADR
 
 Survey an existing project like a surveyor walks a site before anyone builds: measure everything, move nothing.
 
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+
 **Writes are additive.** Create files only at paths that do not exist yet, plus `.groma/` and `docs/_groma/`. Before every write, check the path; if it exists, record a finding instead. Pre-existing files stay byte-identical (the test suite checks this). Tools you run write there too: graphify's output goes to `<project>/.groma/graphify-out/` (step 2).
 
 **Where you cannot ask** (you run as a subagent or headless), never wait for an answer: write the question as a finding marked `unconfirmed`, with what you would have asked and the default you assumed, and go on. This covers the schema dump offer (step 6) and every confirmation in the reference tables.

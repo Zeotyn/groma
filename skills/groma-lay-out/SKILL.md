@@ -7,6 +7,8 @@ description: Creates or completes docs/ - vision, concept, architecture, data mo
 
 Lay out the project's `docs/` tree: every mandatory slot filled, either by an existing file or by a new one from the templates.
 
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+
 **Writes are additive.** Create a file only when its path does not exist. An existing file that covers a slot fills it; link to it instead of creating a second one. Proposed edits to existing files go into the findings report (`docs/_groma/`), never into the file.
 
 Paths are relative to this skill folder unless they start with `<project>`.

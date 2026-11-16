@@ -31,7 +31,7 @@
 - [x] 5.2 This repository: add `.groma/conventions-baseline.txt` with all current names so M004 finishes under the old names; new rule from M5
 - [x] Docs: docs/vision.md unchanged, because the README change is the naming rule under "Conventions groma sets up", and the vision names no change convention
 - [x] 5.3 `scripts/test.sh` green; `openspec validate --all --strict`
-- [ ] 5.4 CHANGELOG `[Unreleased]` with the breaking ID format: CHANGELOG by integrator. The breaking note must tell users who run `check-conventions.sh` in CI: old names `<type>0NN-<slug>` stay green with INFO lines, every other pre-existing name belongs into `.groma/conventions-baseline.txt` before the update, and `roadmap.sh` no longer generates `docs/roadmap.md`
+- [x] 5.4 CHANGELOG `[Unreleased]` with the breaking ID format: CHANGELOG by integrator. The breaking note must tell users who run `check-conventions.sh` in CI: old names `<type>0NN-<slug>` stay green with INFO lines, every other pre-existing name belongs into `.groma/conventions-baseline.txt` before the update, and `roadmap.sh` no longer generates `docs/roadmap.md`
 
 ## 6. Review round 1
 

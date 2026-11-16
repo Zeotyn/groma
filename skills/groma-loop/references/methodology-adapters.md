@@ -11,13 +11,13 @@ How each loop phase maps to the project's methodology. Read only the section for
 | verify | the OpenSpec verify workflow, then the docs gate | its report, the full change diff and the docs impact report |
 | archive | the OpenSpec archive workflow with spec sync, then the docs sync, then the git steps (archive commit `docs(openspec): archive <change-id>`, integration, push) | none (no review) |
 
-Task group = a `## N.` heading in tasks.md. Commit scope `<scope>` for the propose and archive commits: `openspec`. `<proposal title>` (squash subject, `per: change` unit title): the slug of the change name with dashes as spaces (`c007-cache-layer` → "cache layer"); when proposal.md starts with a `# ` heading, that heading instead.
+Task group = a `## N.` heading in tasks.md. Commit scope `<scope>` for the propose and archive commits: `openspec`. `<proposal title>` (squash subject, `per: change` unit title): the slug of the change name with dashes as spaces, without the type word of a milestone change (`c7-cache-layer` → "cache layer", `m3-fix-cache-layer` → "cache layer"); when proposal.md starts with a `# ` heading, that heading instead.
 
 ## spec-kit
 
 | Phase | Author does |
 |---|---|
-| propose | `/speckit.specify`, `/speckit.plan`, `/speckit.tasks` in `specs/<id>-<slug>/` |
+| propose | `/speckit.specify`, `/speckit.plan`, `/speckit.tasks` in `specs/<id>-<slug>/` (`c4-export`, `m3-export`) |
 | apply | `/speckit.implement` for one review unit |
 | verify | re-read spec.md acceptance criteria against the diff |
 | archive | none; mark the feature done in `docs/roadmap.md` |

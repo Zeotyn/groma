@@ -1,6 +1,6 @@
 ---
 name: groma-methodology
-description: Sets up a spec methodology (OpenSpec, Spec Kit, BMAD, GSD) and the m/c/f/s/r/d change naming with next-id and roadmap scripts. Use during /groma, when choosing or adding a methodology, or when creating, naming or checking changes and milestones.
+description: Sets up a spec methodology (OpenSpec, Spec Kit, BMAD, GSD) and the m/c/f/s/r change naming with next-id and roadmap scripts. Use during /groma, when choosing or adding a methodology, or when creating, naming or checking changes and milestones.
 ---
 
 # groma-methodology
@@ -24,7 +24,7 @@ Set up one spec methodology and the change naming convention. `docs/` stays the 
 
 3. **Link to docs.** Append the recipe's `docs_link.append` to `docs_link.file`, only when this run created that file. For files that existed before, put the text into the findings report as a snippet.
 
-4. **Convention.** Write `conventions.changes` into the config if missing (defaults in [references/conventions.md](references/conventions.md)). If the changes folder already holds changes, write their names to `<project>/.groma/conventions-baseline.txt` (only if that file is absent). Run `sh scripts/check-conventions.sh --root <project>`; it must print `conventions: ok`.
+4. **Convention.** Write `conventions.changes` into the config if missing (defaults in [references/conventions.md](references/conventions.md)). If the changes folder already holds changes, write their names to `<project>/.groma/conventions-baseline.txt` (only if that file is absent; a project that used the old `<type><NNN>-<slug>` names: follow "Migration" in [references/conventions.md](references/conventions.md) instead). Run `sh scripts/check-conventions.sh --root <project>`; it must print `conventions: ok`.
 
 5. **Report.** Methodology state (initialized, already present, pending), where changes live, and how to create the next one:
    ```
@@ -33,4 +33,11 @@ Set up one spec methodology and the change naming convention. `docs/` stays the 
 
 ## Creating a change later
 
-When the user asks for a new change, fix or milestone in a groma project: get the id from `scripts/next-change-id.sh <type>`, name it `<id>-<slug>`, add `Milestone: mNNN` as first line of `proposal.md` when it belongs to an active milestone, and run `scripts/roadmap.sh --root <project>` after creating or archiving a milestone child.
+When the user asks for a new change, fix, spike or refactor in a groma project:
+
+- **Outside a milestone:** get the id from `scripts/next-change-id.sh <type>` (`c`, `f`, `s`, `r`) and name the change `<id>-<slug>`, e.g. `c4-export-csv`.
+- **Inside milestone N:** name it `m<N>-<slug>`; a spike, fix or refactor carries its type word: `m<N>-spike-<slug>`, `m<N>-fix-<slug>`, `m<N>-refactor-<slug>`. No id is needed. Then run `scripts/roadmap.sh --root <project>`, and again after archiving the change.
+- **Spikes and refactors** (`s`, `r`, `m<N>-spike-`, `m<N>-refactor-`) carry no spec deltas: in OpenSpec add `skip_specs: true` to `.openspec.yaml`.
+- A requested name in another form (`C004-Export`) becomes `c4-export`; tell the user. `d` is no type: docs belong to the change that causes them.
+
+When the user plans a new milestone: it is not a change. Get its number from `scripts/next-change-id.sh m` and add a section from [templates/roadmap-section.md](templates/roadmap-section.md) to `<project>/docs/roadmap.md`. Create the file with a `# Roadmap` heading when it is missing; when it exists and groma did not write it, show the section and ask before adding it.

@@ -34,11 +34,11 @@ Read `{{code_style_doc}}` before writing code and run its check commands after e
 
 ## Change naming
 
-Name every new change `<type><NNN>-<slug>` in lowercase. Types: {{types}}. Numbers count per type, include archived changes and are never reused. Get the next id with groma-methodology's `next-change-id.sh <type>` when that skill is installed, else by checking existing change folders. A change that belongs to a milestone starts its `proposal.md` with `Milestone: mNNN`. Milestone, refactor and docs changes carry no spec deltas.
+Name every new change `<type><N>-<slug>` in lowercase, no leading zeros. Types: {{types}}. Numbers count per type, include archived changes and are never reused. Get the next id with groma-methodology's `next-change-id.sh <type>` when that skill is installed, else by checking existing change folders. A change of milestone N is `m<N>-<slug>`, or `m<N>-spike-`, `m<N>-fix-`, `m<N>-refactor-<slug>`; milestones are sections of `docs/roadmap.md`, not changes. Spikes and refactors carry no spec deltas.
 
 ## Git workflow
 
-- Branches: one branch per change, named after the change (`c007-cache`), branched from `{{main_branch}}`.
+- Branches: one branch per change, named after the change (`c7-cache`), branched from `{{main_branch}}`.
 - Commits: {{commits_rule}}, one commit per reviewed task group; the archive is its own commit.
 - Integrate a finished change into `{{main_branch}}` with {{git_integrate: the Commands cell of the configured strategy, for example "`git rebase main <branch>` then `git switch main` then `git merge --ff-only <branch>`"}}. A request to "merge" a branch means exactly this sequence ({{integrate}}), not another kind of merge.
 - On a conflict stop: run {{git_abort}} so that `{{main_branch}}` and the branch stay as they were, and ask a person with the conflicting paths. Never resolve a conflict silently.

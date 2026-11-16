@@ -14,11 +14,11 @@
 
 ## 3. Text and templates
 
-- [ ] 3.1 `references/conventions.md`: rule text, type table with reasons, mapping table (OpenSpec, Spec Kit, BMAD, GSD), migration section
-- [ ] 3.2 `methodologies.yaml` rule strings, `references/methodologies.md`, groma-methodology SKILL, AGENTS.md template line
-- [ ] 3.3 `templates/roadmap-section.md` replaces `templates/milestone-proposal.md`; groma-lay-out roadmap slot if it references the old template
-- [ ] 3.4 groma-loop `methodology-adapters.md` and groma-agents `git-strategies.md`: commit type from prefix and type word
-- [ ] 3.5 `upgrades.md` row: baseline written, `--suggest-migration` snippets into the findings report, `digits` ignored
+- [x] 3.1 `references/conventions.md`: rule text, type table with reasons, mapping table (OpenSpec, Spec Kit, BMAD, GSD), migration section
+- [x] 3.2 `methodologies.yaml` rule strings, `references/methodologies.md`, groma-methodology SKILL, AGENTS.md template line
+- [x] 3.3 `templates/roadmap-section.md` replaces `templates/milestone-proposal.md`; groma-lay-out roadmap slot if it references the old template
+- [x] 3.4 groma-loop `methodology-adapters.md` and groma-agents `git-strategies.md`: commit type from prefix and type word
+- [x] 3.5 `upgrades.md` row: baseline written, `--suggest-migration` snippets into the findings report, `digits` ignored
 
 ## 4. Evals
 

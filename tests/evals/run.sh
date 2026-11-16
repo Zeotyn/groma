@@ -71,7 +71,8 @@ for fx in "$@"; do
              || { echo "   FAIL $fx: groma init failed (see $WORK/$fx.cli.log)"; failed=$((failed + 1))
                   sh "$HERE/token-report.sh" row "$fx" "$WORK/$fx.json" >> "$REPORT"; continue; } ;;
   esac
-  tools="Bash(sh:*) Bash(grep:*) Bash(find:*) Bash(ls:*) Bash(cat:*) Bash(git log:*) Bash(git config:*) Bash(mkdir:*) Read Write Edit Glob Grep Skill Edit(.groma/**)"
+  tools="Bash(sh:*) Bash(grep:*) Bash(find:*) Bash(ls:*) Bash(cat:*) Bash(git log:*) Bash(git config:*) Bash(mkdir:*) Read Write Edit Glob Grep Skill Agent Edit(.groma/**)"
+  # Agent: /groma runs the brownfield survey in a subagent (ADR 0069)
 
   if [ -f "$HERE/prompts/$fx.md" ]; then
     # fixture with its own task (for example the review loop)

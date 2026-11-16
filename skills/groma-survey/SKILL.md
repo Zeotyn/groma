@@ -11,6 +11,18 @@ Survey an existing project like a surveyor walks a site before anyone builds: me
 
 Paths below are relative to this skill folder unless they start with `<project>`.
 
+**Map first, then targeted reads.** Steps 3 to 8 open only files that the code map (step 2), a reference table or a script output points to, never whole folders. Caps on files opened, per category:
+
+| Category | Cap | Counts |
+|---|---|---|
+| code map | 15 | manifests, entry points and module files read beyond the map |
+| ADRs | 50 | ADR files; read the frontmatter and title only |
+| docs | 30 | Markdown docs; read the frontmatter and headings only |
+| data model | 20 | schema files and migrations, newest first |
+| code style | 10 per top-level source folder | sampled files (step 7) |
+
+Listing a tree and running a script open no file. At a cap, stop reading that category, mark it `capped` in the report's "Survey scope" and add a low finding naming what stayed unread.
+
 ## Steps
 
 1. **Detect.** Run `sh scripts/detect.sh <project>` (a copy of groma-detect's script, with its signals table in [references/signals.md](references/signals.md)). Done when you know the languages, manifests and history depth.
@@ -19,7 +31,7 @@ Paths below are relative to this skill folder unless they start with `<project>`
    - graphify installed: run it on `<project>` and read its report (god nodes, communities).
    - repomix chosen: `npx --yes repomix@1.18.1 --compress --output <project>/.groma/repomix.xml`, then read that file.
    - neither: read the tree, manifests and entry points; mark the code map `degraded`.
-   Done when you can name the main modules, their dependencies, entry points and external systems, each with a path as evidence.
+   Done when you can name the main modules, their dependencies, entry points and external systems, each with a path as evidence, and know which files each later step will open.
 
 3. **ADR harvest.** Apply every row of [references/adr-sources.md](references/adr-sources.md). Done when every candidate location was checked and each ADR found has path, number, title, status, date.
 
@@ -39,8 +51,8 @@ Paths below are relative to this skill folder unless they start with `<project>`
 
 8. **Proposed ADRs.** When step 3 found **no** ADR anywhere, derive the decisions the code already shows: language and runtime, framework, persistence, API style, build and deployment, test approach. Write each as `<project>/docs/adr/NNNN-<kebab-title>.md` from [templates/adr-template.md](templates/adr-template.md) with `status: proposed`, `evidence: [paths]`, no `origin` line and "Derived by groma from existing code; confirm or reject." Numbering starts at 0003 (0001 and 0002 are the groma seed ADRs that groma-lay-out writes); when ADRs exist, propose only decisions that clearly lack one, numbered after the highest found.
 
-9. **Report.** Fill [templates/findings.md](templates/findings.md) into `<project>/docs/_groma/findings-<YYYY-MM-DD>.md` (if taken: `-2`, `-3`, ...). Every finding has severity, evidence and one suggested action. Put proposed edits to existing files (for example a pointer line for an existing `CLAUDE.md`) under "Snippets for existing files".
-   Done when the report exists and contains no `{{` placeholder.
+9. **Report.** Fill [templates/findings.md](templates/findings.md) into `<project>/docs/_groma/findings-<YYYY-MM-DD>.md` (if taken: `-2`, `-3`, ...). Every finding has severity, evidence and one suggested action. Put proposed edits to existing files (for example a pointer line for an existing `CLAUDE.md`) under "Snippets for existing files". "Survey scope" holds one row per read-budget category with the files read. "Hand-off" holds at most ten lines: counts per severity, the top three findings, and what the docs step needs (data model source, existing docs that fill slots, proposed ADRs).
+   Done when `sh scripts/report-check.sh <report>` exits 0 (every template section, no `{{` placeholder, a hand-off of one to ten lines).
 
 ## Severity guide
 
@@ -50,4 +62,4 @@ Paths below are relative to this skill folder unless they start with `<project>`
 
 ## Hand-off
 
-Tell the caller (or the user) the report path and the top three findings. When running standalone, suggest `groma-lay-out` next to create the missing docs from this survey.
+Return the report path on the first line, then the report's "Hand-off" lines unchanged, and nothing else: when you run as a subagent, this is all the main session gets, and it reads the report for details. When running standalone, also suggest `groma-lay-out` next to create the missing docs from this survey.

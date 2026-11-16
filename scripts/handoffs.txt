@@ -14,6 +14,7 @@ skills/groma/SKILL.md ../groma-detect/SKILL.md
 skills/groma/SKILL.md ../groma-methodology/SKILL.md
 skills/groma/SKILL.md ../groma-skills/SKILL.md
 skills/groma/SKILL.md ../groma-survey/SKILL.md
+skills/groma/SKILL.md ../groma-survey/scripts/report-check.sh
 skills/groma/SKILL.md ../groma-lay-out/SKILL.md
 skills/groma/SKILL.md ../groma-agents/SKILL.md
 # groma-agents: paths of groma-methodology and groma-lay-out scripts written

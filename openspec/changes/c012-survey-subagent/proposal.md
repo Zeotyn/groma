@@ -6,7 +6,7 @@ The brownfield survey is groma's most expensive step: the agent reads many files
 
 ## What Changes
 
-- groma-survey runs in a subagent when the agent supports it, and returns only the path of the findings report and a short summary.
+- groma-survey runs in a subagent when the agent supports it, and returns the path and the filled findings report, which the main session writes unchanged and checks against the template.
 - The survey builds or reads the code map first (graphify when installed, else the file tree and manifests) and reads files targeted from it instead of broadly.
 - Measured with the C010 report on the brownfield fixtures, before and after.
 

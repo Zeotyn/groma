@@ -1,7 +1,7 @@
 ---
 title: Architecture
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-16
 review_after_days: 90
 owner: Eugen Waldschmidt
 sources: [skills/, hooks/, .claude-plugin/, .codex-plugin/, .cursor-plugin/, gemini-extension.json, install.sh, uninstall.sh, scripts/, tests/]
@@ -31,7 +31,7 @@ A developer runs `/groma` inside an agent (Claude Code, Copilot, Gemini CLI, Cur
 | Templates and references | Markdown, YAML | Docs, agent file and style config templates, stack tables (signals, data sources, ADR sources, style tools), skill catalog | `skills/*/templates/`, `skills/*/references/`, `skills/groma-skills/catalog.yaml` |
 | Distribution manifests | JSON | Plugin and extension metadata per agent | `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/`, `gemini-extension.json`, `install.sh` |
 | Plugin hooks | JSON | Claude Code hooks that ship with the plugin: `SessionStart` and `Stop` for the next action | `hooks/hooks.json` |
-| Test suite (not shipped) | sh, bats, Python via uv | Structure checks (including identical shared copies), script tests, standalone installs, invariant, evals with a token report; `sync-shared.sh` refreshes the shared copies | `scripts/test.sh`, `scripts/sync-shared.sh`, `tests/` |
+| Test suite (not shipped) | sh, bats, Python via uv | Structure checks (including identical shared copies and the same user-language line in every skill), script tests, standalone installs, invariant, evals with a token report; `sync-shared.sh` refreshes the shared copies | `scripts/test.sh`, `scripts/sync-shared.sh`, `tests/` |
 
 ## Building blocks
 
@@ -66,7 +66,7 @@ Change names carry the grouping ([ADR 0062](adr/0062-make-the-milestone-a-roadma
 
 In Claude Code the two hooks ship with the plugin in `hooks/hooks.json` and run `"${CLAUDE_PLUGIN_ROOT}"/skills/groma-methodology/scripts/…` for `$CLAUDE_PROJECT_DIR`, so no settings file is written; without the plugin, groma-agents offers the Stop hook through `.claude/settings.local.json`. A plugin hook runs in every project, so both scripts first test for `<project>/.groma/` and exit without output when it is missing. Then `next_on` (`lib-changes.sh`) decides: `next.hook: on` or `off` in the project config wins; unset or `auto` means on exactly when the user's flag file `~/.claude/.groma-next-always` exists. The scripts only read that file; groma prints the `touch` and `rm` commands and never runs them. Claude Code starts matching hooks in parallel, so a project with the plugin and a settings-file Stop hook starts `next-stop.sh` twice: the plugin's copy (`--plugin`) exits when a settings file of the project names `next-stop.sh`, and every copy holds the lock folder `.groma/.cache/next-stop.lock` while it reads and writes the debounce state.
 
-`scripts/test.sh evals` (on demand only, it costs API tokens) runs `/groma` headless with `claude -p --output-format json` on fresh copies of the fixtures and checks each result with `tests/evals/assert.sh`. `tests/evals/token-report.sh` reads each fixture's JSON result and writes one row to the run's report `tests/evals/reports/<YYYY-MM-DDTHHMMSS>.tsv`: input, output, cache read and cache write tokens (summed over every model of the run), cost in USD, turns and duration. The run names its report and ends with the totals and, when the committed `tests/evals/reports/baseline.tsv` exists, the token and cost difference per fixture against it. Run reports are git-ignored; the evals workflow uploads them as an artifact.
+`scripts/test.sh evals` (on demand only, it costs API tokens) runs `/groma` headless with `claude -p --output-format json` on fresh copies of the fixtures (a `de-` fixture runs with a German prompt and answers and asserts German talk and English files) and checks each result with `tests/evals/assert.sh`. `tests/evals/token-report.sh` reads each fixture's JSON result and writes one row to the run's report `tests/evals/reports/<YYYY-MM-DDTHHMMSS>.tsv`: input, output, cache read and cache write tokens (summed over every model of the run), cost in USD, turns and duration. The run names its report and ends with the totals and, when the committed `tests/evals/reports/baseline.tsv` exists, the token and cost difference per fixture against it. Run reports are git-ignored; the evals workflow uploads them as an artifact.
 
 ## Deployment
 

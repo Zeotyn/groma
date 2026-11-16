@@ -10,4 +10,4 @@
 
 ## 3. Docs
 
-- [ ] 3.1 `docs/concept.md` crosscutting concept; ADR with the open docs-language question; CHANGELOG `[Unreleased]`
+- [x] 3.1 `docs/concept.md` crosscutting concept; ADR with the open docs-language question; CHANGELOG `[Unreleased]`

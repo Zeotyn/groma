@@ -1,7 +1,7 @@
 ---
 title: Concept
 status: draft
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-16
 review_after_days: 120
 owner: Eugen Waldschmidt
 sources: [skills/]
@@ -38,6 +38,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 - **Next action.** A fixed ladder picks one action from the reminders, so the user sees what to do next without asking. Hooks only display it; they never block, retry or prompt the agent. Each agent's hook support is data in `agents.yaml`; agents without a display-only channel rely on the AGENTS.md line.
 - **Always-loaded budget.** Skill descriptions and the generated AGENTS.md are in the agent's context on every turn, so they stay short: at most 400 characters per description and 2000 for all descriptions together, and at most 80 lines and 3200 characters for the AGENTS.md template, enforced by the structure check (ADR 0071). Details go into skill bodies, references and `docs/`, which load on demand.
 - **Change naming.** A name says what a change is and where it belongs: `c4-export`, `f2-null-on-empty`, `s1-graphql`, `r3-split-module`, and inside milestone 3 `m3-checkout`, `m3-fix-rounding`. Tools group changes by the name alone. A milestone is planning text, a section of `docs/roadmap.md` with a goal and a release gate, so every change on a board is real work. Names from before the rule stay valid through `.groma/conventions-baseline.txt`; groma suggests new names and never renames.
+- **User language.** groma talks to the user in the language of the user's latest message: questions, summaries, hints, escalations and the reasons for printed commands. Commands, paths, config keys and ids stay literal, and files groma writes keep their language. Each skill carries the same rule line (ADR 0070); the language of generated project docs is still open.
 - **No credentials.** Scripts never connect to databases and never print secrets.
 
 ## Constraints

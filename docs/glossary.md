@@ -1,7 +1,7 @@
 ---
 title: Glossary
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-16
 review_after_days: 180
 owner: Eugen Waldschmidt
 sources: [README.md, skills/]
@@ -57,3 +57,4 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Plugin hooks | `hooks/hooks.json` at the plugin root: the Claude Code `SessionStart` and `Stop` hooks that ship with the groma plugin and need no settings file | next action, ADR 0052 | the settings-file hook groma-agents writes without the plugin |
 | Global flag file | `~/.claude/.groma-next-always`: its existence switches the next action on in every project whose `next.hook` is unset or `auto`; created and removed by the user, only read by groma | next action, ADR 0053 | `next.hook`, which decides for one project |
 | Pill | One colored status-line segment, here `▶ <short next action>`, offered as a snippet | status line, ADR 0056 | the standalone status-line script |
+| User language | The language of the user's latest message; every skill talks to the user in it, while commands, paths, keys and ids stay literal and written files keep their language (ADR 0070) | all skills | the language of generated project docs, still undecided |

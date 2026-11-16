@@ -12,7 +12,7 @@ load helpers
 
 TABLE="$ROOT/skills/groma-agents/references/git-strategies.md"
 MAIN=main
-BR=c007-cache
+BR=c7-cache
 
 # backtick commands of a strategy's column (3 commands, 4 abort), placeholders resolved
 table_commands() { # strategy column
@@ -104,14 +104,14 @@ setup() {
   R="$BATS_TEST_TMPDIR/repo"
   WT=""
   MSG="$BATS_TEST_TMPDIR/msg"
-  printf 'feat(c007-cache): add cache layer\n' > "$MSG"
+  printf 'feat(c7-cache): add cache layer\n' > "$MSG"
   make_repo "$R"
   echo "base" > "$R/src.js"
   commit_at "$R" 2026-10-01 "feat: base"
   git -C "$R" switch -q -c "$BR"
   for i in 1 2 3 4 5; do
     echo "cache $i" >> "$R/cache.js"
-    commit_at "$R" "2026-10-0$((i + 1))" "feat(c007-cache): cache step $i"
+    commit_at "$R" "2026-10-0$((i + 1))" "feat(c7-cache): cache step $i"
   done
   git -C "$R" switch -q "$MAIN"
   echo "main work" > "$R/other.js"
@@ -199,7 +199,7 @@ on_branch() { # repo branch
   [ "$(git -C "$R" rev-list --count "$MAIN0..$MAIN")" -eq 1 ]
   [ "$(git -C "$R" rev-list --merges --count "$MAIN")" -eq 0 ]
   run git -C "$R" log -1 --format=%s "$MAIN"
-  assert_output_contains "feat(c007-cache): add cache layer"
+  assert_output_contains "feat(c7-cache): add cache layer"
   [ "$(git -C "$R" rev-parse "$BR")" = "$BR0" ]
   [ "$(git -C "$R" rev-list --count "$MAIN0..$BR")" -eq 5 ]
   on_branch "$R" "$MAIN"
@@ -357,7 +357,7 @@ with_remote() {
   integrate rebase
   run git -C "$R" log --format=%s "$MAIN"
   assert_output_contains "feat: remote work"
-  assert_output_contains "feat(c007-cache): cache step 5"
+  assert_output_contains "feat(c7-cache): cache step 5"
   [ "$(git -C "$R" rev-list --merges --count "$MAIN")" -eq 0 ]
   git -C "$R" push -q
   [ "$(git -C "$BARE" rev-parse main)" = "$(git -C "$R" rev-parse "$MAIN")" ]
@@ -372,4 +372,40 @@ with_remote() {
   git -C "$R" switch -q "$BR"
   ! preflight
   [ "$PRE" = "main diverged from its upstream" ]
+}
+
+# --- commit type (C017) ---------------------------------------------------------------
+
+# <type> of a change name by the "Commit type" table: first matching row, else chore
+commit_type() { # change name
+  awk -F'|' -v name="$1" '
+    /^## / { on = ($0 == "## Commit type"); next }
+    on && $2 ~ /`.*<N>-/ {
+      pat = $2; gsub(/[ `]/, "", pat); gsub(/<N>/, "[0-9]+", pat)
+      ty = $3; gsub(/[ `]/, "", ty)
+      if (!hit && name ~ ("^" pat)) { hit = 1; print ty }
+    }
+    END { if (!hit) print "chore" }' "$TABLE"
+}
+
+@test "commit type: type letter outside a milestone" {
+  [ "$(commit_type c17-change-naming)" = feat ]
+  [ "$(commit_type f2-null-on-empty)" = fix ]
+  [ "$(commit_type r1-vendor-shared-files)" = refactor ]
+  [ "$(commit_type s1-plugin-hooks)" = chore ]
+  [ "$(commit_type p3-cache)" = chore ]
+}
+
+@test "commit type: prefix and type word inside a milestone" {
+  [ "$(commit_type m3-checkout)" = feat ]
+  [ "$(commit_type m3-fix-rounding)" = fix ]
+  [ "$(commit_type m12-refactor-cart)" = refactor ]
+  [ "$(commit_type m3-spike-plugin-hooks)" = chore ]
+  [ "$(commit_type m3-fixture-loader)" = feat ]
+  [ "$(commit_type m3-spikes)" = feat ]
+}
+
+@test "commit type: the table covers every default type and type word" {
+  [ "$(awk -F'|' '/^## / { on = ($0 == "## Commit type") } on && $2 ~ /<N>-/' "$TABLE" | wc -l | tr -d ' ')" -eq 8 ]
+  grep -q '^| `<type>` | .*see "Commit type"' "$TABLE"
 }

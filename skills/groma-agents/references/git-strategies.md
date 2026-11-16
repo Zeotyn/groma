@@ -7,12 +7,29 @@ Single source of the integration procedure behind `git.integrate` in `.groma/con
 | Placeholder | Meaning |
 |---|---|
 | `<main>` | the main branch, see "Main branch" |
-| `<branch>` | the change branch, named after the change (`c007-cache`) |
+| `<branch>` | the change branch, named after the change (`c7-cache`) |
 | `<change-id>` | the change name |
-| `<type>` | the conventional-commit type of the change type: `c` feat, `f` fix, `d` docs, `r` refactor, `m` and `s` chore |
+| `<type>` | the conventional-commit type of the change, see "Commit type" |
 | `<proposal title>` | the change title as groma-loop's `methodology-adapters.md` defines it per methodology |
 | `<message file>` | a file holding the commit message, for example `<change>/reviews/.commit-msg`, deleted after the commit; messages never go through `-m`, so quotes, backticks and `$` in titles are safe |
 | `<main worktree>` | the worktree in which `<main>` is checked out when that is not this one, see "Linked worktrees" |
+
+## Commit type
+
+`<type>` comes from the start of the change name: the type letter, or inside a milestone the type word after `m<N>-`. The first row that matches wins; `<N>` is a number.
+
+| Change name starts with | `<type>` |
+|---|---|
+| `m<N>-fix-` | `fix` |
+| `m<N>-refactor-` | `refactor` |
+| `m<N>-spike-` | `chore` |
+| `m<N>-` | `feat` |
+| `c<N>-` | `feat` |
+| `f<N>-` | `fix` |
+| `r<N>-` | `refactor` |
+| `s<N>-` | `chore` |
+
+Any other name, a custom type included: `chore`. Old names from `.groma/conventions-baseline.txt`: an umbrella milestone change (`m003-v0-3`) is `chore`, a `d` change `docs`. A unit that only adds tests is `test`, whatever the change.
 
 ## Main branch
 

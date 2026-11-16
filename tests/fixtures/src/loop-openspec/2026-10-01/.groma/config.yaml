@@ -22,7 +22,6 @@ docs:
 conventions:
   changes:
     enabled: true
-    digits: 3
     types:
       m: milestone
       c: change

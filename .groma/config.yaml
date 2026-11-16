@@ -32,14 +32,12 @@ docs:
 conventions:
   changes:
     enabled: true
-    digits: 3
     types:
       m: milestone
       c: change
       f: fix
       s: spike
       r: refactor
-      d: docs
 
 # Git workflow (skills groma-loop and groma-agents). groma-agents renders the "Git workflow"
 # section of AGENTS.md from these keys when it creates that file. After editing them, update

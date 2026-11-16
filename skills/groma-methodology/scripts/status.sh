@@ -7,10 +7,16 @@
 # in this priority:
 #   all tasks done, docs impact open        -> update the docs or add a Docs: task line
 #   all tasks done                         -> verify, then archive
-#   tasks ticked after the last test change -> add or run tests (not for m/d changes)
-#   milestone with open tasks that no active
-#   change references (Milestone: mNNN)    -> gate: <first open task>
+#   tasks ticked after the last test change -> add or run tests (not for spikes
+#                                             s and m<N>-spike-, refactors r and
+#                                             m<N>-refactor-, old umbrella
+#                                             milestones and old d changes)
+#   old umbrella milestone (m003-v0-3, from the baseline) with open tasks and no
+#   active change of that milestone        -> gate: <first open task>
 #   no commit for stale_change_days        -> continue or close
+# Then one line "M<N>  gate: <first open item>" per section "## M<N>: <title>" of
+# docs/roadmap.md with an open item below "**Release gate:**" and no active
+# change of milestone N (name m<N>-..., or "Milestone: mNNN" in its proposal.md).
 # Then one line per ADR with status: proposed whose origin change is archived.
 # Then, from local git state only (no fetch): uncommitted files in the working
 # tree, and commits on the main branch that its upstream does not have.
@@ -77,13 +83,34 @@ if [ "$in_git" -eq 1 ]; then
   TEST_EPOCH=${TEST_EPOCH:-0}
 fi
 
+# cut to 60 characters, not bytes (count bytes that do not continue a UTF-8 character), backticks dropped
+cut60() {
+  tr -d '`' | LC_ALL=C awk '{
+    n = 0; for (i = 1; i <= length($0); i++) { c = substr($0, i, 1)
+      if ((c < "\200" || c > "\277") && ++n > 60) break }
+    print substr($0, 1, i - 1) }'
+}
+
 DIR=$(changes_dir "$ROOT")
 reported=0
 TAB=$(printf '\t')
 CHANGES=$(list_changes "$DIR")
-# milestones referenced by active changes through "Milestone: mNNN" near the top of proposal.md
-REFERENCED=" $(printf '%s\n' "$CHANGES" | awk -F "$TAB" '$2 == "active" { print $3 }' | while IFS= read -r p; do
-  [ ! -f "$p/proposal.md" ] || sed -n '1,5s/^Milestone:[[:space:]]*\(m[0-9]*\).*/\1/p' "$p/proposal.md"; done | tr '\n' ' ')"
+# milestone numbers with an active change: by the name m<N>-..., or through
+# "Milestone: mNNN" near the top of proposal.md (old names)
+MEMBERS=" "     # without the old umbrella milestones themselves
+UMBRELLAS=" "
+while IFS="$TAB" read -r name loc path <&3; do
+  [ "$loc" = active ] || continue
+  ms=$(milestone_of "$name")
+  if [ -n "$ms" ]; then
+    if is_umbrella "$name"; then UMBRELLAS="$UMBRELLAS$ms "; else MEMBERS="$MEMBERS$ms "; fi
+  fi
+  [ -f "$path/proposal.md" ] || continue
+  ms=$(sed -nE '1,5s/^Milestone:[[:space:]]*m0*([0-9]+).*/\1/p' "$path/proposal.md" | head -n 1)
+  [ -z "$ms" ] || MEMBERS="$MEMBERS$ms "
+done 3<<EOF
+$CHANGES
+EOF
 while IFS="$TAB" read -r name loc path <&3; do
   [ "$loc" = active ] || continue
   tf="$path/tasks.md"
@@ -105,26 +132,21 @@ while IFS="$TAB" read -r name loc path <&3; do
     msg="verify, then archive"
   fi
   codeless=0
-  case "$name" in m[0-9]*-*|d[0-9]*-*) codeless=1 ;; esac   # milestones and docs changes ship no code
+  umbrella=0
+  if is_umbrella "$name"; then umbrella=1; fi
+  # spikes and refactors need no new tests; old umbrella milestones and docs changes ship no code
+  case "$(change_type "$name")" in m|s|r|d) codeless=1 ;; esac
   if [ -z "$msg" ] && [ "$UNTESTED" = true ] && [ "$codeless" -eq 0 ] && [ "$done_n" -gt 0 ]; then
     if dirty "$rel/tasks.md"; then ticked=9999999999; else ticked=$(last_commit "$rel/tasks.md"); fi
     if [ "$ticked" -gt "$TEST_EPOCH" ]; then
       msg="tasks ticked since the last test change, add or run tests"
     fi
   fi
-  case "$name" in
-    m[0-9]*-*)
-      case "$REFERENCED" in *" ${name%%-*} "*) ;; *)
-        if [ -z "$msg" ] && [ "$done_n" -lt "$total" ]; then
-          # cut to 60 characters, not bytes: count bytes that do not continue a UTF-8 character
-          gate=$(sed -n 's/^[[:space:]]*- \[ \][[:space:]]*//p' "$tf" | head -n 1 | tr -d '`' | LC_ALL=C awk '{
-            n = 0; for (i = 1; i <= length($0); i++) { c = substr($0, i, 1)
-              if ((c < "\200" || c > "\277") && ++n > 60) break }
-            print substr($0, 1, i - 1) }')
-          msg="gate: $gate"
-        fi ;;
-      esac ;;
-  esac
+  if [ "$umbrella" -eq 1 ] && [ -z "$msg" ] && [ "$done_n" -lt "$total" ]; then
+    case "$MEMBERS" in *" $(milestone_of "$name") "*) ;; *)
+      msg="gate: $(sed -n 's/^[[:space:]]*- \[ \][[:space:]]*//p' "$tf" | head -n 1 | cut60)" ;;
+    esac
+  fi
   if [ -z "$msg" ] && [ "$STALE_DAYS" -gt 0 ]; then
     t=$(last_commit "$rel")
     if [ "$t" -gt 0 ] && ! dirty "$rel"; then
@@ -139,6 +161,26 @@ while IFS="$TAB" read -r name loc path <&3; do
 done 3<<EOF
 $CHANGES
 EOF
+
+# release gates of the roadmap: the first open item per milestone section
+if [ -f "$ROOT/docs/roadmap.md" ]; then
+  while IFS="$TAB" read -r ms item <&3; do
+    [ -n "$ms" ] || continue
+    case "$MEMBERS$UMBRELLAS" in *" $ms "*) continue ;; esac
+    printf 'M%s  gate: %s\n' "$ms" "$(printf '%s\n' "$item" | cut60)"
+    reported=$((reported + 1))
+  done 3<<EOF
+$(awk '
+  /^##? / { n = ""; g = 0 }
+  /^## M[0-9]+:/ { n = $2; sub(/^M0*/, "", n); sub(/:.*/, "", n); if (n == "") n = "0"; next }
+  n == "" { next }
+  /^\*\*Release gate:\*\*/ { g = 1; next }
+  !g { next }
+  /^[ \t]*- \[ \]/ { if (!(n in seen)) { seen[n] = 1; t = $0; sub(/^[ \t]*- \[ \][ \t]*/, "", t); print n "\t" t } next }
+  /^[ \t]*- \[[xX]\]/ || /^[ \t]*$/ || /^[ \t]+/ { next }
+  { g = 0 }' "$ROOT/docs/roadmap.md")
+EOF
+fi
 
 if [ "$DOCS_GATE" != off ] && [ -d "$ROOT/docs/adr" ]; then
   archived=" $(printf '%s\n' "$CHANGES" | awk -F "$TAB" '$2 == "archive" { printf "%s ", $1 }')"

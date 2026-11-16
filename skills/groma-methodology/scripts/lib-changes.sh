@@ -2,7 +2,7 @@
 # Shared helpers for the change-convention scripts. Source, do not execute.
 # shellcheck shell=sh
 
-DEFAULT_TYPES="m:milestone c:change f:fix s:spike r:refactor d:docs"
+DEFAULT_TYPES="m:milestone c:change f:fix s:spike r:refactor"
 
 # Read a scalar from .groma/config.yaml below the global $ROOT.
 cfg_value() { # key default [section]
@@ -65,11 +65,69 @@ config_types() {
   echo "$DEFAULT_TYPES"
 }
 
-config_digits() {
-  cfg="$1/.groma/config.yaml"
-  d=""
-  [ -f "$cfg" ] && d=$(awk '/^[ ]+digits:[ ]*[0-9]+/ { sub(/.*digits:[ ]*/, ""); print; exit }' "$cfg")
-  echo "${d:-3}"
+# Is the name listed in .groma/conventions-baseline.txt below the global $ROOT?
+# The baseline holds the changes that existed before the current naming rule.
+in_baseline() { # name
+  [ -f "$ROOT/.groma/conventions-baseline.txt" ] && grep -qxF -- "$1" "$ROOT/.groma/conventions-baseline.txt"
+}
+
+# The part of a name m<digits>-<rest> after the dash; nothing for other names.
+after_milestone() { # name
+  am=${1#m}
+  [ "$am" != "$1" ] || return 0
+  am_num=${am%%[!0-9]*}
+  [ -n "$am_num" ] || return 0
+  am=${am#"$am_num"}
+  case "$am" in -?*) echo "${am#-}" ;; esac
+}
+
+# Milestone number of a name m<N>-<slug>, without leading zeros; nothing for other names.
+milestone_of() { # name
+  [ -n "$(after_milestone "$1")" ] || return 0
+  mo=${1#m}; mo=${mo%%-*}
+  mo=${mo#"${mo%%[!0]*}"}
+  echo "${mo:-0}"
+}
+
+# Old umbrella milestone: a change that is itself the milestone (m003-v0-3). It is
+# an m name from the baseline, or one with a zero-padded number, which the current
+# format never has. Every other m<N>-<slug> is a change that belongs to milestone N.
+is_umbrella() { # name
+  [ -n "$(after_milestone "$1")" ] || return 1
+  case "$1" in m0*) return 0 ;; esac
+  in_baseline "$1"
+}
+
+# Type word of a milestone member: spike, fix or refactor; nothing for a plain
+# change, an umbrella milestone and names outside a milestone.
+type_word() { # name
+  if is_umbrella "$1"; then return 0; fi
+  case "$(after_milestone "$1")" in
+    spike-?*) echo spike ;;
+    fix-?*) echo fix ;;
+    refactor-?*) echo refactor ;;
+  esac
+}
+
+# Type letter of a change: the type word inside a milestone (m3-fix-x is f, m3-x
+# is c), m only for an old umbrella milestone, else the letters before the number.
+change_type() { # name
+  if is_umbrella "$1"; then echo m; return 0; fi
+  case "$(type_word "$1")" in
+    spike) echo s; return 0 ;;
+    fix) echo f; return 0 ;;
+    refactor) echo r; return 0 ;;
+  esac
+  if [ -n "$(after_milestone "$1")" ]; then echo c; return 0; fi
+  echo "${1%%[0-9]*}"
+}
+
+is_spike() { [ "$(change_type "$1")" = s ]; }
+
+# Short id of a change for one-line output: the full name for a milestone member
+# (m3 alone would name the milestone), else <type><N>.
+short_id() { # name
+  if [ -n "$(after_milestone "$1")" ] && ! is_umbrella "$1"; then echo "$1"; else echo "${1%%-*}"; fi
 }
 
 # List change names (one per line): active and archived, archive date prefix stripped.

@@ -7,15 +7,18 @@
 # Prints at most one action, the first rung of this ladder that applies:
 #   rung  when                                             short         long
 #   1     rebase or merge in progress                      rebase        Rebase in progress: git rebase --continue or git rebase --abort
-#   2     change done, docs impact or ADR open             docs c007     <change>: all tasks done, <what status.sh asks for>
-#   3     change done                                      verify c007   <change>: all tasks done, verify: /opsx:verify <change>
+#   2     change done, docs impact or ADR open             docs c7       <change>: all tasks done, <what status.sh asks for>
+#   3     change done                                      verify c7     <change>: all tasks done, verify: /opsx:verify <change>
 #   4     uncommitted files                                commit 4      4 files uncommitted: git add and git commit, or git stash
-#   5     milestone at its gate                            gate m003     <milestone>: milestone gate: <first open task>
+#   5     milestone at its release gate                    gate M3       M3: milestone gate: <first open item>
+#         (old umbrella milestone change: gate m003, <change>: milestone gate: <first open task>)
 #   6     main branch commits not pushed                   push 3        Push 3 commits on main: git push
 #         (not when git.push is never)
 #   7     ADR still proposed, origin change archived       adr 0015      ADR 0015 still proposed (<change> archived): accept or reject
-#   8     open change with the newest commit               apply c007    <change>: 3/9 tasks, continue: /opsx:apply <change>
-#         (milestones excluded)
+#   8     open change with the newest commit               apply c7      <change>: 3/9 tasks, continue: /opsx:apply <change>
+#         (old umbrella milestone changes excluded)
+# The short form names a change by <type><N> and a milestone member (m3-checkout)
+# by its full name, cut to the 20 characters.
 # Rungs 2 to 7 are lines of status.sh, so its toggles in .groma/config.yaml
 # apply here too. The /opsx: commands appear only for openspec/changes.
 #
@@ -101,7 +104,7 @@ TAB=$(printf '\t')
 rung="" short="" long=""
 IFS="$TAB" read -r rung short long <<EOF || true
 $(sh "$HERE/status.sh" --root "$ROOT" 2>/dev/null | awk -v push="$(cfg_value push ask git)" -v opsx="$opsx" '
-  function id(n) { sub(/-.*/, "", n); return n }
+  function id(n) { if (n !~ /^m[1-9][0-9]*-/) sub(/-.*/, "", n); return n }
   function after(s, mark) { return substr(s, index(s, mark) + length(mark)) }
   { r = 0 }
   / tasks → (update .* or add a Docs: task line|write a proposed ADR for .*)$/ {
@@ -112,6 +115,8 @@ $(sh "$HERE/status.sh" --root "$ROOT" 2>/dev/null | awk -v push="$(cfg_value pus
     r = 4; s = "commit " $3; l = $3 " files uncommitted: git add and git commit, or git stash" }
   / tasks → gate: / {
     r = 5; s = "gate " id($1); l = $1 ": milestone gate: " after($0, " tasks → gate: ") }
+  /^M[0-9]+  gate: / {
+    r = 5; s = "gate " $1; l = $1 ": milestone gate: " after($0, "  gate: ") }
   /^[^ ]+: [0-9]+ commits not pushed / && push != "never" {
     r = 6; s = "push " $2; l = "Push " $2 " commits on " substr($1, 1, length($1) - 1) ": git push" }
   /^ADR [0-9]+ still proposed \(.* archived\) / {
@@ -125,7 +130,7 @@ if [ -z "$rung" ]; then
   best_t=-1
   while IFS="$TAB" read -r name loc path <&3; do
     [ "$loc" = active ] || continue
-    case "$name" in m[0-9]*-*) continue ;; esac
+    if is_umbrella "$name"; then continue; fi
     tf="$path/tasks.md"
     [ -f "$tf" ] || continue
     total=$(grep -c '^[[:space:]]*- \[[ xX]\]' "$tf" || true)
@@ -135,7 +140,7 @@ if [ -z "$rung" ]; then
     [ -z "$HEAD_SHA" ] || t=$(git -C "$ROOT" log -1 --format=%ct -- "${path#"$ROOT"/}" 2>/dev/null || true)
     if [ "${t:-0}" -gt "$best_t" ]; then
       best_t=${t:-0}
-      rung=8; short="apply ${name%%-*}"; long="$name: $done_n/$total tasks"
+      rung=8; short="apply $(short_id "$name")"; long="$name: $done_n/$total tasks"
       [ "$opsx" -eq 0 ] || long="$long, continue: /opsx:apply $name"
     fi
   done 3<<EOF

@@ -57,7 +57,6 @@ docs:
 conventions:
   changes:
     enabled: true
-    digits: 3
     types:
       m: milestone
 steps:
@@ -392,4 +391,14 @@ YAML
   assert_output_contains "unknown step 'copy_skills'"
   run sh "$V" "$TPL"
   assert_output_not_contains "unknown step"
+}
+
+@test "conventions.changes.digits is ignored with a warning" {
+  ln=$(awk '/^conventions:/ { print NR + 3; exit }' "$C")
+  sed -i.bak 's/^    enabled: true$/    enabled: true\
+    digits: 3/' "$C" && rm "$C.bak"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "warning	line $ln	conventions.changes.digits is ignored"
+  assert_output_contains "summary	errors=0	warnings=1"
 }

@@ -179,6 +179,29 @@ json_field() { # field: reads $output as JSON
   [ "$(json_field rung)" = 5 ]
 }
 
+@test "rung 5: release gate of a roadmap section wins over unpushed commits" {
+  commit_at "$P" 2026-11-01 base
+  upstream
+  mkdir -p "$P/docs"
+  printf '## M2: v0.2\n\n**Release gate:**\n- [x] Archived\n- [ ] Test levels green\n' > "$P/docs/roadmap.md"
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" "$P"
+  [ "$output" = "M2: milestone gate: Test levels green" ]
+  run sh "$NX" --short "$P"
+  [ "$output" = "gate M2" ]
+  run sh "$NX" --json "$P"
+  [ "$(json_field rung)" = 5 ]
+}
+
+@test "rung 5 is silent while a change of the milestone is active" {
+  mkdir -p "$P/docs"
+  printf '## M2: v0.2\n\n**Release gate:**\n- [ ] Test levels green\n' > "$P/docs/roadmap.md"
+  tasks m2-checkout 1 2
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" "$P"
+  [ "$output" = "m2-checkout: 1/3 tasks, continue: /opsx:apply m2-checkout" ]
+}
+
 @test "rung 6: unpushed before ADR (spec scenario), milestone with active children" {
   commit_at "$P" 2026-11-01 base
   upstream
@@ -237,6 +260,29 @@ json_field() { # field: reads $output as JSON
   [ "$output" = "apply c002" ]
   run sh "$NX" --json "$P"
   [ "$(json_field rung)" = 8 ]
+}
+
+@test "rung 8: a change of a milestone is a change, named in full in the short form" {
+  tasks c1-old 1 2
+  commit_at "$P" 2026-11-01 old
+  tasks m3-checkout 2 3
+  commit_at "$P" 2026-11-02 new
+  run sh "$NX" "$P"
+  [ "$output" = "m3-checkout: 2/5 tasks, continue: /opsx:apply m3-checkout" ]
+  run sh "$NX" --short "$P"
+  [ "$output" = "apply m3-checkout" ]
+}
+
+@test "rung 3: short form of a milestone change and of an old umbrella milestone" {
+  tasks m3-fix-rounding 2 0
+  commit_at "$P" 2026-11-01 x
+  run sh "$NX" --short "$P"
+  [ "$output" = "verify m3-fix-roundi" ]
+  rm -rf "$C/m3-fix-rounding"
+  tasks m003-v0-3 2 0
+  commit_at "$P" 2026-11-02 y
+  run sh "$NX" --short "$P"
+  [ "$output" = "verify m003" ]
 }
 
 @test "rung 8 outside git: the first open change, no command for another methodology" {

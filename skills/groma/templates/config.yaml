@@ -34,14 +34,12 @@ docs:
 conventions:
   changes:
     enabled: true
-    digits: 3
     types:
       m: milestone
       c: change
       f: fix
       s: spike
       r: refactor
-      d: docs
 
 # Review loop for propose and apply (skill groma-loop).
 review:

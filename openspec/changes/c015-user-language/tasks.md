@@ -6,7 +6,7 @@
 
 - [x] 2.1 "User language" rule in groma and every skill step that addresses the user
 - [ ] 2.2 `scripts/test.sh` green; eval run recorded here
-  - `scripts/test.sh` green on 2026-11-16 (structure check `user-language` included). The `de-empty` eval run is deferred to the joint M004 eval run and is recorded here then.
+  - `scripts/test.sh` green on 2026-11-16 (structure check `user-language` included). The `de-empty` eval run is deferred to the joint M004 eval run and is recorded here then. Limit: the eval prompt is German too, so the eval shows German talk with English files but barely discriminates the rule itself (an agent may answer German anyway); no baseline run without the rule is planned.
 
 ## 3. Docs
 

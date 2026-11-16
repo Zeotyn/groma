@@ -96,8 +96,9 @@ groma empfohlenen Standard.
 Installiere keine Skills, Plugins oder Methodiken von Dritten und nutze kein
 Netzwerk: schreibe jeden Installationsbefehl nach .groma/install.sh und markiere
 den Schritt als pending. Heute ist der 2026-11-04.
-Schreib am Ende unter der Zeile \"Fragen:\" jede Frage, die du mir gestellt
-hättest, wörtlich so, wie du sie gestellt hättest, eine pro Zeile.
+Schreib am Ende eine Zeile, die genau \"Fragen:\" lautet, und darunter jede
+Frage, die du mir gestellt hättest, wörtlich so, wie du sie gestellt hättest,
+eine pro Zeile.
 
 $(cat "$answers")" ;;
   *)

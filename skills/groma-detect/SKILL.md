@@ -7,7 +7,7 @@ description: Classifies a folder as greenfield or brownfield with evidence. Use 
 
 Decide whether the project is **greenfield** (nothing to survey, interview the user) or **brownfield** (existing code to survey). Read-only.
 
-**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. Files you write, the findings report too, keep the language of their templates.
 
 ## Steps
 

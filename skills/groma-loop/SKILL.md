@@ -7,7 +7,7 @@ description: Runs a change through propose, apply, verify and archive with an in
 
 You are the **author** and the orchestrator. A different model is the **reviewer**. Every round: the reviewer finds, you answer each finding, the loop decides. The user is interrupted only on escalation (and, in `gated` mode, at the two gates).
 
-**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. Files you write, the findings report too, keep the language of their templates.
 
 Paths are relative to this skill folder unless they start with `<project>`. Settings come from `review` in `<project>/.groma/config.yaml`; missing keys use these defaults: `mode: autonomous`, `stop_when: no-high`, propose `reviewer: auto, max_rounds: 2`, apply `reviewer: auto, per: task-group, max_rounds: 1, test_retries: 2`. The docs gate reads `docs.gate` (default `review`). The git steps read `git` (defaults `integrate: rebase`, `branch_per_change: true`, `commits: conventional`, `push: ask`) and run only inside a git repository.
 

@@ -30,7 +30,7 @@ The groma skills are written in English and say nothing about the language in wh
 Chosen option: "one rule line in every skill", because the agent translates on output and needs no data to do it.
 
 Details:
-- Every `SKILL.md` carries the line "**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write." In a mixed-language session the latest message decides.
+- Every `SKILL.md` carries the line "**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. Files you write, the findings report too, keep the language of their templates." In a mixed-language session the latest message decides.
 - The line sits in the skill body, not in a shared reference file: it is one sentence, and a vendored file (ADR 0051) would cost a read in every skill. `tests/structure/check.py user-language` keeps the copies identical to the line in `skills/groma/SKILL.md`, which is the source to edit.
 - The `/groma` summary translates its labels; paths and commands in it stay literal.
 - Files groma writes stay as their templates say: config, AGENTS.md, findings reports, seed ADRs. A hint that goes both into the findings report and into the summary is English in the report and in the user's language in the summary.
@@ -45,7 +45,7 @@ Details:
 
 ### Confirmation
 
-`tests/structure/check.py` (`check_user_language`) and its unit tests check that every skill carries the line. The eval fixture `de-empty` (`tests/evals/answers/de-empty.md`, German prompt in `tests/evals/run.sh`) asserts a German summary and German questions, literal paths and commands, and English AGENTS.md, seed ADR, config keys and findings report. The confirmation is partial until an eval run is recorded in the change's tasks.
+`tests/structure/check.py` (`check_user_language`) and its unit tests check that every skill carries the line. The eval fixture `de-empty` (`tests/evals/answers/de-empty.md`, German prompt in `tests/evals/run.sh`) asserts a German summary and German questions, literal paths and commands, and English AGENTS.md, seed ADR, config keys and findings report. The eval discriminates weakly: its prompt is German too, so an agent may answer in German without the rule; it shows that the rule and German talk go together and that files stay English, not that the rule alone causes the German talk. The confirmation is partial until an eval run is recorded in the change's tasks.
 
 ## Pros and Cons of the Options
 

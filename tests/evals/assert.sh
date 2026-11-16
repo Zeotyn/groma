@@ -223,9 +223,12 @@ case "$FX" in
   de-*)
     LOG="${M%.manifest}.log"
     talk="${M%.manifest}.talk" asked="${M%.manifest}.asked"
-    # the prompt asks for the questions groma would have asked, after a "Fragen:" line
-    awk '/^[#* ]*Fragen:/ { q = 1; next } !q' "$LOG" > "$talk"
-    awk '/^[#* ]*Fragen:/ { q = 1; next } q && /\?/' "$LOG" > "$asked"
+    # the prompt asks for the questions groma would have asked, after a line "Fragen:";
+    # also accepted: "## Fragen:", "**Fragen:**", "- Meine Fragen:" (Fragen, a colon, nothing
+    # after it but markup); the last such line counts, "Offene Fragen: keine" does not
+    qline=$(awk '/Fragen[*_` ]*:[*_` ]*$/ { n = NR } END { print n + 0 }' "$LOG" 2>/dev/null || echo 0)
+    awk -v n="$qline" 'n == 0 || NR < n' "$LOG" > "$talk" 2>/dev/null
+    awk -v n="$qline" 'n > 0 && NR > n && /\?/' "$LOG" > "$asked" 2>/dev/null
     check "summary is in German" more_german "$talk"
     check "questions listed after Fragen:" test -s "$asked"
     check "questions are in German" more_german "$asked" 3

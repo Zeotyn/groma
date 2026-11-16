@@ -7,7 +7,7 @@ description: Installs third-party skills the user picks from the groma catalog (
 
 Offer the curated [catalog.yaml](catalog.yaml) one category at a time, record the picks, install them project-scoped for every configured agent.
 
-**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. Files you write, the findings report too, keep the language of their templates.
 
 ## Steps
 

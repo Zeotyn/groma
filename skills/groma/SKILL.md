@@ -7,7 +7,7 @@ description: Initializes or updates a project for AI-assisted work - methodology
 
 Lay out a project before building on it. Eight steps, each announced, each safe to re-run.
 
-**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. Files you write, the findings report too, keep the language of their templates.
 
 **Writes are additive.** groma creates files only at paths that do not exist, plus its own `.groma/` and `docs/_groma/`. Anything that would change an existing file becomes a snippet in the findings report. Third-party installers run only after the user agreed when they touch existing files.
 

@@ -7,7 +7,7 @@ description: Sets up a spec methodology (OpenSpec, Spec Kit, BMAD, GSD) and the 
 
 Set up one spec methodology and the change naming convention. `docs/` stays the product truth; the methodology holds change work and points at `docs/`.
 
-**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. This rule does not change the language of files you write.
+**User language.** Talk to the user in the language of their latest message: questions, summaries, hints, warnings, escalations and the reasons for commands you print. Commands, paths, config keys and ids stay literal. Files you write, the findings report too, keep the language of their templates.
 
 ## Steps
 

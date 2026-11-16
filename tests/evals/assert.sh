@@ -128,9 +128,9 @@ for f in "$P"/docs/_groma/findings-*.md; do
 done
 if [ -n "$survey" ]; then
   rc_out=$(sh "$ROOT/skills/groma-survey/scripts/report-check.sh" "$survey" 2>&1 || true)
-  miss=$(printf '%s\n' "$rc_out" | awk -F'\t' '$1 == "missing" { printf " %s;", $2 }')
-  if [ -z "$miss" ]; then ok "survey report has every section of the findings template"
-  else no "survey report has every section of the findings template (missing:$miss)"; fi
+  miss=$(printf '%s\n' "$rc_out" | awk -F'\t' '$1 == "missing" || $1 == "empty" { printf " %s %s;", $1, $2 }')
+  if [ -z "$miss" ]; then ok "survey report has every section of the findings template, none empty"
+  else no "survey report has every section of the findings template, none empty (not:$miss)"; fi
   n=$(printf '%s\n' "$rc_out" | awk -F'\t' '$1 == "handoff" { print $2 }')
   if [ "${n:-0}" -ge 1 ] && [ "${n:-0}" -le 10 ]; then ok "survey hand-off within ten lines ($n)"
   else no "survey hand-off within ten lines (found ${n:-0})"; fi

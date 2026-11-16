@@ -29,3 +29,4 @@ m003-v0-3
 m004-v0-4
 r001-vendor-shared-files
 s001-plugin-bundles-hooks
+f009-openspec-2

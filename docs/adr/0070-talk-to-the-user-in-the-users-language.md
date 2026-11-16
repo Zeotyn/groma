@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-16
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma/SKILL.md, skills/groma-agents/SKILL.md, tests/structure/check.py, tests/evals/assert.sh, tests/evals/answers/de-empty.md]
@@ -45,7 +45,7 @@ Details:
 
 ### Confirmation
 
-`tests/structure/check.py` (`check_user_language`) and its unit tests check that every skill carries the line. The eval fixture `de-empty` (`tests/evals/answers/de-empty.md`, German prompt in `tests/evals/run.sh`) asserts a German summary and German questions, literal paths and commands, and English AGENTS.md, seed ADR, config keys and findings report. The eval discriminates weakly: its prompt is German too, so an agent may answer in German without the rule; it shows that the rule and German talk go together and that files stay English, not that the rule alone causes the German talk. The confirmation is partial until an eval run is recorded in the change's tasks.
+`tests/structure/check.py` (`check_user_language`) and its unit tests check that every skill carries the line. The eval fixture `de-empty` (`tests/evals/answers/de-empty.md`, German prompt in `tests/evals/run.sh`) asserts a German summary and German questions, literal paths and commands, and English AGENTS.md, seed ADR, config keys and findings report. The eval discriminates weakly: its prompt is German too, so an agent may answer in German without the rule; it shows that the rule and German talk go together and that files stay English, not that the rule alone causes the German talk. The joint M004 eval run on 2026-11-16 passed every `de-empty` check.
 
 ## Pros and Cons of the Options
 

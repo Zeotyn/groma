@@ -12,6 +12,10 @@ generated_by: groma-survey
 
 Read-only survey of `{{project_name}}`. No pre-existing file was changed. Severity: **high** blocks reliable work, **medium** should be fixed soon, **low** is cleanup.
 
+## Hand-off
+
+{{handoff: 1 to 10 lines, the same lines the survey returns to its caller: counts per severity, the top three findings, what groma-lay-out should know (data model source, existing docs to keep, proposed ADRs)}}
+
 ## Summary
 
 | Area | Result |
@@ -22,6 +26,14 @@ Read-only survey of `{{project_name}}`. No pre-existing file was changed. Severi
 | Docs | {{docs_found}} found, {{docs_stale}} stale, {{docs_broken}} broken, {{docs_missing}} missing |
 | Data model | {{data_model_level: highest source level used}}, {{drift_count}} drift findings |
 | Code style | {{style_tools}} tools found, {{style_drift}} editorconfig drift, {{style_unchecked}} unchecked |
+
+## Survey scope
+
+Files opened per category after the code map, against the cap of groma-survey's read budget. A `capped` category stopped at its cap; what was left unread is a low finding.
+
+| Category | Files read | Cap | Capped |
+|---|---|---|---|
+| {{category: code map / ADRs / docs / data model / code style}} | {{files_read}} | {{cap}} | {{capped: yes / no}} |
 
 ## Findings
 

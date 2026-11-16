@@ -105,6 +105,18 @@ if [ -z "$leftover" ]; then ok "no unresolved {{placeholders}} in new files"; el
 findings=""
 for f in "$P"/docs/_groma/findings-*.md; do [ -f "$f" ] && findings=$f && break; done
 
+# --- every brownfield fixture: the survey's report is complete and its hand-off short
+# (the hand-off is what a survey subagent returns to the main session; ADR 0069)
+if has "$P/.groma/config.yaml" '^project_type: *brownfield'; then
+  rc_out=$(sh "$ROOT/skills/groma-survey/scripts/report-check.sh" "$findings" 2>&1 || true)
+  miss=$(printf '%s\n' "$rc_out" | awk -F'\t' '$1 == "missing" { printf " %s;", $2 }')
+  if [ -n "$findings" ] && [ -z "$miss" ]; then ok "findings report has every section of the findings template"
+  else no "findings report has every section of the findings template (missing:${miss:- the report})"; fi
+  n=$(printf '%s\n' "$rc_out" | awk -F'\t' '$1 == "handoff" { print $2 }')
+  if [ "${n:-0}" -ge 1 ] && [ "${n:-0}" -le 10 ]; then ok "survey hand-off within ten lines ($n)"
+  else no "survey hand-off within ten lines (found ${n:-no report})"; fi
+fi
+
 # --- per fixture -------------------------------------------------------------------
 case "$FX" in
   empty)

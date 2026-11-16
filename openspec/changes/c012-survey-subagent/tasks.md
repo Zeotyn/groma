@@ -1,6 +1,6 @@
 ## 1. Tests first
 
-- [ ] 1.1 Eval assertion: findings report complete on the brownfield fixtures; summary handed back within ten lines
+- [x] 1.1 Eval assertion: findings report complete on the brownfield fixtures; summary handed back within ten lines
 
 ## 2. Survey
 

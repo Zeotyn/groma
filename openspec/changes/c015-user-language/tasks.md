@@ -1,6 +1,6 @@
 ## 1. Tests first
 
-- [ ] 1.1 Eval: empty fixture with German answers; assert German questions and summary, English groma artifacts
+- [x] 1.1 Eval: empty fixture with German answers; assert German questions and summary, English groma artifacts
 
 ## 2. Rule
 

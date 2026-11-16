@@ -5,6 +5,7 @@
 # Usage: tests/evals/run.sh [fixture...]      (default: all fixtures)
 #        cli-<fixture>: run `groma init --yes --print` on <fixture> first, then /groma
 #        conflict-<fixture>: start on the change branch with a conflicting commit on main
+#        de-<fixture>: run <fixture> with a German prompt and answers/de-<fixture>.md
 # Env:   GROMA_EVAL_BUDGET  max USD per fixture run (default 3)
 #        GROMA_EVAL_DIR     work folder (default: $TMPDIR/groma-evals)
 #        GROMA_EVAL_MODEL   model alias for claude -p (default: CLI default)
@@ -28,7 +29,7 @@ REPORTS=${REPORTS%/}
 command -v claude >/dev/null 2>&1 || { echo "claude CLI not found" >&2; exit 3; }
 
 if [ $# -eq 0 ]; then
-  set -- empty node-prisma java-flyway python-django-stale-docs go-no-db loop-openspec cli-node-prisma conflict-loop-openspec
+  set -- empty node-prisma java-flyway python-django-stale-docs go-no-db loop-openspec cli-node-prisma conflict-loop-openspec de-empty
 fi
 
 rm -rf "$WORK"
@@ -37,6 +38,8 @@ for fx in "$@"; do
   case "$fx" in
     cli-*) sh "$ROOT/tests/fixtures/generate.sh" "$WORK/cli" "${fx#cli-}" >/dev/null
            mv "$WORK/cli/${fx#cli-}" "$WORK/$fx" ;;
+    de-*) sh "$ROOT/tests/fixtures/generate.sh" "$WORK/de" "${fx#de-}" >/dev/null
+          mv "$WORK/de/${fx#de-}" "$WORK/$fx" ;;
     conflict-*)
       # the loop starts on the change branch; main then rewords the first task line,
       # so the loop's commit that ticks it conflicts when the branch is rebased
@@ -83,6 +86,21 @@ for fx in "$@"; do
   else
   answers="$HERE/answers/$fx.md"
   [ -f "$answers" ] || { echo "missing answers file: $answers" >&2; exit 2; }
+  case "$fx" in
+  de-*)
+    # the user writes German: groma must talk German (user language, c015)
+    prompt="Führe den groma-Skill (/groma) im aktuellen Verzeichnis aus.
+Dies ist eine automatische Auswertung: niemand kann Fragen beantworten. Nimm die
+Antworten unten, wann immer groma fragen würde; für alles andere nimm den von
+groma empfohlenen Standard.
+Installiere keine Skills, Plugins oder Methodiken von Dritten und nutze kein
+Netzwerk: schreibe jeden Installationsbefehl nach .groma/install.sh und markiere
+den Schritt als pending. Heute ist der 2026-11-04.
+Schreib am Ende unter der Zeile \"Fragen:\" jede Frage, die du mir gestellt
+hättest, wörtlich so, wie du sie gestellt hättest, eine pro Zeile.
+
+$(cat "$answers")" ;;
+  *)
   prompt="Run the groma skill (/groma) in the current directory.
 This is an automated evaluation: nobody can answer questions. Use the answers
 below whenever groma would ask; for anything not covered, take groma's
@@ -91,7 +109,8 @@ Do not install third-party skills, plugins or methodologies and do not use the
 network: write every install command to .groma/install.sh instead and mark the
 step pending. Today is 2026-11-04.
 
-$(cat "$answers")"
+$(cat "$answers")" ;;
+  esac
   fi
 
   echo "== eval $fx"

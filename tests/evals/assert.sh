@@ -14,6 +14,21 @@ check() { # description command...
   if "$@" >/dev/null 2>&1; then ok "$d"; else no "$d"; fi
 }
 has() { grep -Eqi -- "$2" "$1" 2>/dev/null; }
+# whole-word hits of a few common German or English words (user language, c015)
+DE_WORDS='und|der|die|das|nicht|ist|mit|für|wurde|wurden|noch|oder|auf|eine?|nächste|erstellt|soll|sollen'
+EN_WORDS='the|and|is|not|with|for|was|were|or|on|an?|next|created|should|this'
+count_words() { # pattern file: one word per line (bytes >= 128 count as letters), whole-line matches
+  [ -f "$2" ] || { echo 0; return; }
+  LC_ALL=C tr -cs 'A-Za-z\200-\377' '\n' < "$2" | LC_ALL=C grep -Eic -- "^($1)\$" || true
+}
+more_german() { # file [min]: German words outnumber English ones, at least min (10)
+  de=$(count_words "$DE_WORDS" "$1") en=$(count_words "$EN_WORDS" "$1")
+  [ "$de" -ge "${2:-10}" ] && [ "$de" -gt "$en" ]
+}
+more_english() { # file: English words outnumber German ones, at least 10
+  de=$(count_words "$DE_WORDS" "$1") en=$(count_words "$EN_WORDS" "$1")
+  [ "$en" -ge 10 ] && [ "$en" -gt "$de" ]
+}
 any_has() { # pattern files...
   pat=$1; shift
   for f in "$@"; do [ -f "$f" ] && grep -Eqi -- "$pat" "$f" && return 0; done
@@ -125,11 +140,12 @@ fi
 
 # --- per fixture -------------------------------------------------------------------
 case "$FX" in
-  empty)
+  empty|de-empty)
     check "project_type greenfield" has "$P/.groma/config.yaml" '^project_type: *greenfield'
     check "seed ADR 0001" test -f "$P/docs/adr/0001-record-architecture-decisions.md"
     check "seed ADR 0002" test -f "$P/docs/adr/0002-adopt-groma-docs-structure.md"
-    check "vision uses interview answer" has "$P/docs/vision.md" 'recipe'
+    # de-empty answers in German; the language of project docs is an open question (ADR 0070)
+    check "vision uses interview answer" has "$P/docs/vision.md" 'recipe|rezept'
     # greenfield TypeScript with Prettier and ESLint confirmed in the interview
     check "code-style doc exists" test -f "$P/docs/code-style.md"
     check ".editorconfig created" test -f "$P/.editorconfig"
@@ -199,6 +215,26 @@ case "$FX" in
     ;;
   go-no-db)
     check "data model not applicable" has "$P/docs/data-model.md" 'not applicable'
+    ;;
+esac
+
+# --- user language (c015): German user, German talk, files unchanged ---------------
+case "$FX" in
+  de-*)
+    LOG="${M%.manifest}.log"
+    talk="${M%.manifest}.talk" asked="${M%.manifest}.asked"
+    # the prompt asks for the questions groma would have asked, after a "Fragen:" line
+    awk '/^[#* ]*Fragen:/ { q = 1; next } !q' "$LOG" > "$talk"
+    awk '/^[#* ]*Fragen:/ { q = 1; next } q && /\?/' "$LOG" > "$asked"
+    check "summary is in German" more_german "$talk"
+    check "questions listed after Fragen:" test -s "$asked"
+    check "questions are in German" more_german "$asked" 3
+    check "summary keeps paths and commands literal" grep -Eq 'docs/|\.groma/install\.sh|npm i -D' "$talk"
+    check "AGENTS.md stays English" more_english "$P/AGENTS.md"
+    check "AGENTS.md keeps the template headings" sh -c "grep -q '^## Read first' '$P/AGENTS.md' && grep -q '^## Commands' '$P/AGENTS.md'"
+    check "seed ADR stays English" more_english "$P/docs/adr/0001-record-architecture-decisions.md"
+    check "config keys stay English" sh -c "grep -q '^project_type:' '$P/.groma/config.yaml' && grep -q '^steps:' '$P/.groma/config.yaml'"
+    if [ -n "$findings" ]; then check "findings report stays English" more_english "$findings"; fi
     ;;
 esac
 

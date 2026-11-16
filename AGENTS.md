@@ -32,11 +32,11 @@ Read `docs/code-style.md` before writing code and run its check commands after e
 
 ## Conventions
 
-- Work through OpenSpec changes in `openspec/changes/`. Change names follow `<type><NNN>-<slug>` (`m` milestone, `c` change, `f` fix, `s` spike, `r` refactor, `d` docs). Get the next id with `skills/groma-methodology/scripts/next-change-id.sh <type>`.
-- Child changes reference their milestone with a `Milestone: mNNN` line at the top of `proposal.md`.
+- Work through OpenSpec changes in `openspec/changes/`. Until milestone M004 is archived, change names keep the old form `<type><NNN>-<slug>` with three digits (`c` change, `f` fix, `s` spike, `r` refactor): get the number with `skills/groma-methodology/scripts/next-change-id.sh <type>` (it prints `c18`, name the change `c018-<slug>`) and add the name to `.groma/conventions-baseline.txt`. From M5 on, names follow the rule groma ships (`skills/groma-methodology/references/naming-rule.md`): `<type><N>-<slug>` without padding, `m<N>-[spike-|fix-|refactor-]<slug>` for a change of milestone N, and a milestone is a section of `docs/roadmap.md`, not a change.
+- Until M004 is archived, child changes reference their milestone with a `Milestone: mNNN` line at the top of `proposal.md`.
 - Artifacts, skills and docs are written in English.
 - Skill folder names start with `groma-` (except the orchestrator `groma`), and the SKILL.md `name` equals the folder name.
 - Stack-specific knowledge goes into `references/*.md` tables, never into skill logic.
-- Never write code that edits or deletes existing files in a target project. Writes go to new paths, `.groma/` or `docs/_groma/` only. Exceptions: doc and ADR edits that groma-loop and groma-lay-out make inside a user's change are authored work of that change (ADR 0025); and the groma skill copies in a project's agent skill folders, which `groma init`/`update` and `skills/groma/scripts/materialize.sh` replace or delete only while the file's hash matches its record in `.groma/generated.json` (ADR 0018, ADR 0057).
+- Never write code that edits or deletes existing files in a target project. Writes go to new paths, `.groma/` or `docs/_groma/` only. Exceptions: doc and ADR edits that groma-loop and groma-lay-out make inside a user's change are authored work of that change (ADR 0025); and the groma skill copies in a project's agent skill folders, which `groma init`/`update` and `skills/groma/scripts/materialize.sh` replace or delete only while the file's hash matches its record in `.groma/generated.json` (ADR 0018, ADR 0057); and the text between the marker lines `<!-- groma:changes m<N> -->` and `<!-- /groma:changes -->` in `docs/roadmap.md`, which `roadmap.sh` replaces (ADR 0066).
 - Scripts never connect to databases and never print credentials.
 - Keep every manifest version and `skills/groma/VERSION` equal. While a release is prepared, `CHANGELOG.md` collects it under `[Unreleased]`; the release renames that section to the version.

@@ -56,3 +56,23 @@ Alternatives: rename automatically (rejected: breaks branches, links and ADR ori
 - [Two formats coexist in old projects] → the baseline and the `Milestone:` fallback keep tools working; the check tells new from old.
 - [Hand-written roadmap without markers shows no change lists] → `check-conventions.sh` reports the missing block with the snippet.
 - [Tools outside groma that parse `m001-*`] → none known; listed as breaking in the CHANGELOG.
+
+## Implementation notes
+
+Deviations and choices made while building, 2026-11-16:
+
+- **Old umbrella milestone, how scripts know one (D6, D7).** `is_umbrella` in `lib-changes.sh`: an `m<digits>-` name that is listed in the baseline, or whose number has a leading zero. The second half is not in the spec. It keeps a project working whose baseline was not written yet (the new format never has a leading zero), and it kept the F002 tests unchanged.
+- **Codeless types (D6).** The type comes from `change_type`, so `m<N>-refactor-` gets no test reminder either, like `r`. The spec lists `s`, `m<N>-spike-` and `r` only; D2 says the codeless rule needs the type word.
+- **`--suggest-migration` (D7).** It is its own mode: no check, exit 0. New names are printed for active changes only, because archived changes are never renamed (Non-Goals); sections are printed for every umbrella change, active and archived. The checklist of a section holds the tasks below a "Release gate" heading with their state, or the open tasks when there is no such heading. The title is the slug of the umbrella change.
+- **Duplicates (D4).** Ids are compared as numbers, so `c005-a` from the baseline and a new `c5-b` collide. A duplicate full `m` name can only be an active and an archived change; the check asks for another slug.
+- **Missing marker block.** `check-conventions.sh` counts it as a problem (exit 1), output line `MARKERS<TAB>M<N><TAB>…`.
+- **Suggestions for unprefixed names.** `milestone-`, `release-`, `epic-`, `docs-` no longer map to a type (`m` is not a change type any more, `d` is gone); such names get a `c` id and keep the word in the slug.
+- **`roadmap.sh` (D5).** A missing `docs/roadmap.md` is not created (the skill creates it from `templates/roadmap-section.md`). A block without a closing line stops the script with exit 1 before anything is written. `--today` is accepted and ignored. A file from the old generator (`generated_by: groma roadmap.sh`) without markers stays as it is and gets a hint on stderr. `docs/_groma/roadmap.md` is no longer written. AGENTS.md and `docs/code-style.md` name the marker block as an exception to the additive-writes rule (ADR 0066).
+- **Roadmap gate (D6).** Built as specified: a section with an open gate item and no active change of that milestone gets the line, also when the milestone has no change yet. Whether a planned milestone without any change should stay silent is an open question (ADR 0067, Consequences).
+- **Short form of the next action.** A change of a milestone is named in full (`apply m3-checkout`, cut to 20 characters), because `m3` alone names the milestone. The roadmap gate is `gate M3`.
+- **`next-change-id.sh m`** also reads old roadmap headings (`## M003 v0-3`) and umbrella names, so a migrated project does not reuse a milestone number.
+- **Config.** `digits` and `d: docs` left the config template, this repository's config and the README example. A project whose config still lists `d` keeps it as a type; `upgrades.md` offers to remove it.
+- **Spec Kit.** `methodologies.yaml` holds the naming rule only for OpenSpec (the Spec Kit append never had one); only that string changed.
+- **This repository (task 5.2).** `.groma/conventions-baseline.txt` lists all 31 names, active and archived. `docs/roadmap.md` is now hand-written sections M1 to M4 built from `--suggest-migration`, with marker blocks. AGENTS.md and CONTRIBUTING.md say that names keep three digits until M004 is archived and that each new name goes into the baseline. `openspec/config.yaml` keeps the old rule text until then.
+- **`upgrades.md`.** The row is filed under 0.4.0, the release `[Unreleased]` is collecting; the integrator moves it if this change ships later.
+- **Evals (task 4.1).** Fixture, prompts and `assert.sh` renamed to `c1-add-farewell`; no eval was run (cost). The assertions were re-read against the new name: archive folder `*-c1-add-farewell`, branch `c1-add-farewell` (the conflict setup takes it from the folder name), commit subject `feat(c1-add-farewell): …` (type `feat` for `c<N>-` by the "Commit type" table).

@@ -20,7 +20,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 | Detect (`groma-detect`) | Greenfield or brownfield verdict with evidence; integration strategy and commit style recommended from the git history |
 | Survey (`groma-survey`) | Read-only code map, ADR and docs harvest, stale-doc check, style tools, conventions and editorconfig drift, findings report; map first with read caps, in a subagent where the agent has one |
 | Lay out (`groma-lay-out`) | A complete `docs/` tree (including `code-style.md`) with freshness frontmatter and MADR 4.0 ADRs; style tool configs and ADRs after the interview |
-| Methodology (`groma-methodology`) | OpenSpec, Spec Kit, BMAD or GSD set up non-interactively, plus the `<type><NNN>-<slug>` change convention |
+| Methodology (`groma-methodology`) | OpenSpec, Spec Kit, BMAD or GSD set up non-interactively, plus the `<type><N>-<slug>` change convention and milestones as sections of `docs/roadmap.md` |
 | Skills (`groma-skills`) | Curated third-party skills per category, installed project-scoped |
 | Agents (`groma-agents`) | One canonical `AGENTS.md` and pointer files for each agent |
 | Loop (`groma-loop`) | Each change proposed, applied, verified and archived with an independent reviewer model and a tests gate that includes the style checks; branched, committed per review unit, integrated and pushed by the git settings |
@@ -37,6 +37,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 - **Git workflow.** The `git` section of the config decides once how changes are integrated (`rebase`, `merge`, `squash`), whether each change gets a branch, how commits are written and when groma pushes. AGENTS.md carries the rule for every agent, including those outside the loop: a request to "merge" means the configured sequence. groma-loop carries it out and stops on conflicts, a dirty tree or a rejected push instead of resolving, stashing or forcing.
 - **Next action.** A fixed ladder picks one action from the reminders, so the user sees what to do next without asking. Hooks only display it; they never block, retry or prompt the agent. Each agent's hook support is data in `agents.yaml`; agents without a display-only channel rely on the AGENTS.md line.
 - **Always-loaded budget.** Skill descriptions and the generated AGENTS.md are in the agent's context on every turn, so they stay short: at most 400 characters per description and 2000 for all descriptions together, and at most 80 lines and 3200 characters for the AGENTS.md template, enforced by the structure check (ADR 0071). Details go into skill bodies, references and `docs/`, which load on demand.
+- **Change naming.** A name says what a change is and where it belongs: `c4-export`, `f2-null-on-empty`, `s1-graphql`, `r3-split-module`, and inside milestone 3 `m3-checkout`, `m3-fix-rounding`. Tools group changes by the name alone. A milestone is planning text, a section of `docs/roadmap.md` with a goal and a release gate, so every change on a board is real work. Names from before the rule stay valid through `.groma/conventions-baseline.txt`; groma suggests new names and never renames.
 - **No credentials.** Scripts never connect to databases and never print secrets.
 
 ## Constraints

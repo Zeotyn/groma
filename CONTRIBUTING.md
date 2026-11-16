@@ -70,11 +70,12 @@ node bin/groma.js init --dry-run --yes <dir>
 
 ## Change workflow
 
-groma is built with [OpenSpec](https://github.com/Fission-AI/OpenSpec) and follows its own naming convention: `<type><NNN>-<slug>` with types `m` milestone, `c` change, `f` fix, `s` spike, `r` refactor, `d` docs.
+groma is built with [OpenSpec](https://github.com/Fission-AI/OpenSpec) and follows its own naming convention. Until milestone M004 is archived this repository keeps the old form `<type><NNN>-<slug>` with three digits (`c` change, `f` fix, `s` spike, `r` refactor) and lists every name in `.groma/conventions-baseline.txt`; from M5 on it uses the form groma ships, `<type><N>-<slug>` and `m<N>-<slug>` for changes of a milestone (see `skills/groma-methodology/references/conventions.md`).
 
 ```sh
-skills/groma-methodology/scripts/next-change-id.sh c      # prints the next free change id, e.g. c002
-openspec new change "c002-your-slug"
+skills/groma-methodology/scripts/next-change-id.sh c      # prints the next free change id, e.g. c18
+openspec new change "c018-your-slug"                      # until M004 ends: three digits
+echo "c018-your-slug" >> .groma/conventions-baseline.txt
 ```
 
 Larger changes run through `groma-loop` so a second model reviews the proposal and every task group.

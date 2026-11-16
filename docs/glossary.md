@@ -24,8 +24,10 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Additive write | Creating a file only at a free path, plus `.groma/` and `docs/_groma/` | all writing skills | editing existing files |
 | Catalog | `catalog.yaml`: curated third-party skills grouped by category | `groma-skills` | a skill registry |
 | Pending | A step whose commands are listed in `.groma/install.sh` for the user to run | config `steps` | failed |
-| Change id | `<type><NNN>`, e.g. `c003`, prefix of every change name | conventions | an ADR number |
-| Milestone | Change of type `m` grouping child changes via `Milestone: mNNN` | conventions | a release |
+| Change id | `<type><N>` without leading zeros, e.g. `c3`, prefix of every change name; written `C3` in docs and summaries. Inside a milestone the prefix is `m<N>-`, with a type word for spikes, fixes and refactors (`m3-fix-rounding`) | conventions | an ADR number; the old form `c003` from the conventions baseline |
+| Milestone | A section `## M<N>: <title>` in `docs/roadmap.md` with a goal and a release-gate checklist; the changes named `m<N>-…` belong to it | conventions | a change; a release. An old umbrella milestone (`m003-v0-3`) was a change that grouped children through `Milestone: mNNN` |
+| Release gate | The checklist of a milestone section; `status.sh` names its first open item once no change of the milestone is active | conventions, `status.sh` | the docs gate |
+| Conventions baseline | `.groma/conventions-baseline.txt`: names of changes that existed before the current naming rule; the check accepts them | conventions | a list of allowed names for new changes |
 | Freshness | Whether a doc is fresh, stale or unknown, from frontmatter and git dates | survey | `status` in frontmatter |
 | Review loop | `groma-loop`: propose, apply, verify, archive with review rounds by a second model | `groma-loop` | a code review by a person |
 | Finding | One row of a reviewer's table (high, medium, low) that the author must fix or reject with a reason | `groma-loop` | a survey finding in the findings report |
@@ -41,7 +43,7 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Unchecked tool | A style tool with a config file whose check command runs in no CI workflow or project script | `style-drift.sh` | a missing tool |
 | Integration strategy | `git.integrate`: how a change branch reaches the main branch, `rebase` (rebase, then fast-forward), `merge` (`--no-ff` merge commit) or `squash` (one commit named after the change); "merge" as a request means the configured strategy | git workflow | `git merge` the command |
 | Main branch | The branch changes are integrated into: the remote's default branch, else `main`, else `master` | git workflow | the checked-out branch |
-| Change branch | A branch named after the change id (`c007-cache`) that groma-loop creates when `branch_per_change` is true and never deletes | `groma-loop` | a feature branch with a free name |
+| Change branch | A branch named after the change (`c7-cache`) that groma-loop creates when `branch_per_change` is true and never deletes | `groma-loop` | a feature branch with a free name |
 | Git practice | What `git-practice.sh` reads from the main branch's history: merge commits, pull-request merges, `(#n)` subjects, conventional subjects, with a recommended strategy and commit style | `groma-detect` | the configured strategy, which the user picks |
 | Push policy | `git.push`: `ask` (default), `auto` or `never`, for the main branch after integration | git workflow | the `unpushed` reminder of `status.sh` |
 | Next action | The one step `next.sh` names for a project: the first rung of the ladder that applies, or nothing | `groma-methodology`, hooks, status line | the full reminder list of `status.sh` |

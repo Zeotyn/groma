@@ -15,7 +15,7 @@ groma has no database. Its persistent data are files it writes into target proje
 
 ## Conceptual model
 
-A **project config** records the choices of one groma run: the methodology, the agents and one skill pick per **catalog category**. Each pick refers to a **catalog skill**. Generated **docs** carry freshness frontmatter. **Changes** are named with a change id and may belong to a **milestone**. An **ADR** may record a decision of one change through its `origin`.
+A **project config** records the choices of one groma run: the methodology, the agents and one skill pick per **catalog category**. Each pick refers to a **catalog skill**. Generated **docs** carry freshness frontmatter. **Changes** are named with a change id and may belong to a **milestone**, a section of the roadmap. An **ADR** may record a decision of one change through its `origin`.
 
 ## Logical model
 
@@ -36,7 +36,8 @@ erDiagram
 | Catalog skill | id, `source`, `ref`, `skills`, `claude_plugin`, `marketplace`, `install`, `post_install` | listed in categories | `skills/groma-skills/catalog.yaml` | EXTRACTED |
 | Doc | `title`, `status`, `last_reviewed`, `review_after_days`, `owner`, `sources` | fills one doc slot | `skills/groma-lay-out/templates/docs/` | EXTRACTED |
 | ADR | number `NNNN`, `status`, `date`, `evidence`, optional `origin` `<change>#D<n>` | records at most one change decision | `skills/groma-lay-out/templates/adr-template.md` | EXTRACTED |
-| Change | id `<type><NNN>-<slug>`, optional `Milestone: mNNN` line | belongs to at most one milestone | `skills/groma-methodology/references/naming-rule.md`, `skills/groma-methodology/references/conventions.md` | EXTRACTED |
+| Change | name `<type><N>-<slug>`, or `m<N>-[spike-\|fix-\|refactor-]<slug>` inside a milestone; old names `<type><NNN>-<slug>` with an optional `Milestone: mNNN` line stay valid through `.groma/conventions-baseline.txt` | belongs to at most one milestone, by its `m<N>-` prefix | `skills/groma-methodology/references/naming-rule.md`, `skills/groma-methodology/references/conventions.md` | EXTRACTED |
+| Milestone | section `## M<N>: <title>` in `docs/roadmap.md`: `**Goal:**`, `**Release gate:**` checklist, marker block for its changes | has any number of changes | `skills/groma-methodology/templates/roadmap-section.md`, `skills/groma-methodology/scripts/roadmap.sh` | EXTRACTED |
 
 ## Invariants
 

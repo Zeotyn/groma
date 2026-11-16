@@ -27,6 +27,8 @@
 
 ## 5. Docs
 
-- [ ] 5.1 `docs/glossary.md`, `docs/concept.md`, `docs/architecture.md`, README "Conventions groma sets up"; ADRs for D1 to D7 where they have alternatives; ADR index; CHANGELOG `[Unreleased]` with the breaking ID format
+- [x] 5.1 `docs/glossary.md`, `docs/concept.md`, `docs/architecture.md`, `docs/data-model.md`, README "Conventions groma sets up"; ADRs 0062 to 0068 for D1 to D7; ADR index
 - [x] 5.2 This repository: add `.groma/conventions-baseline.txt` with all current names so M004 finishes under the old names; new rule from M5
-- [ ] 5.3 `scripts/test.sh` green; `openspec validate --all --strict`
+- [x] Docs: docs/vision.md unchanged, because the README change is the naming rule under "Conventions groma sets up", and the vision names no change convention
+- [x] 5.3 `scripts/test.sh` green; `openspec validate --all --strict`
+- [ ] 5.4 CHANGELOG `[Unreleased]` with the breaking ID format: CHANGELOG by integrator

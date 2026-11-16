@@ -185,7 +185,7 @@ Every change keeps `docs/` current in the same change, like its code. `skills/gr
 | `review` (default) | yes | yes | high | no |
 | `strict` | yes | yes | high | yes |
 
-On archive, groma-loop accepts the change's proposed ADRs, sets `last_reviewed` in the docs the change touched, completes the ADR index and regenerates the roadmap. `docs.adr_from` picks which decisions need an ADR: `design-alternatives` (default), `marked` (a line `ADR: yes`) or `off`.
+On archive, groma-loop accepts the change's proposed ADRs, sets `last_reviewed` in the docs the change touched, completes the ADR index and refreshes the change lists in the roadmap. `docs.adr_from` picks which decisions need an ADR: `design-alternatives` (default), `marked` (a line `ADR: yes`) or `off`.
 
 ## Requirements
 
@@ -237,14 +237,12 @@ git:
   push: ask                      # ask | auto | never
 conventions:
   changes:
-    digits: 3
     types:
       m: milestone
       c: change
       f: fix
       s: spike
       r: refactor
-      d: docs
 ```
 
 The full template with comments: [skills/groma/templates/config.yaml](skills/groma/templates/config.yaml). The skill catalog: [skills/groma-skills/catalog.yaml](skills/groma-skills/catalog.yaml).
@@ -263,7 +261,10 @@ Then run `/groma` in a project: it compares `initialized_with` in the config wit
 ## Conventions groma sets up
 
 - `docs/` is the product truth. ADRs follow [MADR 4.0](https://adr.github.io/madr/).
-- Changes are named `<type><NNN>-<slug>`: `m` milestone, `c` change, `f` fix, `s` spike, `r` refactor, `d` docs. Example: `c004-export-csv`.
+- Changes are named `<type><N>-<slug>`: `c` change, `f` fix, `s` spike, `r` refactor. Example: `c4-export-csv`. Numbers have no leading zeros, count per type and are never reused.
+- A milestone is a section `## M<N>: <title>` in `docs/roadmap.md` with a goal and a release-gate checklist, not a change. Its changes are named `m<N>-<slug>`, with a type word when they are no feature: `m3-checkout`, `m3-fix-rounding`, `m3-spike-payment-api`, `m3-refactor-cart`. `roadmap.sh` lists them in the section.
+- Docs have no change type: they are updated in the change that causes them.
+- Projects with the older names (`c004-export-csv`, milestone changes like `m001-mvp`) keep them: groma lists them in `.groma/conventions-baseline.txt` and only suggests new names (`check-conventions.sh --suggest-migration`).
 - Project choices live in `.groma/config.yaml`, committed with the project.
 
 ## Contributing

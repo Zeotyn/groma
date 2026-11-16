@@ -74,6 +74,13 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0057](0057-mirror-the-cli-materialization-rules-in-a-shell-script.md) | Mirror the CLI's materialization rules in a shell script | accepted | 2026-11-13 |
 | [0058](0058-copy-the-groma-skills-into-the-project-by-default.md) | Copy the groma skills into the project by default on the agent path | accepted | 2026-11-13 |
 | [0059](0059-copy-the-skills-also-when-the-plugin-is-installed.md) | Copy the skills also when the Claude plugin is installed, and print how to switch it off | accepted | 2026-11-13 |
+| [0062](0062-make-the-milestone-a-roadmap-section-not-a-change.md) | Make the milestone a roadmap section, not a change | proposed | 2026-11-16 |
+| [0063](0063-carry-the-type-inside-a-milestone-as-a-type-word.md) | Carry the type inside a milestone as a type word | proposed | 2026-11-16 |
+| [0064](0064-drop-the-docs-change-type.md) | Drop the docs change type | proposed | 2026-11-16 |
+| [0065](0065-number-changes-without-zero-padding.md) | Number changes without zero padding | proposed | 2026-11-16 |
+| [0066](0066-fill-only-marked-blocks-of-the-roadmap.md) | Fill only marked blocks of the roadmap | proposed | 2026-11-16 |
+| [0067](0067-read-the-release-gate-from-the-roadmap.md) | Read the release gate from the roadmap | proposed | 2026-11-16 |
+| [0068](0068-migrate-change-names-by-baseline-and-suggestions.md) | Migrate change names by baseline and suggestions, never by renaming | proposed | 2026-11-16 |
 | [0069](0069-run-the-brownfield-survey-in-a-subagent.md) | Run the brownfield survey in a subagent where the agent has one | proposed | 2026-11-16 |
 | [0071](0071-cap-always-loaded-text-by-characters-and-lines.md) | Cap always-loaded text by characters and lines | accepted | 2026-11-12 |
 

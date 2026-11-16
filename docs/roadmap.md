@@ -87,13 +87,14 @@ Changes without a milestone are not listed here: `openspec list` and `skills/gro
 | `c009-marketplace-bundles` | archived | - |
 | `c010-token-report` | active | 6/7 |
 | `c011-always-loaded-diet` | archived | - |
-| `c012-survey-subagent` | active | 0/5 |
+| `c012-survey-subagent` | active | 5/6 |
 | `c013-effect-measurement` | active | 0/5 |
 | `c014-plugin-next-hooks` | archived | - |
-| `c015-user-language` | active | 0/4 |
+| `c015-user-language` | archived | - |
 | `c016-agent-only-init` | archived | - |
 | `f007-eval-assertions` | archived | - |
 | `f008-shellcheck-trap` | archived | - |
+| `f009-openspec-2` | active | 0/8 |
 | `r001-vendor-shared-files` | archived | - |
 | `s001-plugin-bundles-hooks` | archived | - |
 <!-- /groma:changes -->

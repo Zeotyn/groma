@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-16
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma-methodology/scripts/lib-changes.sh, skills/groma-methodology/scripts/next-change-id.sh, skills/groma-methodology/references/naming-rule.md, tests/scripts/conventions.bats]

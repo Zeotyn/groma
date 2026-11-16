@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-16
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma-methodology/scripts/status.sh, skills/groma-methodology/scripts/next.sh, tests/scripts/status.bats, tests/scripts/next.bats]

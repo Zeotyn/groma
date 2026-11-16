@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-16
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma-methodology/scripts/check-conventions.sh, skills/groma-methodology/references/conventions.md, skills/groma/references/upgrades.md, .groma/conventions-baseline.txt, tests/scripts/conventions.bats]

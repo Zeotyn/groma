@@ -68,6 +68,40 @@ report() { # file handoff-lines...
   assert_output_contains "placeholder${TAB}${n}"
 }
 
+@test "template-shaped placeholders count, other braces in evidence do not" {
+  report "$BATS_TEST_TMPDIR/r.md" "- one finding"
+  {
+    printf '| 2 | low | helm | `{{ .Values.image }}` in chart | `chart/values.yaml` | none |\n'
+    printf 'Jinja evidence {{ user.name }} and Vue {{ message }} in prose\n'
+    printf '```\n{{severity}} inside a fenced block\n```\n'
+    printf 'an unknown name {{tenant}} is project text\n'
+  } >> "$BATS_TEST_TMPDIR/r.md"
+  run sh "$S" "$BATS_TEST_TMPDIR/r.md"
+  [ "$status" -eq 0 ]
+  printf '| Prettier | x | `{{check_command}}` | `{{fix_command}}` |\n' >> "$BATS_TEST_TMPDIR/r.md"
+  printf 'Data model: {{data_model: entities}}\n' >> "$BATS_TEST_TMPDIR/r.md"
+  run sh "$S" "$BATS_TEST_TMPDIR/r.md"
+  [ "$status" -eq 1 ]
+  n=$(wc -l < "$BATS_TEST_TMPDIR/r.md" | tr -d ' ')
+  assert_output_contains "placeholder${TAB}$((n - 1))"
+  assert_output_contains "placeholder${TAB}${n}"
+}
+
+@test "a heading matches the template by its text before a parenthesis" {
+  report "$BATS_TEST_TMPDIR/r.md" "- one finding"
+  sed 's/^## Proposed ADRs (status: proposed)$/## Proposed ADRs/' "$BATS_TEST_TMPDIR/r.md" > "$BATS_TEST_TMPDIR/s.md"
+  run sh "$S" "$BATS_TEST_TMPDIR/s.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "only the first Hand-off section counts" {
+  report "$BATS_TEST_TMPDIR/r.md" "- one finding"
+  printf '\n## Hand-off\n\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n' >> "$BATS_TEST_TMPDIR/r.md"
+  run sh "$S" "$BATS_TEST_TMPDIR/r.md"
+  [ "$status" -eq 0 ]
+  assert_output_contains "handoff${TAB}1"
+}
+
 @test "the hand-off ends at the next section" {
   report "$BATS_TEST_TMPDIR/r.md" "- one finding"
   printf '\n## Read first\n\na\nb\nc\nd\ne\nf\ng\nh\ni\nj\n' >> "$BATS_TEST_TMPDIR/r.md"

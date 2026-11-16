@@ -39,7 +39,7 @@ Announce each step as `Step N of 8: <name>, <what it does>`. After each step set
 5. **skills**: follow `../groma-skills/SKILL.md`.
 
 6. **docs**:
-   - brownfield: survey first, then follow `../groma-lay-out/SKILL.md` with the survey results. When your agent can start a subagent (in Claude Code the Agent tool, formerly Task), start one with the project path and this task: "Follow `<absolute path of ../groma-survey/SKILL.md>` on `<project>`; ask no questions, record them as findings; return only the report path and its Hand-off lines." Keep its reply (at most eleven lines) and read sections of the report only as lay-out needs them. Without subagents, follow `../groma-survey/SKILL.md` here.
+   - brownfield: survey first, then follow `../groma-lay-out/SKILL.md` with the survey results. When your agent can start a subagent (in Claude Code the Agent tool), start one with the project path and this task: "Follow `<absolute path of ../groma-survey/SKILL.md>` on `<project>`; return only the report path and its Hand-off lines." The survey asks nothing there (its "Where you cannot ask"); ask the user about its `unconfirmed` findings yourself, one at a time. Keep its reply (at most eleven lines) and read sections of the report only as lay-out needs them. Without subagents, follow `../groma-survey/SKILL.md` here.
    - greenfield: follow `../groma-lay-out/SKILL.md` with the interview answers.
    When the interview chose style tools, groma-lay-out's "Style setup" runs first: config files at free paths, one accepted ADR per tool, installs through the consent flow (`.groma/install.sh` when declined). "document only" and "none" create no config and no ADR; the doc records the decision. Update mode never creates tool configs unless the user asks.
 

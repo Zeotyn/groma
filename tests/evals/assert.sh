@@ -105,16 +105,22 @@ if [ -z "$leftover" ]; then ok "no unresolved {{placeholders}} in new files"; el
 findings=""
 for f in "$P"/docs/_groma/findings-*.md; do [ -f "$f" ] && findings=$f && break; done
 
-# --- every brownfield fixture: the survey's report is complete and its hand-off short
-# (the hand-off is what a survey subagent returns to the main session; ADR 0069)
-if has "$P/.groma/config.yaml" '^project_type: *brownfield'; then
-  rc_out=$(sh "$ROOT/skills/groma-survey/scripts/report-check.sh" "$findings" 2>&1 || true)
+# --- the survey's own report (generated_by: groma-survey, the newest by name):
+# complete, with a short hand-off (what a survey subagent returns; ADR 0069)
+survey=""
+for f in "$P"/docs/_groma/findings-*.md; do
+  [ -f "$f" ] && grep -q '^generated_by: *groma-survey' "$f" && survey=$f
+done
+if [ -n "$survey" ]; then
+  rc_out=$(sh "$ROOT/skills/groma-survey/scripts/report-check.sh" "$survey" 2>&1 || true)
   miss=$(printf '%s\n' "$rc_out" | awk -F'\t' '$1 == "missing" { printf " %s;", $2 }')
-  if [ -n "$findings" ] && [ -z "$miss" ]; then ok "findings report has every section of the findings template"
-  else no "findings report has every section of the findings template (missing:${miss:- the report})"; fi
+  if [ -z "$miss" ]; then ok "survey report has every section of the findings template"
+  else no "survey report has every section of the findings template (missing:$miss)"; fi
   n=$(printf '%s\n' "$rc_out" | awk -F'\t' '$1 == "handoff" { print $2 }')
   if [ "${n:-0}" -ge 1 ] && [ "${n:-0}" -le 10 ]; then ok "survey hand-off within ten lines ($n)"
-  else no "survey hand-off within ten lines (found ${n:-no report})"; fi
+  else no "survey hand-off within ten lines (found ${n:-0})"; fi
+elif has "$P/.groma/config.yaml" '^project_type: *brownfield'; then
+  no "survey report present (docs/_groma/findings-*.md with generated_by: groma-survey)"
 fi
 
 # --- per fixture -------------------------------------------------------------------

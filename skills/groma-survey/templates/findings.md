@@ -22,14 +22,14 @@ Read-only survey of `{{project_name}}`. No pre-existing file was changed. Severi
 |---|---|
 | Project type | {{project_type}} ({{signals}}) |
 | Code map | {{code_map: graphify / repomix / degraded (file tree only)}} |
-| ADRs | {{adr_count}} found, {{adr_proposed}} proposed |
+| ADRs | {{adr_count}} found (highest number {{adr_highest}}), {{adr_proposed}} proposed |
 | Docs | {{docs_found}} found, {{docs_stale}} stale, {{docs_broken}} broken, {{docs_missing}} missing |
 | Data model | {{data_model_level: highest source level used}}, {{drift_count}} drift findings |
 | Code style | {{style_tools}} tools found, {{style_drift}} editorconfig drift, {{style_unchecked}} unchecked |
 
 ## Survey scope
 
-Files opened per category after the code map, against the cap of groma-survey's read budget. A `capped` category stopped at its cap; what was left unread is a low finding.
+Files opened per category after the code map, against the cap of groma-survey's read budget (code map 15, ADRs 50, docs 30, data model: schema and model files uncapped and migrations 20, code style 10 per top-level source folder). A `capped` category stopped at its cap; what was left unread is a finding (`medium` for the data model, else `low`).
 
 | Category | Files read | Cap | Capped |
 |---|---|---|---|

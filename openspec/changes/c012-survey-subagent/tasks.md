@@ -6,7 +6,7 @@
 
 - [x] 2.1 groma-survey: map first, targeted reads, per-category caps in the report
 - [x] 2.2 groma: start the survey as a subagent where supported, inline otherwise
-- [ ] 2.3 Eval run; token difference against the C010 baseline recorded here; `scripts/test.sh` green (`scripts/test.sh` green; eval run pending (cost))
+- [ ] 2.3 Eval run; token difference against the C010 baseline recorded here; `scripts/test.sh` green (`scripts/test.sh` green; eval run pending (cost). `Agent` is now in the eval's allowed tools, so the headless run can spawn the survey subagent within the fixture budget; ADR 0069's confirmation stays partial until this run.)
 
 ## 3. Docs
 

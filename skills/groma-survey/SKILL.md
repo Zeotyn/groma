@@ -7,7 +7,9 @@ description: Read-only survey of an existing repository - code map, docs and ADR
 
 Survey an existing project like a surveyor walks a site before anyone builds: measure everything, move nothing.
 
-**Writes are additive.** Create files only at paths that do not exist yet, plus `.groma/` and `docs/_groma/`. Before every write, check the path; if it exists, record a finding instead. Pre-existing files stay byte-identical (the test suite checks this).
+**Writes are additive.** Create files only at paths that do not exist yet, plus `.groma/` and `docs/_groma/`. Before every write, check the path; if it exists, record a finding instead. Pre-existing files stay byte-identical (the test suite checks this). Tools you run write there too: graphify's output goes to `<project>/.groma/graphify-out/` (step 2).
+
+**Where you cannot ask** (you run as a subagent or headless), never wait for an answer: write the question as a finding marked `unconfirmed`, with what you would have asked and the default you assumed, and go on. This covers the schema dump offer (step 6) and every confirmation in the reference tables.
 
 Paths below are relative to this skill folder unless they start with `<project>`.
 
@@ -16,19 +18,19 @@ Paths below are relative to this skill folder unless they start with `<project>`
 | Category | Cap | Counts |
 |---|---|---|
 | code map | 15 | manifests, entry points and module files read beyond the map |
-| ADRs | 50 | ADR files; read the frontmatter and title only |
+| ADRs | 50 | ADR files; read the frontmatter and title only. The highest ADR number comes from the file names of every ADR found, also past the cap |
 | docs | 30 | Markdown docs; read the frontmatter and headings only |
-| data model | 20 | schema files and migrations, newest first |
+| data model | schema and model files: no cap; migrations: 20 | schema and ORM model files (they define the entities) are read in full; migrations, newest first, only for drift |
 | code style | 10 per top-level source folder | sampled files (step 7) |
 
-Listing a tree and running a script open no file. At a cap, stop reading that category, mark it `capped` in the report's "Survey scope" and add a low finding naming what stayed unread.
+Listing a tree and running a script open no file. At a cap, stop reading that category, mark it `capped` in the report's "Survey scope" and add a finding naming what stayed unread: `medium` for the data model (entities may be missing), `low` otherwise.
 
 ## Steps
 
 1. **Detect.** Run `sh scripts/detect.sh <project>` (a copy of groma-detect's script, with its signals table in [references/signals.md](references/signals.md)). Done when you know the languages, manifests and history depth.
 
 2. **Code map.** Use the discovery skill from `.groma/config.yaml` (`skills.discovery`, default graphify):
-   - graphify installed: run it on `<project>` and read its report (god nodes, communities).
+   - graphify installed: when `<project>/graphify-out/` already exists, read its report. Otherwise run graphify on `<project>` from `<project>/.groma/` as the working directory (graphify writes `graphify-out/` into its working directory), then read `<project>/.groma/graphify-out/GRAPH_REPORT.md` (god nodes, communities).
    - repomix chosen: `npx --yes repomix@1.18.1 --compress --output <project>/.groma/repomix.xml`, then read that file.
    - neither: read the tree, manifests and entry points; mark the code map `degraded`.
    Done when you can name the main modules, their dependencies, entry points and external systems, each with a path as evidence, and know which files each later step will open.
@@ -39,7 +41,7 @@ Listing a tree and running a script open no file. At a cap, stop reading that ca
 
 5. **Freshness.** Run `sh scripts/freshness.sh <project>` (add `--docs <dir>` for docs outside `docs/`). Every `stale` line becomes a finding with its reason (dates, or the open ADR proposal). Every `broken` line becomes a finding with the listed paths and the action "fix `sources` in frontmatter"; a stale reason after `; ` on that line goes into the same finding. Done when every doc from step 4 has fresh, stale, broken or unknown.
 
-6. **Data model.** Apply [references/data-sources.md](references/data-sources.md) top-down. Draft entities and relationships with `EXTRACTED`/`INFERRED` tags and source paths; record every disagreement between levels as drift. No sources and the project has a database: offer the dump script, never connect yourself.
+6. **Data model.** Apply [references/data-sources.md](references/data-sources.md) top-down. Draft entities and relationships with `EXTRACTED`/`INFERRED` tags and source paths; record every disagreement between levels as drift. No sources and the project has a database: offer the dump script (where you cannot ask: an `unconfirmed` finding), never connect yourself.
 
 7. **Code style.** Run `sh scripts/style-drift.sh <project>`. It reads [references/code-style-tools.md](references/code-style-tools.md) and runs no project tool.
    - Every `tool` line becomes a row of the tools table draft: tool, config path, check command, plus the fix command from the table. When a `checked` line exists for the tool, its command (`npm run lint`, `make lint`, the CI step) replaces the table's check command in the row: the doc shows what the project runs. A `note` line (table missing) becomes a low finding; the draft then says "style tools not detected (code-style-tools.md missing)".
@@ -49,10 +51,10 @@ Listing a tree and running a script open no file. At a cap, stop reading that ca
    - An existing style guide that matches the code-style slot in [references/doc-slots.md](references/doc-slots.md) (`CONTRIBUTING.md` with a style section, `STYLEGUIDE.md`, `docs/conventions.md`, ...) is listed under Docs found as `code-style`.
    Done when the report's "Code style draft" holds the tools table, the conventions and the drift and unchecked findings are in the findings table.
 
-8. **Proposed ADRs.** When step 3 found **no** ADR anywhere, derive the decisions the code already shows: language and runtime, framework, persistence, API style, build and deployment, test approach. Write each as `<project>/docs/adr/NNNN-<kebab-title>.md` from [templates/adr-template.md](templates/adr-template.md) with `status: proposed`, `evidence: [paths]`, no `origin` line and "Derived by groma from existing code; confirm or reject." Numbering starts at 0003 (0001 and 0002 are the groma seed ADRs that groma-lay-out writes); when ADRs exist, propose only decisions that clearly lack one, numbered after the highest found.
+8. **Proposed ADRs.** When step 3 found **no** ADR anywhere, derive the decisions the code already shows: language and runtime, framework, persistence, API style, build and deployment, test approach. Write each as `<project>/docs/adr/NNNN-<kebab-title>.md` from [templates/adr-template.md](templates/adr-template.md) with `status: proposed`, `evidence: [paths]`, no `origin` line and "Derived by groma from existing code; confirm or reject." Numbering starts at 0003 (0001 and 0002 are the groma seed ADRs that groma-lay-out writes); when ADRs exist, propose only decisions that clearly lack one, numbered after the highest found (the report's ADR summary row names it).
 
-9. **Report.** Fill [templates/findings.md](templates/findings.md) into `<project>/docs/_groma/findings-<YYYY-MM-DD>.md` (if taken: `-2`, `-3`, ...). Every finding has severity, evidence and one suggested action. Put proposed edits to existing files (for example a pointer line for an existing `CLAUDE.md`) under "Snippets for existing files". "Survey scope" holds one row per read-budget category with the files read. "Hand-off" holds at most ten lines: counts per severity, the top three findings, and what the docs step needs (data model source, existing docs that fill slots, proposed ADRs).
-   Done when `sh scripts/report-check.sh <report>` exits 0 (every template section, no `{{` placeholder, a hand-off of one to ten lines).
+9. **Report.** Fill [templates/findings.md](templates/findings.md) into `<project>/docs/_groma/findings-<YYYY-MM-DD>.md` (if taken: `-2`, `-3`, ...). Every finding has severity, evidence and one suggested action. Put proposed edits to existing files (for example a pointer line for an existing `CLAUDE.md`) under "Snippets for existing files". "Survey scope" holds one row per read-budget category with the files read. "Hand-off" holds at most ten lines: counts per severity, the top three findings, and what the docs step needs (data model source, existing docs that fill slots, proposed ADRs, the number of `unconfirmed` findings).
+   Done when `sh scripts/report-check.sh <report>` exits 0 (every template section, no template placeholder left, a hand-off of one to ten lines).
 
 ## Severity guide
 

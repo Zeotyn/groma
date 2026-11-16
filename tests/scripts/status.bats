@@ -293,13 +293,54 @@ roadmap() { # text
   printf '%b' "$1" > "$P/docs/roadmap.md"
 }
 
+archived() { # change name: an archived change with all tasks done
+  mkdir -p "$C/archive/2026-10-01-$1"
+  printf -- '- [x] 1 done\n' > "$C/archive/2026-10-01-$1/tasks.md"
+}
+
 @test "roadmap section with an open release-gate item and no active change: gate reminder" {
   roadmap '# Roadmap\n\n## M2: v0.2\n\n**Goal:** published\n\n**Release gate:**\n- [x] Children archived\n- [ ] Test levels 1–4 green\n- [ ] Tagged\n'
-  mkdir -p "$C/archive/2026-10-01-m2-checkout"
-  printf -- '- [x] 1 done\n' > "$C/archive/2026-10-01-m2-checkout/tasks.md"
+  archived m2-checkout
   commit_at "$P" 2026-11-03 x
   run sh "$ST" --root "$P" --today 2026-11-04
   [ "$output" = "M2  gate: Test levels 1–4 green" ]
+}
+
+@test "roadmap gate: a planned milestone without any change stays silent" {
+  # the reviewer's fixture: M2 is planned, the only change is outside every milestone
+  roadmap '# R\n\n## M1: Done\n\n**Release gate:**\n- [x] a\n\n## M2: Planned\n\n**Goal:** g\n\n**Release gate:**\n\n- [x] first\n  - [ ] nested sub\n- [ ] tag v0.2\n\n## M3: Later\n**Release gate:**\n- [ ] dash\n'
+  echo t > "$P/tests/a.test.js"
+  tasks c1-work 0 2
+  tasks m30-other 0 1
+  archived m20-old
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "groma status: nothing open" ]
+}
+
+@test "roadmap gate: an archived old child with a Milestone: line starts the milestone" {
+  roadmap '## M2: v0.2\n**Release gate:**\n- [ ] Tagged\n\n## M3: v0.3\n**Release gate:**\n- [ ] Published\n'
+  archived c004-living-docs
+  printf 'Milestone: m002\n\n## Why\n' > "$C/archive/2026-10-01-c004-living-docs/proposal.md"
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "M2  gate: Tagged" ]
+}
+
+@test "roadmap gate: nested items count, the first open one is named" {
+  roadmap '## M2: v0.2\n**Release gate:**\n- [x] first\n  - [ ] nested sub\n- [ ] top\n'
+  archived m2-checkout
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "M2  gate: nested sub" ]
+}
+
+@test "roadmap gate: a CRLF roadmap gives the same line, without the CR" {
+  roadmap '## M2: v0.2\r\n\r\n**Release gate:**\r\n- [x] Archived\r\n- [ ] Tagged\r\n'
+  archived m2-checkout
+  commit_at "$P" 2026-11-03 x
+  run sh "$ST" --root "$P" --today 2026-11-04
+  [ "$output" = "M2  gate: Tagged" ]
 }
 
 @test "roadmap gate: no reminder while a change of the milestone is active" {
@@ -314,6 +355,7 @@ roadmap() { # text
   roadmap '## M3: v0.3\n\n**Release gate:**\n- [ ] Tagged\n\n## M4: v0.4\n\n**Release gate:**\n- [ ] Published\n'
   tasks m30-other 0 2
   tasks m4-spike-hooks 0 2
+  archived m3-checkout
   commit_at "$P" 2026-11-03 x
   run sh "$ST" --root "$P" --today 2026-11-04
   [ "$output" = "M3  gate: Tagged" ]
@@ -321,6 +363,7 @@ roadmap() { # text
 
 @test "roadmap gate: only open items below Release gate count, per milestone section" {
   roadmap '## M1: Done\n\n**Goal:** g\n- [ ] not a gate item\n\n**Release gate:**\n- [x] Tagged\n\n**Notes:**\n- [ ] not a gate item either\n\n## Ideas\n\n**Release gate:**\n- [ ] not a milestone\n\n## M2: Next\n\n**Release gate:**\n\n- [x] One\n  wrapped line\n- [ ] Two `now`\n- [ ] Three\n'
+  archived m1-login; archived m2-checkout
   commit_at "$P" 2026-11-03 x
   run sh "$ST" --root "$P" --today 2026-11-04
   [ "$output" = "M2  gate: Two now" ]
@@ -328,6 +371,7 @@ roadmap() { # text
 
 @test "roadmap gate text is cut to 60 characters" {
   roadmap '## M2: Next\n**Release gate:**\n- [ ] Run the tests and then a very long explanation that goes on and on\n'
+  archived m2-checkout
   commit_at "$P" 2026-11-03 x
   run sh "$ST" --root "$P" --today 2026-11-04
   [ "$output" = "M2  gate: Run the tests and then a very long explanation that goes on " ]
@@ -346,6 +390,7 @@ roadmap() { # text
 
 @test "roadmap gate lines come after change lines and before repository lines" {
   roadmap '## M2: v0.2\n**Release gate:**\n- [ ] Tagged\n'
+  archived m2-checkout
   tasks c1-a 2 0
   echo t > "$P/tests/a.test.js"
   commit_at "$P" 2026-11-01 x

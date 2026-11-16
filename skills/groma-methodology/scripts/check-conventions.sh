@@ -5,14 +5,19 @@
 # Usage: check-conventions.sh [--root <project dir>] [--suggest-migration]
 #
 # A name conforms when it is a known type letter, a number without leading zeros
-# and a kebab-case slug (c4-export, m3-checkout, m3-fix-rounding). Names listed in
-# .groma/conventions-baseline.txt (changes that existed before the rule) are exempt.
+# and a kebab-case slug (c4-export, m3-checkout, m3-fix-rounding). Not checked:
+# names listed in .groma/conventions-baseline.txt (changes that existed before
+# the rule) and archived changes, which nobody renames. An active name in the
+# old format, <type>0<NN>-<slug> with a known type or the old d (c017-export,
+# m004-v0-4), is accepted with an INFO line: a project that was set up with the
+# old rule stays green until its baseline is written.
 # Duplicates: <type><N> for every type but m, compared as numbers (c005-a and c5-b
 # collide); the full name for m, because several changes share a milestone number.
 # A section "## M<N>: <title>" of docs/roadmap.md needs the marker block that
 # roadmap.sh fills.
 #
-# Output: VIOLATION<TAB><name><TAB>suggest <name>
+# Output: INFO<TAB><name><TAB>old name format, accepted: ...
+#         VIOLATION<TAB><name><TAB>suggest <name>
 #         DUPLICATE<TAB><id><TAB><names><TAB>keep <name>[, rename <name> to <new name>]
 #         MARKERS<TAB>M<N><TAB>add "<!-- groma:changes m<N> -->" and "<!-- /groma:changes -->" ...
 #         then "conventions: ok" or "conventions: <n> problem(s)".
@@ -100,6 +105,12 @@ is_type() { for t in $TYPES; do [ "${t%%:*}" = "$1" ] && return 0; done; return 
 
 conforms() { echo "$1" | grep -Eq "^(${letters})[1-9][0-9]*-[a-z0-9]+(-[a-z0-9]+)*\$"; }
 
+# the old format: a known type or the old d, three digits with a leading zero, a slug
+old_format() { echo "$1" | grep -Eq "^(${letters}|d)0[0-9][0-9]-[a-z0-9]+(-[a-z0-9]+)*\$"; }
+
+# a slug in kebab-case from any text: other characters become dashes, no dash at either end
+kebab() { echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//'; }
+
 # --- migration suggestions ---------------------------------------------------
 goal_of() { # proposal path
   [ -f "$1" ] || { echo "-"; return; }
@@ -174,35 +185,53 @@ EOF
 fi
 
 # --- names -------------------------------------------------------------------
-for n in $(printf '%s\n' "$LIST" | cut -f1); do
+VIOLATED=" "   # active names with a VIOLATION line; the duplicate check leaves them alone
+old=0
+while IFS="$TAB" read -r n loc _ <&3; do
   [ -n "$n" ] || continue
+  [ "$loc" = active ] || continue                # archived changes are never renamed
   if in_baseline "$n"; then continue; fi
   if conforms "$n"; then continue; fi
+  if old_format "$n"; then
+    printf 'INFO%s%s%sold name format, accepted: add it to .groma/conventions-baseline.txt; new names with --suggest-migration\n' "$TAB" "$n" "$TAB"
+    old=$((old + 1))
+    continue
+  fi
   lower=$(echo "$n" | tr '[:upper:]_' '[:lower:]-')
-  ty=$(echo "$lower" | sed -nE 's/^([a-z]+)[0-9]+-.+/\1/p')
+  ty=$(echo "$lower" | sed -nE 's/^([a-z]+)[0-9]+-.*/\1/p')
+  num=$(echo "$lower" | sed -nE 's/^[a-z]+0*([0-9]+)-.*/\1/p')
+  [ "$num" != 0 ] || num=""                      # 0 is no id
+  slug=$(kebab "${lower#*-}")
   if [ "$ty" = m ] && is_type m; then
-    # milestone member in the wrong format: the number is the milestone, shared by its changes
-    new="m$(milestone_of "$lower")-${lower#*-}"
+    # change of a milestone in the wrong format: the number is the milestone, shared by its changes
+    if [ -z "$num" ]; then num=$(sh "$HERE/next-change-id.sh" m --root "$ROOT" 2>/dev/null | sed 's/^m//'); fi
+    case "$slug" in
+      '') new="m$num-<slug>" ;;
+      spike|fix|refactor) new="m$num-$slug-<slug>" ;;   # a type word still needs a slug
+      *) new="m$num-$slug" ;;
+    esac
   elif [ -n "$ty" ] && is_type "$ty"; then
     # typed name in the wrong format (uppercase, zero padding): keep its number when free
-    want=$(echo "$lower" | sed -nE 's/^[a-z]+0*([0-9]+)-.*/\1/p')
-    alloc "$ty" "$want" "$n"; new="$ALLOC-${lower#*-}"
-  elif echo "$lower" | grep -Eq '^[a-z][0-9]+-.'; then
+    alloc "$ty" "$num" "$n"; new="$ALLOC-${slug:-<slug>}"
+  elif echo "$lower" | grep -Eq '^[a-z][0-9]+-'; then
     # one letter and a number, but not a type (the removed d): a change
-    alloc c; new="$ALLOC-${lower#*-}"
+    alloc c; new="$ALLOC-${slug:-<slug>}"
   else
-    first=${lower%%-*}
+    slug=$(kebab "$lower")
+    first=${slug%%-*}
     ty=$(guess_type "$first")
-    slug=$lower
     case "$first" in
       fix|bugfix|hotfix|bug|refactor|cleanup|chore|spike|research|poc|explore|add|feat|feature)
-        [ "$first" != "$lower" ] && slug=${lower#"$first"-} ;;
+        [ "$first" != "$slug" ] && slug=${slug#"$first"-} ;;
     esac
-    alloc "$ty"; new="$ALLOC-$slug"
+    alloc "$ty"; new="$ALLOC-${slug:-<slug>}"
   fi
   printf 'VIOLATION%s%s%ssuggest %s\n' "$TAB" "$n" "$TAB" "$new"
+  VIOLATED="$VIOLATED$n "
   bad=$((bad + 1))
-done
+done 3<<EOF
+$LIST
+EOF
 
 # --- duplicate ids -----------------------------------------------------------
 dups=$(printf '%s\n' "$KEYS" | cut -f1 | grep -E "^(${letters})[0-9]+\$" | grep -v '^m[0-9]' | sort | uniq -d || true)
@@ -211,16 +240,20 @@ for id in $dups; do
     printf '%s\n' "$LIST" | awk -F "$TAB" -v n="$en" '$1 == n'
   done | sort -u)
   names=$(printf '%s\n' "$entries" | cut -f1 | tr '\n' ' ')
-  # keep the archived one (archives are immutable); else the earliest created, then alphabetical
+  # keep the archived one (archives are immutable); else an active name without a
+  # VIOLATION line before one with it, the earliest created first, then alphabetical
   keep=$(printf '%s\n' "$entries" | awk -F "$TAB" '$2 == "archive" { print $1; exit }')
   if [ -z "$keep" ]; then
     keep=$(printf '%s\n' "$entries" | while IFS="$TAB" read -r en _ ep; do
       c=$(sed -n 's/^created:[ ]*//p' "$ep/.openspec.yaml" 2>/dev/null | head -n 1)
-      printf '%s\t%s\n' "${c:-9999-99-99}" "$en"
-    done | sort | head -n 1 | cut -f2)
+      v=0; case "$VIOLATED" in (*" $en "*) v=1 ;; esac
+      printf '%s\t%s\t%s\n' "$v" "${c:-9999-99-99}" "$en"
+    done | sort | head -n 1 | cut -f3)
   fi
   sugg=""
   for en in $(printf '%s\n' "$entries" | awk -F "$TAB" -v k="$keep" '$2 == "active" && $1 != k { print $1 }'); do
+    # a name with a VIOLATION line has its new name there; a second one would contradict it
+    case "$VIOLATED" in *" $en "*) sugg="$sugg, $en: see its VIOLATION line"; continue ;; esac
     ty=${id%%[0-9]*}
     alloc "$ty"
     sugg="$sugg, rename $en to $ALLOC-${en#*-}"
@@ -236,13 +269,11 @@ done
 
 # --- roadmap sections without a marker block ---------------------------------
 if [ -f "$ROADMAP" ]; then
-  unmarked=$(awk '
+  unmarked=$(awk "$ROADMAP_AWK"'
     function flush() { if (n != "" && !(n in marked)) print n; n = "" }
     /^##? / { flush() }
-    /^## M[0-9]+:/ { n = $2; sub(/^M0*/, "", n); sub(/:.*/, "", n); if (n == "") n = "0"; next }
-    /^[ \t]*<!--[ \t]*groma:changes[ \t]+[mM][0-9]+[ \t]*-->/ {
-      k = $0; sub(/^.*groma:changes[ \t]+[mM]0*/, "", k); sub(/[^0-9].*$/, "", k); if (k == "") k = "0"
-      marked[k] = 1 }
+    milestone_heading($0) != "" { n = milestone_heading($0); next }
+    marker_open($0) != "" { marked[marker_open($0)] = 1 }
     END { flush() }' "$ROADMAP")
   for ms in $unmarked; do
     printf 'MARKERS%sM%s%sadd the lines "<!-- groma:changes m%s -->" and "<!-- /groma:changes -->" to the section in docs/roadmap.md, then run roadmap.sh\n' "$TAB" "$ms" "$TAB" "$ms"

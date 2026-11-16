@@ -29,7 +29,7 @@ Chosen option: "a type word for spike, fix and refactor", because a fix or refac
 
 Details:
 - `lib-changes.sh` gives the type letter of a name: `m3-fix-x` is `f`, `m3-x` is `c`. The word counts only directly after `m<N>-` and only when a slug follows (`m3-spikes` is a change).
-- Commit types come from the "Commit type" table in `git-strategies.md`: `m<N>-` and `c` feat, `-fix-` and `f` fix, `-refactor-` and `r` refactor, `-spike-` and `s` chore.
+- Commit types come from the "Commit type" table in `git-strategies.md`: `m<N>-` and `c` feat, `-fix-` and `f` fix, `-refactor-` and `r` refactor, `-spike-` and `s` chore; an old padded umbrella milestone change (`m003-v0-3`) is chore by the first row of the table.
 - Spikes and refactors, inside or outside a milestone, get no test reminder and no spec deltas.
 
 ### Consequences

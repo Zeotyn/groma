@@ -151,6 +151,31 @@ list_changes() {
   fi
 }
 
+# awk functions for docs/roadmap.md, shared by roadmap.sh, check-conventions.sh
+# and status.sh so that all three read headings and marker lines the same way.
+# Lines may end in CR (a CRLF file). Use: awk "$ROADMAP_AWK"'<program>'
+#   nocr(s)              s without a trailing CR
+#   milestone_heading(s) N of a line "## M<N>: <title>", else ""
+#   marker_open(s)       N of a line "<!-- groma:changes m<N> -->", else ""
+#   marker_close(s)      1 for a line "<!-- /groma:changes -->"
+# shellcheck disable=SC2034  # used by the sourcing scripts
+ROADMAP_AWK='
+function nocr(s) { sub(/\r$/, "", s); return s }
+function milestone_heading(s,   n) {
+  s = nocr(s)
+  if (s !~ /^## M[0-9]+:/) return ""
+  n = s; sub(/^## M0*/, "", n); sub(/:.*/, "", n)
+  return (n == "" ? "0" : n)
+}
+function marker_open(s,   k) {
+  s = nocr(s)
+  if (s !~ /^[ \t]*<!--[ \t]*groma:changes[ \t]+[mM][0-9]+[ \t]*-->[ \t]*$/) return ""
+  k = s; sub(/^.*groma:changes[ \t]+[mM]0*/, "", k); sub(/[^0-9].*$/, "", k)
+  return (k == "" ? "0" : k)
+}
+function marker_close(s) { return nocr(s) ~ /^[ \t]*<!--[ \t]*\/groma:changes[ \t]*-->[ \t]*$/ }
+'
+
 # Escape a one-line string for use inside a JSON string: backslash and double
 # quote escaped, other control characters (tabs) become spaces.
 json_escape() {

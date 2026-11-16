@@ -20,6 +20,7 @@ Single source of the integration procedure behind `git.integrate` in `.groma/con
 
 | Change name starts with | `<type>` |
 |---|---|
+| `m0<N>-` | `chore` |
 | `m<N>-fix-` | `fix` |
 | `m<N>-refactor-` | `refactor` |
 | `m<N>-spike-` | `chore` |
@@ -29,7 +30,7 @@ Single source of the integration procedure behind `git.integrate` in `.groma/con
 | `r<N>-` | `refactor` |
 | `s<N>-` | `chore` |
 
-Any other name, a custom type included: `chore`. Old names from `.groma/conventions-baseline.txt`: an umbrella milestone change (`m003-v0-3`) is `chore`, a `d` change `docs`. A unit that only adds tests is `test`, whatever the change.
+The first row is the old umbrella milestone change with its zero-padded number (`m003-v0-3`), which is no feature. Any other name, a custom type included: `chore`. Old names from `.groma/conventions-baseline.txt` that the table does not show: an umbrella milestone change without padding is `chore`, a `d` change `docs`, and `c017-x`, `f008-x`, `r001-x`, `s001-x` follow their letter like the new names. A unit that only adds tests is `test`, whatever the change.
 
 ## Main branch
 

@@ -184,6 +184,8 @@ json_field() { # field: reads $output as JSON
   upstream
   mkdir -p "$P/docs"
   printf '## M2: v0.2\n\n**Release gate:**\n- [x] Archived\n- [ ] Test levels green\n' > "$P/docs/roadmap.md"
+  mkdir -p "$C/archive/2026-10-01-m2-checkout"
+  printf -- '- [x] 1 done\n' > "$C/archive/2026-10-01-m2-checkout/tasks.md"
   commit_at "$P" 2026-11-03 x
   run sh "$NX" "$P"
   [ "$output" = "M2: milestone gate: Test levels green" ]
@@ -191,6 +193,20 @@ json_field() { # field: reads $output as JSON
   [ "$output" = "gate M2" ]
   run sh "$NX" --json "$P"
   [ "$(json_field rung)" = 5 ]
+}
+
+@test "a planned milestone without changes does not hide the rungs below" {
+  commit_at "$P" 2026-11-01 base
+  upstream
+  mkdir -p "$P/docs"
+  printf '## M2: Planned\n\n**Release gate:**\n- [ ] Tagged\n' > "$P/docs/roadmap.md"
+  tasks c1-work 1 2
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" --short "$P"
+  [ "$output" = "push 1" ]
+  git -C "$P" push -q origin main 2>/dev/null
+  run sh "$NX" "$P"
+  [ "$output" = "c1-work: 1/3 tasks, continue: /opsx:apply c1-work" ]
 }
 
 @test "rung 5 is silent while a change of the milestone is active" {

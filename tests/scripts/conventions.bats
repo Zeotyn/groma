@@ -163,12 +163,56 @@ EOF
   assert_output_contains "VIOLATION	C4-Export	suggest c6-export"
 }
 
-@test "padded names are rejected with the unpadded name" {
-  change c017-change-naming; change m003-checkout
+@test "active names in the old format are accepted with an INFO line" {
+  change c017-change-naming; change m003-v0-3; change d001-readme
+  run sh "$S/check-conventions.sh" --root "$P"
+  [ "$status" -eq 0 ]
+  assert_output_contains "INFO	c017-change-naming	old name format, accepted: add it to .groma/conventions-baseline.txt; new names with --suggest-migration"
+  assert_output_contains "INFO	m003-v0-3	old name format"
+  assert_output_contains "INFO	d001-readme	old name format"
+  assert_output_not_contains "VIOLATION"
+  [ "$(printf '%s\n' "$output" | tail -n 1)" = "conventions: ok" ]
+}
+
+@test "a project of the old rule without a baseline stays green" {
+  # the reviewer's fixture: 0.3.0 names, a generated roadmap, no baseline
+  change m002-v0-2; change f001-null; change d001-readme; change c003-import
+  mkdir -p "$C/archive/2026-10-05-c002-export" "$C/archive/2026-09-01-m001-v0-1" "$C/archive/2026-09-01-c001-init"
+  roadmap "$(printf -- '---\ngenerated_by: groma roadmap.sh\n---\n\n# Roadmap\n\n## M001 v0-1\n\n## M002 v0-2\n')"
+  run sh "$S/check-conventions.sh" --root "$P"
+  [ "$status" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -c '^INFO')" -eq 4 ]
+  assert_output_not_contains "c002-export"
+  assert_output_not_contains "m001-v0-1"
+  [ "$(printf '%s\n' "$output" | tail -n 1)" = "conventions: ok" ]
+}
+
+@test "other padding is no old format: violation with the unpadded name" {
+  change c01-export; change c0017-import; change m03-checkout; change x001-unknown-type
   run sh "$S/check-conventions.sh" --root "$P"
   [ "$status" -eq 1 ]
-  assert_output_contains "VIOLATION	c017-change-naming	suggest c17-change-naming"
-  assert_output_contains "VIOLATION	m003-checkout	suggest m3-checkout"
+  assert_output_contains "VIOLATION	c01-export	suggest c1-export"
+  assert_output_contains "VIOLATION	c0017-import	suggest c17-import"
+  assert_output_contains "VIOLATION	m03-checkout	suggest m3-checkout"
+  assert_output_contains "VIOLATION	x001-unknown-type	suggest c18-unknown-type"
+}
+
+@test "archived names are never flagged and get no rename suggestion" {
+  mkdir -p "$C/archive/2026-09-01-fix-login" "$C/archive/2026-09-02-C4-Export" "$C/archive/2026-09-03-c016-agent" "$C/archive/2026-09-04-d1-readme"
+  run sh "$S/check-conventions.sh" --root "$P"
+  [ "$status" -eq 0 ]
+  [ "$output" = "conventions: ok" ]
+}
+
+@test "a suggestion is never the name itself" {
+  change c0-zero; change m3-fix-; change m0-first; change c7-; change Fix_
+  run sh "$S/check-conventions.sh" --root "$P"
+  [ "$status" -eq 1 ]
+  assert_output_contains "VIOLATION	c0-zero	suggest c8-zero"
+  assert_output_contains "VIOLATION	m3-fix-	suggest m3-fix-<slug>"
+  assert_output_contains "VIOLATION	m0-first	suggest m4-first"
+  assert_output_contains "VIOLATION	c7-	suggest c7-<slug>"
+  assert_output_contains "VIOLATION	Fix_	suggest f1-fix"
 }
 
 @test "d names are rejected and become a change" {
@@ -218,6 +262,17 @@ EOF
   assert_output_contains "keep c5-first, rename c5-second to c6-second"
 }
 
+@test "duplicate with a violation: the conforming name is kept, one suggestion per name" {
+  change c05-first; printf 'created: 2026-01-01\n' > "$C/c05-first/.openspec.yaml"
+  change c5-second; printf 'created: 2026-02-01\n' > "$C/c5-second/.openspec.yaml"
+  run sh "$S/check-conventions.sh" --root "$P"
+  [ "$status" -eq 1 ]
+  assert_output_contains "VIOLATION	c05-first	suggest c6-first"
+  assert_output_contains "DUPLICATE	c5	c05-first c5-second	keep c5-second, c05-first: see its VIOLATION line"
+  assert_output_not_contains "rename c5-second"
+  assert_output_not_contains "rename c05-first"
+}
+
 @test "an old padded name and a new name with the same number are duplicates" {
   mkdir -p "$C/archive/2026-09-01-c005-code-style"
   baseline c005-code-style
@@ -251,6 +306,17 @@ EOF
   assert_output_contains 'MARKERS	M2	add the lines "<!-- groma:changes m2 -->" and "<!-- /groma:changes -->" to the section in docs/roadmap.md'
   assert_output_not_contains "MARKERS	M1"
   assert_output_contains "conventions: 1 problem(s)"
+}
+
+@test "marker lines are read like roadmap.sh reads them: CRLF counts, trailing text does not" {
+  roadmap "$(printf '## M1: MVP\r\n<!-- groma:changes m1 -->\r\n<!-- /groma:changes -->\r\n## M2: Billing\r\n<!-- groma:changes m2 --> list\r\n<!-- /groma:changes -->\r')"
+  run sh "$S/check-conventions.sh" --root "$P"
+  [ "$status" -eq 1 ]
+  assert_output_not_contains "MARKERS	M1"
+  assert_output_contains "MARKERS	M2	add the lines"
+  # roadmap.sh agrees: one block
+  run sh "$S/roadmap.sh" --root "$P"
+  assert_output_contains "summary	blocks=1"
 }
 
 @test "sections with marker blocks and other headings pass" {

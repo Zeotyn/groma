@@ -405,7 +405,16 @@ commit_type() { # change name
   [ "$(commit_type m3-spikes)" = feat ]
 }
 
+@test "commit type: old names, the padded umbrella milestone is chore before the m<N>- row" {
+  [ "$(commit_type m003-v0-3)" = chore ]
+  [ "$(commit_type m004-fix-in-the-slug)" = chore ]
+  [ "$(commit_type c017-change-naming)" = feat ]
+  [ "$(commit_type f008-shellcheck-trap)" = fix ]
+  [ "$(commit_type r001-vendor-shared-files)" = refactor ]
+  [ "$(commit_type m10-checkout)" = feat ]
+}
+
 @test "commit type: the table covers every default type and type word" {
-  [ "$(awk -F'|' '/^## / { on = ($0 == "## Commit type") } on && $2 ~ /<N>-/' "$TABLE" | wc -l | tr -d ' ')" -eq 8 ]
+  [ "$(awk -F'|' '/^## / { on = ($0 == "## Commit type") } on && $2 ~ /<N>-/' "$TABLE" | wc -l | tr -d ' ')" -eq 9 ]
   grep -q '^| `<type>` | .*see "Commit type"' "$TABLE"
 }

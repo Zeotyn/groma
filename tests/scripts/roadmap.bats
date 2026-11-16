@@ -73,7 +73,7 @@ EOF
 |---|---|---|
 | `m1-checkout` | active | 2/5 |
 | `m1-fix-rounding` | active | 1/1 |
-| `m1-login` | archived | 4/4 |
+| `m1-login` | archived | - |
 <!-- /groma:changes -->'
   assert_output_contains '<!-- groma:changes m2 -->
 | Change | State | Tasks |
@@ -148,7 +148,7 @@ No changes yet.
 | Change | State | Tasks |
 |---|---|---|
 | `c002-export` | active | 1/2 |
-| `f001-null` | archived | 2/2 |
+| `f001-null` | archived | - |
 <!-- /groma:changes -->'
   assert_output_not_contains "c003-not-in-baseline"
   assert_output_not_contains '`m001-mvp`'
@@ -159,6 +159,36 @@ No changes yet.
   mkdir -p "$C/m3-checkout"
   run sh "$S/roadmap.sh" --root "$P" --stdout
   assert_output_contains '| `m3-checkout` | active | - |'
+}
+
+@test "a CRLF roadmap is filled and stays CRLF" {
+  printf '# Roadmap\r\n\r\n## M1: MVP\r\n\r\n**Goal:** g\r\n\r\n<!-- groma:changes m1 -->\r\nold\r\n<!-- /groma:changes -->\r\n\r\nEnd.\r\n' > "$P/docs/roadmap.md"
+  change m1-checkout 2 3
+  run sh "$S/roadmap.sh" --root "$P"
+  [ "$output" = "summary	blocks=1	changed=1" ]
+  grep -q "$(printf '^| `m1-checkout` | active | 2/5 |\r$')" "$P/docs/roadmap.md"
+  ! grep -q '^old' "$P/docs/roadmap.md"
+  # every line still ends in CR LF
+  [ "$(grep -c "$(printf '\r$')" "$P/docs/roadmap.md")" -eq "$(wc -l < "$P/docs/roadmap.md" | tr -d ' ')" ]
+  run sh "$S/roadmap.sh" --root "$P"
+  [ "$output" = "summary	blocks=1	changed=0" ]
+}
+
+@test "a file without a final newline gets none" {
+  printf '## M1: MVP\n<!-- groma:changes m1 -->\n<!-- /groma:changes -->\nlast line' > "$P/docs/roadmap.md"
+  change m1-checkout 2 3
+  run sh "$S/roadmap.sh" --root "$P"
+  [ "$output" = "summary	blocks=1	changed=1" ]
+  [ "$(tail -c 9 "$P/docs/roadmap.md")" = "last line" ]
+  [ "$(tail -c 1 "$P/docs/roadmap.md" | wc -l | tr -d ' ')" -eq 0 ]
+  grep -q 'm1-checkout' "$P/docs/roadmap.md"
+  # an unchanged block leaves the file as it is, byte for byte
+  cp "$P/docs/roadmap.md" "$BATS_TEST_TMPDIR/first.md"
+  run sh "$S/roadmap.sh" --root "$P"
+  [ "$output" = "summary	blocks=1	changed=0" ]
+  cmp "$BATS_TEST_TMPDIR/first.md" "$P/docs/roadmap.md"
+  run sh "$S/roadmap.sh" --root "$P" --stdout
+  [ "$(printf '%s' "$output" | tail -n 1)" = "last line" ]
 }
 
 @test "no roadmap: nothing is created" {

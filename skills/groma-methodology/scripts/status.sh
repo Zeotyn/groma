@@ -15,8 +15,12 @@
 #   active change of that milestone        -> gate: <first open task>
 #   no commit for stale_change_days        -> continue or close
 # Then one line "M<N>  gate: <first open item>" per section "## M<N>: <title>" of
-# docs/roadmap.md with an open item below "**Release gate:**" and no active
-# change of milestone N (name m<N>-..., or "Milestone: mNNN" in its proposal.md).
+# docs/roadmap.md with an open item below "**Release gate:**", when milestone N
+# has at least one change (active or archived) and none of them is active. A
+# change is of milestone N by its name m<N>-..., or by "Milestone: mNNN" in its
+# proposal.md. A planned milestone without any change stays silent. The
+# checklist is the "- [ ]" lines after "**Release gate:**" up to the next line
+# that is no list item, blank or indented; nested items count like top-level ones.
 # Then one line per ADR with status: proposed whose origin change is archived.
 # Then, from local git state only (no fetch): uncommitted files in the working
 # tree, and commits on the main branch that its upstream does not have.
@@ -162,17 +166,34 @@ done 3<<EOF
 $CHANGES
 EOF
 
+# milestone numbers that have a change at all, active or archived: m<N>- names
+# and "Milestone: mNNN" lines. One awk run, and only when a gate asks for it.
+started() {
+  [ -n "$DIR" ] || return 0
+  printf '%s\n' "$CHANGES" | cut -f1 | sed -nE 's/^m0*([0-9]+)-.+/\1/p'
+  for p in "$DIR"/*/proposal.md "$DIR"/archive/*/proposal.md; do
+    [ -f "$p" ] || continue
+    set -- "$@" "$p"
+  done
+  [ $# -eq 0 ] || awk 'FNR <= 5 && /^Milestone:[ \t]*m[0-9]+/ {
+    n = $0; sub(/^Milestone:[ \t]*m0*/, "", n); sub(/[^0-9].*/, "", n); print (n == "" ? "0" : n) }' "$@"
+}
+
 # release gates of the roadmap: the first open item per milestone section
 if [ -f "$ROOT/docs/roadmap.md" ]; then
+  STARTED=""
   while IFS="$TAB" read -r ms item <&3; do
     [ -n "$ms" ] || continue
     case "$MEMBERS$UMBRELLAS" in *" $ms "*) continue ;; esac
+    [ -n "$STARTED" ] || STARTED=" $(started | tr '\n' ' ')"
+    case "$STARTED" in *" $ms "*) ;; *) continue ;; esac   # planned, no change yet
     printf 'M%s  gate: %s\n' "$ms" "$(printf '%s\n' "$item" | cut60)"
     reported=$((reported + 1))
   done 3<<EOF
-$(awk '
+$(awk "$ROADMAP_AWK"'
+  { $0 = nocr($0) }
   /^##? / { n = ""; g = 0 }
-  /^## M[0-9]+:/ { n = $2; sub(/^M0*/, "", n); sub(/:.*/, "", n); if (n == "") n = "0"; next }
+  milestone_heading($0) != "" { n = milestone_heading($0); next }
   n == "" { next }
   /^\*\*Release gate:\*\*/ { g = 1; next }
   !g { next }

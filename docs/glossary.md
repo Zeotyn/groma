@@ -26,7 +26,7 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Pending | A step whose commands are listed in `.groma/install.sh` for the user to run | config `steps` | failed |
 | Change id | `<type><N>` without leading zeros, e.g. `c3`, prefix of every change name; written `C3` in docs and summaries. Inside a milestone the prefix is `m<N>-`, with a type word for spikes, fixes and refactors (`m3-fix-rounding`) | conventions | an ADR number; the old form `c003` from the conventions baseline |
 | Milestone | A section `## M<N>: <title>` in `docs/roadmap.md` with a goal and a release-gate checklist; the changes named `m<N>-…` belong to it | conventions | a change; a release. An old umbrella milestone (`m003-v0-3`) was a change that grouped children through `Milestone: mNNN` |
-| Release gate | The checklist of a milestone section; `status.sh` names its first open item once no change of the milestone is active | conventions, `status.sh` | the docs gate |
+| Release gate | The checklist of a milestone section; `status.sh` names its first open item once the milestone has changes and none of them is active | conventions, `status.sh` | the docs gate |
 | Conventions baseline | `.groma/conventions-baseline.txt`: names of changes that existed before the current naming rule; the check accepts them | conventions | a list of allowed names for new changes |
 | Freshness | Whether a doc is fresh, stale or unknown, from frontmatter and git dates | survey | `status` in frontmatter |
 | Review loop | `groma-loop`: propose, apply, verify, archive with review rounds by a second model | `groma-loop` | a code review by a person |

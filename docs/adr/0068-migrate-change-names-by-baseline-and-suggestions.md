@@ -30,6 +30,7 @@ Chosen option: "baseline plus read-only suggestions", because a rename breaks br
 Details:
 - On the first run after the update, groma writes all existing change names to `.groma/conventions-baseline.txt`, creating the file or appending the missing names.
 - `--suggest-migration` prints a new name per active old one (`c017-foo` → `c17-foo`, a child of `m004` → `m4-foo`, with the type word for fixes, spikes and refactors) and, per umbrella change, a roadmap section built from its goal and release-gate tasks with an empty marker block. Archived changes get no new name.
+- Until the baseline is written the check stays green: archived names are never reported, and an active name in the old format `<type>0NN-<slug>` gets an `INFO` line that names the baseline and `--suggest-migration`. A project that runs the check in CI does not turn red by updating groma.
 - groma puts this output into the findings report. The user pastes sections and renames, or leaves everything.
 - Scripts tell an old umbrella change from a change of a milestone by the baseline, or by a zero-padded number, which the new format never has.
 - This repository lists all its names in the baseline and finishes M004 under the old names; the new rule applies from M5.
@@ -42,7 +43,7 @@ Details:
 
 ### Confirmation
 
-`tests/scripts/conventions.bats`: baseline accepts padded and `d` names, `--suggest-migration` output for names and umbrella milestones, no file changed. `sh skills/groma-methodology/scripts/check-conventions.sh --root .` prints `conventions: ok` in this repository.
+`tests/scripts/conventions.bats`: baseline accepts padded and `d` names, an old project without a baseline exits 0 with INFO lines, archived names are not reported, `--suggest-migration` output for names and umbrella milestones, no file changed. `sh skills/groma-methodology/scripts/check-conventions.sh --root .` prints `conventions: ok` in this repository.
 
 ## Pros and Cons of the Options
 

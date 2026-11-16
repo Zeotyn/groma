@@ -29,7 +29,8 @@ origin: c017-change-naming#D5
 Chosen option: "replace only the marked blocks", because the user owns the file and groma owns exactly the lines between two markers that the user placed.
 
 Details:
-- Each block gets a table of that milestone's changes: name, active or archived, tasks done. Every other byte stays as it is, and the file is rewritten only when a block changed.
+- Each block gets a table of that milestone's changes: name, active or archived, and for an active change the tasks done as of that run. Every other byte stays as it is: CRLF line ends are kept, also in the written lines, a file without a final newline gets none, and the file is rewritten only when a block changed.
+- One reader for headings and marker lines (`ROADMAP_AWK` in `lib-changes.sh`) serves `roadmap.sh`, `check-conventions.sh` and `status.sh`, so the check never calls a section marked that the script would not fill.
 - A section without markers gets none; `check-conventions.sh` reports it with the two lines to add. A missing roadmap is not created by the script.
 - A block that is not closed stops the script before it writes.
 - For changes in the conventions baseline the script also reads the `Milestone: mNNN` line, so old projects keep their lists.
@@ -43,7 +44,7 @@ Details:
 
 ### Confirmation
 
-`tests/scripts/roadmap.bats`: only marker blocks rewritten, text outside byte-identical, section without markers untouched, unclosed block writes nothing, `Milestone:` fallback only for baseline names.
+`tests/scripts/roadmap.bats`: only marker blocks rewritten, text outside byte-identical, section without markers untouched, unclosed block writes nothing, CRLF file filled and kept, no final newline added, `Milestone:` fallback only for baseline names.
 
 ## Pros and Cons of the Options
 

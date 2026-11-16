@@ -53,7 +53,7 @@ A milestone SHALL NOT be a change. It SHALL be a section `## M<N>: <title>` in `
 - **THEN** both are listed under M3 without any line in their proposals
 
 ### Requirement: Roadmap tracking
-groma SHALL create `docs/roadmap.md` with a section template when the first milestone is planned. The roadmap script SHALL replace only the text between `<!-- groma:changes m<N> -->` and `<!-- /groma:changes -->` in each section with that milestone's changes (name, active or archived, tasks done) and SHALL leave all other text unchanged. For changes listed in the conventions baseline it SHALL also accept a `Milestone: mNNN` line.
+groma SHALL create `docs/roadmap.md` with a section template when the first milestone is planned. The roadmap script SHALL replace only the text between `<!-- groma:changes m<N> -->` and `<!-- /groma:changes -->` in each section with that milestone's changes (name, active or archived, and for an active change the tasks done) and SHALL leave all other text unchanged, including CRLF line ends and a missing final newline. For changes listed in the conventions baseline it SHALL also accept a `Milestone: mNNN` line.
 
 #### Scenario: Progress shown
 - **WHEN** milestone 1 has three changes, two of them archived
@@ -86,7 +86,7 @@ groma SHALL make the convention known to agents by writing it into AGENTS.md (wh
 - **THEN** the convention text is part of the context it receives, and the change name follows `<type><N>-<slug>`
 
 ### Requirement: Convention check
-groma SHALL provide a read-only check that lists changes violating the convention, duplicate ids (`<type><N>` for `c`, `f`, `s`, `r`; the full name for `m`) and milestone sections without a marker block, usable locally and in CI of the target project. With `--suggest-migration` it SHALL print a new name for each old-format name and, for each umbrella milestone change, a roadmap section built from its proposal.
+groma SHALL provide a read-only check that lists active changes violating the convention, duplicate ids (`<type><N>` for `c`, `f`, `s`, `r`; the full name for `m`) and milestone sections without a marker block, usable locally and in CI of the target project. Archived changes SHALL NOT be reported as violations. An active name in the old format `<type>0NN-<slug>` that is not in the baseline SHALL be accepted with an info line that names the baseline and `--suggest-migration`, so that a project set up with the old rule stays green. A suggested name SHALL never equal the reported name. With `--suggest-migration` it SHALL print a new name for each old-format name and, for each umbrella milestone change, a roadmap section built from its proposal.
 
 #### Scenario: Violation reported
 - **WHEN** a new change `fix-login` is added after groma initialization
@@ -95,6 +95,10 @@ groma SHALL provide a read-only check that lists changes violating the conventio
 #### Scenario: Old names in the baseline
 - **WHEN** `c016-agent-only-init` is listed in `.groma/conventions-baseline.txt`
 - **THEN** the check accepts it
+
+#### Scenario: Old project without a baseline
+- **WHEN** a project holds `c003-import` active and `c002-export` archived, and has no baseline
+- **THEN** the check exits 0, prints an info line for `c003-import` and nothing for `c002-export`
 
 #### Scenario: Migration suggestions
 - **WHEN** the check runs with `--suggest-migration` on a project with `m004-v0-4` and a child whose proposal says `Milestone: m004`

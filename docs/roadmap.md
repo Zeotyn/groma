@@ -13,6 +13,8 @@ One section per milestone: goal, release gate and its changes. The sections are 
 
 M1 to M4 were planned as milestone changes (`m001-v0-1` to `m004-v0-4`) with children that name them in a `Milestone:` line; these names are listed in `.groma/conventions-baseline.txt`. From M5 on a milestone exists only here, and its changes are named `m5-<slug>`.
 
+Changes without a milestone are not listed here: `openspec list` and `skills/groma-methodology/scripts/status.sh` show the active ones, at present `c017-change-naming`. The Tasks column is the count at the last `roadmap.sh` run, for active changes only.
+
 ## M1: v0.1
 
 **Goal:** `v0.1.0` tagged, all test levels green on all fixtures for Claude Code, Copilot manual protocol passed.
@@ -26,8 +28,8 @@ M1 to M4 were planned as milestone changes (`m001-v0-1` to `m004-v0-4`) with chi
 <!-- groma:changes m1 -->
 | Change | State | Tasks |
 |---|---|---|
-| `c001-groma-suite` | archived | 45/45 |
-| `c002-review-loop` | archived | 19/19 |
+| `c001-groma-suite` | archived | - |
+| `c002-review-loop` | archived | - |
 <!-- /groma:changes -->
 
 ## M2: v0.2
@@ -43,12 +45,12 @@ M1 to M4 were planned as milestone changes (`m001-v0-1` to `m004-v0-4`) with chi
 <!-- groma:changes m2 -->
 | Change | State | Tasks |
 |---|---|---|
-| `c003-groma-cli` | archived | 20/20 |
-| `c004-living-docs` | archived | 19/19 |
-| `f001-freshness-adrs` | archived | 10/10 |
-| `f002-status-milestone-gates` | archived | 10/10 |
-| `f003-freshness-reviewed` | archived | 8/8 |
-| `f004-npm-package-name` | archived | 15/15 |
+| `c003-groma-cli` | archived | - |
+| `c004-living-docs` | archived | - |
+| `f001-freshness-adrs` | archived | - |
+| `f002-status-milestone-gates` | archived | - |
+| `f003-freshness-reviewed` | archived | - |
+| `f004-npm-package-name` | archived | - |
 <!-- /groma:changes -->
 
 ## M3: v0.3
@@ -63,11 +65,11 @@ M1 to M4 were planned as milestone changes (`m001-v0-1` to `m004-v0-4`) with chi
 <!-- groma:changes m3 -->
 | Change | State | Tasks |
 |---|---|---|
-| `c005-code-style` | archived | 19/19 |
-| `c006-git-workflow` | archived | 19/19 |
-| `c007-next-action` | archived | 18/18 |
-| `c008-release-workflow` | archived | 8/8 |
-| `f005-eval-pending-context` | archived | 5/5 |
+| `c005-code-style` | archived | - |
+| `c006-git-workflow` | archived | - |
+| `c007-next-action` | archived | - |
+| `c008-release-workflow` | archived | - |
+| `f005-eval-pending-context` | archived | - |
 <!-- /groma:changes -->
 
 ## M4: v0.4
@@ -82,16 +84,16 @@ M1 to M4 were planned as milestone changes (`m001-v0-1` to `m004-v0-4`) with chi
 <!-- groma:changes m4 -->
 | Change | State | Tasks |
 |---|---|---|
-| `c009-marketplace-bundles` | archived | 8/8 |
+| `c009-marketplace-bundles` | archived | - |
 | `c010-token-report` | active | 6/7 |
-| `c011-always-loaded-diet` | archived | 10/10 |
+| `c011-always-loaded-diet` | archived | - |
 | `c012-survey-subagent` | active | 0/5 |
 | `c013-effect-measurement` | active | 0/5 |
-| `c014-plugin-next-hooks` | archived | 13/13 |
+| `c014-plugin-next-hooks` | archived | - |
 | `c015-user-language` | active | 0/4 |
-| `c016-agent-only-init` | archived | 9/9 |
-| `f007-eval-assertions` | archived | 5/5 |
-| `f008-shellcheck-trap` | archived | 6/6 |
-| `r001-vendor-shared-files` | archived | 8/8 |
-| `s001-plugin-bundles-hooks` | archived | 10/10 |
+| `c016-agent-only-init` | archived | - |
+| `f007-eval-assertions` | archived | - |
+| `f008-shellcheck-trap` | archived | - |
+| `r001-vendor-shared-files` | archived | - |
+| `s001-plugin-bundles-hooks` | archived | - |
 <!-- /groma:changes -->

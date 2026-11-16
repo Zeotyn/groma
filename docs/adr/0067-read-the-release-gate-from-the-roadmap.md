@@ -19,7 +19,7 @@ F002 added a gate reminder because the release gate of a milestone was forgotten
 
 ## Considered Options
 
-* A `**Release gate:**` checklist in the milestone section; `status.sh` names its first open item when no change of the milestone is active
+* A `**Release gate:**` checklist in the milestone section; `status.sh` names its first open item when the milestone has changes and none of them is active
 * Drop the gate reminder
 * Keep gate tasks in the last change of a milestone
 
@@ -30,17 +30,19 @@ Chosen option: "a checklist in the milestone section", because the gate belongs 
 Details:
 - `status.sh` prints `M<N>  gate: <first open item>` after the change lines; `next.sh` maps it to rung 5 (`gate M3`).
 - No line while a change of milestone N is active: a name `m<N>-…`, an old child with `Milestone: mNNN`, or the old umbrella change itself.
+- No line for a planned milestone: the section needs at least one change of milestone N, active or archived. Otherwise a roadmap that plans ahead would put a gate on rung 5 and hide push, proposed ADRs and the change to continue.
+- The checklist is the `- [ ]` lines after `**Release gate:**`; nested items count like top-level ones, and the first open one in file order is named.
 - Old umbrella milestone changes keep their own gate line from their tasks.
 - No test reminder for spikes and refactors (`s`, `r`, `m<N>-spike-`, `m<N>-refactor-`), old umbrella milestones and old `d` changes.
 
 ### Consequences
 
 * Good, because the release steps stay visible after the last change of a milestone is archived.
-* Bad, because a planned milestone with a gate and no change yet shows its gate line before work starts.
+* Bad, because a milestone that is released without a single change (only a gate) never gets the reminder.
 
 ### Confirmation
 
-`tests/scripts/status.bats` and `tests/scripts/next.bats`: gate from the checklist, silent while a change of the milestone is active, umbrella gate from the baseline, types without a test reminder.
+`tests/scripts/status.bats` and `tests/scripts/next.bats`: gate from the checklist, silent for a planned milestone and while a change of the milestone is active, nested items, CRLF files, umbrella gate from the baseline, types without a test reminder.
 
 ## Pros and Cons of the Options
 

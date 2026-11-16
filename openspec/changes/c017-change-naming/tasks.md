@@ -31,4 +31,11 @@
 - [x] 5.2 This repository: add `.groma/conventions-baseline.txt` with all current names so M004 finishes under the old names; new rule from M5
 - [x] Docs: docs/vision.md unchanged, because the README change is the naming rule under "Conventions groma sets up", and the vision names no change convention
 - [x] 5.3 `scripts/test.sh` green; `openspec validate --all --strict`
-- [ ] 5.4 CHANGELOG `[Unreleased]` with the breaking ID format: CHANGELOG by integrator
+- [ ] 5.4 CHANGELOG `[Unreleased]` with the breaking ID format: CHANGELOG by integrator. The breaking note must tell users who run `check-conventions.sh` in CI: old names `<type>0NN-<slug>` stay green with INFO lines, every other pre-existing name belongs into `.groma/conventions-baseline.txt` before the update, and `roadmap.sh` no longer generates `docs/roadmap.md`
+
+## 6. Review round 1
+
+- [x] 6.1 Roadmap gate only for a milestone that has a change and none active; a planned milestone stays silent (`status.sh`, `next.sh` rung 5); spec delta, ADR 0067, bats
+- [x] 6.2 `check-conventions.sh`: archived names never flagged, active old-format names accepted with an INFO line, no self-suggestions, one suggestion per name in a duplicate; bats on the reviewer's old-project fixture
+- [x] 6.3 CRLF roadmaps: one shared reader for headings and marker lines in `lib-changes.sh`, CRLF kept when writing, no final newline added; bats
+- [x] 6.4 Commit type table: padded umbrella milestone is `chore` before the `m<N>-` row; nested gate items documented; this repository's roadmap says where changes without a milestone show, archived rows carry no task count

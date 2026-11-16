@@ -22,7 +22,8 @@
 
 ## 4. Evals
 
-- [ ] 4.1 Fixture `loop-openspec`: `c001-add-farewell` → `c1-add-farewell`; prompts and `assert.sh` (commit subject); run only the affected fixture once, with the user's consent for the cost
+- [x] 4.1 Fixture `loop-openspec`: `c001-add-farewell` → `c1-add-farewell`; prompts and `assert.sh` (commit subject)
+- [ ] 4.2 Run the fixtures `loop-openspec` and `conflict-loop-openspec` once, with the user's consent for the cost: eval run pending (cost); the assertions were re-read against the new name, see design.md "Implementation notes"
 
 ## 5. Docs
 

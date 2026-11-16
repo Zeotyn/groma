@@ -23,9 +23,9 @@ any_has() { # pattern files...
 # --- review loop fixture: its own checks, the loop edits code on purpose ----------
 if [ "$FX" = loop-openspec ]; then
   arch=""
-  for d in "$P"/openspec/changes/archive/*-c001-add-farewell; do [ -d "$d" ] && arch=$d; done
+  for d in "$P"/openspec/changes/archive/*-c1-add-farewell; do [ -d "$d" ] && arch=$d; done
   check "change archived" test -n "$arch"
-  check "change no longer active" test ! -d "$P/openspec/changes/c001-add-farewell"
+  check "change no longer active" test ! -d "$P/openspec/changes/c1-add-farewell"
   check "spec synced to openspec/specs/farewell" test -f "$P/openspec/specs/farewell/spec.md"
   n=0
   for f in "$arch"/reviews/*-round-*.md; do [ -f "$f" ] && n=$((n + 1)); done
@@ -50,11 +50,11 @@ if [ "$FX" = loop-openspec ]; then
   check "docs impact closed (doc updated or Docs: task line)" \
     sh -c "grep -qi farewell '$P/docs/architecture.md' || grep -q 'Docs: .*docs/architecture.md.* unchanged, because .' '$arch/tasks.md'"
   # git steps with the defaults: branch per change, rebase, push ask (the fixture has no remote)
-  check "change branch exists after the run" git -C "$P" rev-parse -q --verify refs/heads/c001-add-farewell
-  check "main was fast-forwarded to the branch" sh -c "[ \"\$(git -C '$P' rev-parse main)\" = \"\$(git -C '$P' rev-parse c001-add-farewell)\" ]"
+  check "change branch exists after the run" git -C "$P" rev-parse -q --verify refs/heads/c1-add-farewell
+  check "main was fast-forwarded to the branch" sh -c "[ \"\$(git -C '$P' rev-parse main)\" = \"\$(git -C '$P' rev-parse c1-add-farewell)\" ]"
   check "main has no merge commit" sh -c "[ \"\$(git -C '$P' rev-list --merges --count main)\" -eq 0 ]"
-  check "unit commit in conventional style" sh -c "git -C '$P' log --format=%s main | grep -Eq '^feat\(c001-add-farewell\): '"
-  check "archive commit" sh -c "git -C '$P' log --format=%s main | grep -q '^docs(openspec): archive c001-add-farewell'"
+  check "unit commit in conventional style" sh -c "git -C '$P' log --format=%s main | grep -Eq '^feat\(c1-add-farewell\): '"
+  check "archive commit" sh -c "git -C '$P' log --format=%s main | grep -q '^docs(openspec): archive c1-add-farewell'"
   check "working tree clean at the end" sh -c "[ -z \"\$(git -C '$P' status --porcelain)\" ]"
   # push: ask with nobody to answer and no remote: the loop must say so and must not have pushed
   check "summary says the push was asked, or that there is no remote" grep -Eqi 'no remote|push .*(ask|agree|yes)|not pushed' "${M%.manifest}.log"
@@ -70,11 +70,11 @@ if [ "$FX" = conflict-loop-openspec ]; then
   check "main points to the commit from before the run" sh -c "[ -n '$main0' ] && [ \"\$(git -C '$P' rev-parse main)\" = '$main0' ]"
   check "no rebase or merge in progress" sh -c "[ ! -d '$P/.git/rebase-merge' ] && [ ! -d '$P/.git/rebase-apply' ] && [ ! -f '$P/.git/MERGE_HEAD' ]"
   check "working tree clean after the abort" sh -c "[ -z \"\$(git -C '$P' status --porcelain)\" ]"
-  check "still on the change branch" sh -c "[ \"\$(git -C '$P' branch --show-current)\" = c001-add-farewell ]"
-  check "branch holds the unit and archive commits" sh -c "git -C '$P' log --format=%s c001-add-farewell | grep -q '^docs(openspec): archive c001-add-farewell'"
+  check "still on the change branch" sh -c "[ \"\$(git -C '$P' branch --show-current)\" = c1-add-farewell ]"
+  check "branch holds the unit and archive commits" sh -c "git -C '$P' log --format=%s c1-add-farewell | grep -q '^docs(openspec): archive c1-add-farewell'"
   check "main has no merge commit" sh -c "[ \"\$(git -C '$P' rev-list --merges --count main)\" -eq 0 ]"
   check "escalation message" grep -q "groma-loop stopped" "$LOG"
-  check "escalation names the conflicting file" grep -q "openspec/changes/c001-add-farewell/tasks.md" "$LOG"
+  check "escalation names the conflicting file" grep -q "openspec/changes/c1-add-farewell/tasks.md" "$LOG"
   check "no force, branch -f or update-ref command in the log" sh -c "! grep -Eq 'git (push|rebase|branch|update-ref)[^|]*(--force|-f |update-ref)' '$LOG'"
   check "no remote was added or pushed to" sh -c "[ -z \"\$(git -C '$P' remote)\" ]"
   [ "$fails" -eq 0 ]

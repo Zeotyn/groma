@@ -74,6 +74,7 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0057](0057-mirror-the-cli-materialization-rules-in-a-shell-script.md) | Mirror the CLI's materialization rules in a shell script | accepted | 2026-11-13 |
 | [0058](0058-copy-the-groma-skills-into-the-project-by-default.md) | Copy the groma skills into the project by default on the agent path | accepted | 2026-11-13 |
 | [0059](0059-copy-the-skills-also-when-the-plugin-is-installed.md) | Copy the skills also when the Claude plugin is installed, and print how to switch it off | accepted | 2026-11-13 |
+| [0069](0069-run-the-brownfield-survey-in-a-subagent.md) | Run the brownfield survey in a subagent where the agent has one | proposed | 2026-11-16 |
 | [0071](0071-cap-always-loaded-text-by-characters-and-lines.md) | Cap always-loaded text by characters and lines | accepted | 2026-11-12 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

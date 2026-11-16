@@ -19,7 +19,7 @@ One term per row. Use these terms in code, docs and conversations. If a term mea
 | Survey | Read-only analysis of an existing project, ending in a findings report | `groma-survey` | lay-out, which writes docs |
 | Lay out | Creating or completing the `docs/` tree | `groma-lay-out` | survey |
 | Doc slot | One of nine mandatory doc roles (index, vision, concept, architecture, data model, glossary, risks, code style, ADR) | `groma-lay-out` | a file; one existing file can fill a slot |
-| Findings report | `docs/_groma/findings-<date>.md` with severities, evidence and snippets | survey | ADRs or risks |
+| Findings report | `docs/_groma/findings-<date>.md` with severities, evidence, snippets and a hand-off of at most ten lines (what a survey subagent returns) | survey | ADRs or risks |
 | Snippet | A proposed edit to an existing file, written to the findings report instead of the file | additive writes | a patch groma applies |
 | Additive write | Creating a file only at a free path, plus `.groma/` and `docs/_groma/` | all writing skills | editing existing files |
 | Catalog | `catalog.yaml`: curated third-party skills grouped by category | `groma-skills` | a skill registry |

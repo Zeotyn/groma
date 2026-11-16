@@ -18,7 +18,7 @@ groma ships knowledge and procedure, not parsers. Each step is a Markdown skill 
 | Capability | What it gives the user |
 |---|---|
 | Detect (`groma-detect`) | Greenfield or brownfield verdict with evidence; integration strategy and commit style recommended from the git history |
-| Survey (`groma-survey`) | Read-only code map, ADR and docs harvest, stale-doc check, style tools, conventions and editorconfig drift, findings report |
+| Survey (`groma-survey`) | Read-only code map, ADR and docs harvest, stale-doc check, style tools, conventions and editorconfig drift, findings report; map first with read caps, in a subagent where the agent has one |
 | Lay out (`groma-lay-out`) | A complete `docs/` tree (including `code-style.md`) with freshness frontmatter and MADR 4.0 ADRs; style tool configs and ADRs after the interview |
 | Methodology (`groma-methodology`) | OpenSpec, Spec Kit, BMAD or GSD set up non-interactively, plus the `<type><NNN>-<slug>` change convention |
 | Skills (`groma-skills`) | Curated third-party skills per category, installed project-scoped |

@@ -1,7 +1,7 @@
 ---
 title: Vision
 status: draft
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-17
 review_after_days: 180
 owner: Eugen Waldschmidt
 sources: [README.md]
@@ -37,3 +37,4 @@ Developers who work with Claude Code, GitHub Copilot, Gemini CLI, Cursor or Code
 |---|---|---|
 | Evals green on all fixtures | 5 of 5 | `scripts/test.sh evals` |
 | Pre-existing files unchanged after a run | 100 % byte-identical | checksum invariant in `tests/invariant/` |
+| Effect: a task after `/groma` vs. without it | pass rate at least as high; median cost difference recorded (2026-11-17, go-no-db: 3/3 both, +USD 0.46, +22 turns) | `sh tests/evals/effect.sh` (c013) |

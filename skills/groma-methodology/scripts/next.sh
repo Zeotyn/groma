@@ -8,19 +8,22 @@
 #   rung  when                                             short         long
 #   1     rebase or merge in progress                      rebase        Rebase in progress: git rebase --continue or git rebase --abort
 #   2     change done, docs impact or ADR open             docs c7       <change>: all tasks done, <what status.sh asks for>
-#   3     change done                                      verify c7     <change>: all tasks done, verify: /opsx:verify <change>
+#   3     change done                                      verify c7     <change>: all tasks done, verify: <verify command> <change>
 #   4     uncommitted files                                commit 4      4 files uncommitted: git add and git commit, or git stash
 #   5     milestone at its release gate                    gate M3       M3: milestone gate: <first open item>
 #         (old umbrella milestone change: gate m003, <change>: milestone gate: <first open task>)
 #   6     main branch commits not pushed                   push 3        Push 3 commits on main: git push
 #         (not when git.push is never)
 #   7     ADR still proposed, origin change archived       adr 0015      ADR 0015 still proposed (<change> archived): accept or reject
-#   8     open change with the newest commit               apply c7      <change>: 3/9 tasks, continue: /opsx:apply <change>
+#   8     open change with the newest commit               apply c7      <change>: 3/9 tasks, continue: <apply command> <change>
 #         (old umbrella milestone changes excluded)
 # The short form names a change by <type><N> and a milestone member (m3-checkout)
 # by its full name, cut to the 20 characters.
 # Rungs 2 to 7 are lines of status.sh, so its toggles in .groma/config.yaml
-# apply here too. The /opsx: commands appear only for openspec/changes.
+# apply here too. OpenSpec commands appear only for openspec/changes, in the
+# form of the first `generations` entry in ../methodologies.yaml whose marker
+# paths exist in the project (/opsx:verify with OpenSpec 1.x commands,
+# /openspec-verify-change with skills only); no marker found, no command.
 #
 # Output: --long (default) one sentence, --short at most 20 characters,
 #   --json {"rung":N,"short":"...","long":"..."}. Nothing applies: no output.
@@ -96,21 +99,48 @@ if [ -n "$HEAD_SHA" ] && [ -d "$ROOT/.groma" ] && mkdir -p "$ROOT/.groma/.cache"
   fi
 fi
 
-opsx=0
-case "$DIR" in */openspec/changes) opsx=1 ;; esac
 TAB=$(printf '\t')
+
+# OpenSpec command pattern: the first recipe generation with a marker in the project
+cmd=""
+case "$DIR" in */openspec/changes)
+  while IFS="$TAB" read -r c m; do
+    # split the marker list without globbing it
+    set -f
+    # shellcheck disable=SC2086
+    set -- $m
+    set +f
+    for g; do
+      for f in "$ROOT"/$g; do [ -e "$f" ] && { cmd=$c; break 3; }; done
+    done
+  done <<EOF
+$(awk '
+  { sub(/\r$/, "") }
+  /^  [a-z-]+:/ { inm = ($0 ~ /^  openspec:/) }
+  inm && /^    [a-z_]+:/ { ing = ($0 ~ /^    generations:/); next }
+  inm && ing {
+    l = $0; sub(/^ *(- )?/, "", l)
+    if ($0 ~ /^ *- / && (c != "" || m != "")) { print c "\t" m; c = ""; m = "" }
+    if (l ~ /^command:/) { sub(/^command:[ ]*/, "", l); c = l }
+    else if (l ~ /^markers:/) { sub(/^markers:[ ]*\[/, "", l); sub(/\].*/, "", l); gsub(/,/, " ", l); m = l } }
+  END { if (c != "" || m != "") print c "\t" m }' "$HERE/../methodologies.yaml" 2>/dev/null || true)
+EOF
+;; esac
+step_cmd() { [ -z "$cmd" ] || printf '%s' "${cmd%%\{step\}*}$1${cmd#*\{step\}}"; }
+verify_cmd=$(step_cmd verify)
+apply_cmd=$(step_cmd apply)
 
 # rungs 2 to 7: the status.sh line with the lowest rung
 rung="" short="" long=""
 IFS="$TAB" read -r rung short long <<EOF || true
-$(sh "$HERE/status.sh" --root "$ROOT" 2>/dev/null | awk -v push="$(cfg_value push ask git)" -v opsx="$opsx" '
+$(sh "$HERE/status.sh" --root "$ROOT" 2>/dev/null | awk -v push="$(cfg_value push ask git)" -v vcmd="$verify_cmd" '
   function id(n) { if (n !~ /^m[1-9][0-9]*-/) sub(/-.*/, "", n); return n }
   function after(s, mark) { return substr(s, index(s, mark) + length(mark)) }
   { r = 0 }
   / tasks → (update .* or add a Docs: task line|write a proposed ADR for .*)$/ {
     r = 2; s = "docs " id($1); l = $1 ": all tasks done, " after($0, " tasks → ") }
   / tasks → verify, then archive$/ {
-    r = 3; s = "verify " id($1); l = $1 ": all tasks done, verify" (opsx ? ": /opsx:verify " $1 : ", then archive") }
+    r = 3; s = "verify " id($1); l = $1 ": all tasks done, verify" (vcmd != "" ? ": " vcmd " " $1 : ", then archive") }
   /^working tree: [0-9]+ files uncommitted / {
     r = 4; s = "commit " $3; l = $3 " files uncommitted: git add and git commit, or git stash" }
   / tasks → gate: / {
@@ -141,7 +171,7 @@ if [ -z "$rung" ]; then
     if [ "${t:-0}" -gt "$best_t" ]; then
       best_t=${t:-0}
       rung=8; short="apply $(short_id "$name")"; long="$name: $done_n/$total tasks"
-      [ "$opsx" -eq 0 ] || long="$long, continue: /opsx:apply $name"
+      [ -z "$apply_cmd" ] || long="$long, continue: $apply_cmd $name"
     fi
   done 3<<EOF
 $(list_changes "$DIR")

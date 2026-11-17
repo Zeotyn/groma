@@ -6,7 +6,7 @@ How each loop phase maps to the project's methodology. Read only the section for
 
 | Phase | Author does | Artifacts the reviewer gets |
 |---|---|---|
-| propose | the OpenSpec propose workflow (`/opsx:propose`, or `openspec new change` plus the artifact instructions); name from `next-change-id.sh` | proposal.md, design.md, `specs/**/spec.md`, tasks.md |
+| propose | the OpenSpec propose workflow (`/openspec-propose`, or `/opsx:propose` with OpenSpec 1.x, or `openspec new change` plus the artifact instructions); name from `next-change-id.sh` | proposal.md, design.md, `specs/**/spec.md`, tasks.md |
 | apply | the OpenSpec apply workflow for one review unit (`per`), ticking tasks as it goes | the unit's tasks, the requirements they cover, `git diff <base>`, test output |
 | verify | the OpenSpec verify workflow, then the docs gate | its report, the full change diff and the docs impact report |
 | archive | the OpenSpec archive workflow with spec sync, then the docs sync, then the git steps (archive commit `docs(openspec): archive <change-id>`, integration, push) | none (no review) |

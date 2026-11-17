@@ -9,7 +9,7 @@
 
 #### Scenario: OpenSpec 2.x command form
 - **WHEN** rung 8 applies to `c7-work` with 1 of 3 tasks done, and the project has `.agents/skills/openspec-apply-change/` but no `opsx` command folder
-- **THEN** `--long` prints "c7-work: 1/3 tasks, continue: /openspec-apply c7-work"
+- **THEN** `--long` prints "c7-work: 1/3 tasks, continue: /openspec-apply-change c7-work"
 
 #### Scenario: Generation unknown
 - **WHEN** rung 3 applies to `c7-work` and the project has `openspec/changes/` but neither an `opsx` command folder nor OpenSpec skills

@@ -299,6 +299,16 @@ def validate_methodologies(data: dict, label: str) -> None:
                 err(f"{where}: unknown agent '{a}' in agent_ids")
         if ids and "{agents}" not in str(e.get("init", "")):
             err(f"{where}: init must contain {{agents}} when agent_ids is set")
+        gens = e.get("generations", [])
+        if not isinstance(gens, list):
+            err(f"{where}: 'generations' must be a list")
+            continue
+        for i, g in enumerate(gens):
+            g = g if isinstance(g, dict) else {}
+            if not isinstance(g.get("markers"), list) or not g["markers"]:
+                err(f"{where}: generations[{i}] needs a non-empty 'markers' list")
+            if "{step}" not in str(g.get("command", "")):
+                err(f"{where}: generations[{i}] needs a 'command' with {{step}}")
 
 
 REQUIRED_FIELDS = {

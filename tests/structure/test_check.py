@@ -408,6 +408,33 @@ def test_methodology_init_needs_agents_placeholder_with_agent_ids():
     assert any("{agents}" in e for e in check.errors)
 
 
+def test_methodology_generations_need_markers_and_step_command():
+    m = good_methodologies()
+    m["methodologies"]["openspec"]["generations"] = [
+        {"markers": [".claude/commands/opsx/"], "command": "/opsx:{step}"},
+        {"markers": [], "command": "/openspec-{step}"},
+        {"markers": [".agents/skills/openspec-*"], "command": "/openspec-apply"},
+    ]
+    check.validate_methodologies(m, "m")
+    assert check.errors == [
+        "m: methodologies.openspec: generations[1] needs a non-empty 'markers' list",
+        "m: methodologies.openspec: generations[2] needs a 'command' with {step}",
+    ]
+
+
+def test_methodology_generations_must_be_a_list():
+    m = good_methodologies()
+    m["methodologies"]["openspec"]["generations"] = {"markers": ["x/"]}
+    check.validate_methodologies(m, "m")
+    assert check.errors == ["m: methodologies.openspec: 'generations' must be a list"]
+
+
+def test_shipped_openspec_recipe_has_generations():
+    data = check.load_yaml(check.ROOT, check.METHODOLOGIES)
+    assert len(data["methodologies"]["openspec"]["generations"]) >= 2
+    assert ".agents/skills/openspec-*" in data["methodologies"]["openspec"]["touches"]
+
+
 def test_methodology_missing():
     m = good_methodologies()
     del m["methodologies"]["gsd"]

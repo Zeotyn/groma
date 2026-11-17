@@ -11,6 +11,9 @@
 #   touches       paths init writes; existing ones make the installer ask first
 #   interactive   true: init needs a person at the terminal
 #   docs_link     file: created by init; append: text added only when this run created it
+#   generations   command forms told apart by files in the project, first match wins:
+#                 markers (paths, * globs) and command ({step} becomes apply or verify
+#                 in next.sh); no match prints no command
 #
 # Versions verified on 2026-11-04; bump them in a PR.
 
@@ -23,7 +26,15 @@ methodologies:
     init: npx --yes @fission-ai/openspec@1.16.0 init --tools {agents} --no-animation --no-copilot-cloud .
     agent_ids: {claude: claude, copilot: github-copilot, gemini: gemini, cursor: cursor, codex: codex}
     agents: all
-    touches: [openspec/, .claude/commands/opsx/, .claude/skills/openspec-*, .github/prompts/opsx-*, .github/skills/openspec-*, .gemini/commands/opsx/, .cursor/commands/opsx-*, .codex/]
+    touches: [openspec/, .claude/commands/opsx/, .claude/skills/openspec-*, .agents/skills/openspec-*, .github/prompts/opsx-*, .github/skills/openspec-*, .gemini/commands/opsx/, .cursor/commands/opsx-*, .codex/]
+    generations:
+      # OpenSpec 1.x commands; they still work while 2.x skills sit beside them
+      - markers: [.claude/commands/opsx/, .github/prompts/opsx-*, .gemini/commands/opsx/, .cursor/commands/opsx-*]
+        command: /opsx:{step}
+      # skills only: every 2.x install, and a 1.x install without commands (Codex);
+      # both name the skills openspec-apply-change, openspec-verify-change, ...
+      - markers: [.agents/skills/openspec-*, .claude/skills/openspec-*, .github/skills/openspec-*]
+        command: /openspec-{step}-change
     interactive: false
     docs_link:
       file: openspec/config.yaml

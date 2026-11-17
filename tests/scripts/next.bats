@@ -15,6 +15,8 @@ setup() {
   make_repo "$P"
   C="$P/openspec/changes"
   mkdir -p "$C/archive" "$P/src" "$P/tests"
+  # OpenSpec 1.x by default: its opsx command folder (empty, so git ignores it)
+  mkdir -p "$P/.claude/commands/opsx"
   echo x > "$P/src/a.js"
   echo t > "$P/tests/a.test.js"
 }
@@ -310,6 +312,69 @@ json_field() { # field: reads $output as JSON
   [ "$output" = "c001-a: 1/3 tasks" ]
 }
 
+# --- OpenSpec generations: the command form follows the marker files ---------------
+
+@test "OpenSpec skills without an opsx folder print the skill command (spec scenario)" {
+  rm -r "$P/.claude"
+  mkdir -p "$P/.agents/skills/openspec-apply-change"
+  tasks c7-work 1 2
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" "$P"
+  [ "$output" = "c7-work: 1/3 tasks, continue: /openspec-apply-change c7-work" ]
+  tasks c7-work 3 0
+  run sh "$NX" "$P"
+  [ "$output" = "c7-work: all tasks done, verify: /openspec-verify-change c7-work" ]
+}
+
+@test "OpenSpec 2.x skills in an agent folder count too" {
+  rm -r "$P/.claude"
+  mkdir -p "$P/.github/skills/openspec-propose"
+  tasks c7-work 1 2
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" "$P"
+  [ "$output" = "c7-work: 1/3 tasks, continue: /openspec-apply-change c7-work" ]
+}
+
+@test "OpenSpec 1.16 for Codex only (skills, no opsx folder) prints the skill command" {
+  rm -r "$P/.claude"
+  mkdir -p "$P/.agents/skills/openspec-apply-change" "$P/.agents/skills/openspec-verify-change"
+  echo codex > "$P/.agents/skills/.openspec-target"
+  tasks c7-work 1 2
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" "$P"
+  [ "$output" = "c7-work: 1/3 tasks, continue: /openspec-apply-change c7-work" ]
+}
+
+@test "OpenSpec 1.x and 2.x both present: /opsx: wins (half-finished upgrade)" {
+  mkdir -p "$P/.agents/skills/openspec-apply-change"
+  tasks c7-work 3 0
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" "$P"
+  [ "$output" = "c7-work: all tasks done, verify: /opsx:verify c7-work" ]
+}
+
+@test "OpenSpec 1.x via a prompt file marker of another agent" {
+  rm -r "$P/.claude"
+  mkdir -p "$P/.github/prompts"
+  echo x > "$P/.github/prompts/opsx-apply.prompt.md"
+  tasks c7-work 1 2
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" "$P"
+  [ "$output" = "c7-work: 1/3 tasks, continue: /opsx:apply c7-work" ]
+}
+
+@test "OpenSpec generation unknown: no slash command (spec scenario)" {
+  rm -r "$P/.claude"
+  tasks c7-work 3 0
+  commit_at "$P" 2026-11-03 x
+  run sh "$NX" "$P"
+  [ "$output" = "c7-work: all tasks done, verify, then archive" ]
+  tasks c7-work 1 2
+  commit_at "$P" 2026-11-04 y
+  run sh "$NX" "$P"
+  [ "$output" = "c7-work: 1/3 tasks" ]
+}
+
 # --- formats --------------------------------------------------------------------------
 
 @test "--short is at most 20 characters, also for a long change id" {
@@ -347,11 +412,15 @@ json_field() { # field: reads $output as JSON
   groma_dir
   tasks c007-cache 1 0
   commit_at "$P" 2026-11-01 x
+  mkdir -p "$P/.agents/skills/openspec-verify-change"
   run sh "$NX" --short "$P"
   [ "$output" = "verify c007" ]
   run sh "$NX" --short "$P"
   [ "$output" = "verify c007" ]
   [ -f "$P/.groma/.cache/next" ]
+  rm -f "$P/.groma/.cache/next"
+  run sh "$NX" "$P"
+  [ "$output" = "c007-cache: all tasks done, verify: /openspec-verify-change c007-cache" ]
 }
 
 # --- cache ----------------------------------------------------------------------------
@@ -359,7 +428,8 @@ json_field() { # field: reads $output as JSON
 copy_scripts() { # a private copy whose status.sh can be replaced
   S="$BATS_TEST_TMPDIR/skill"
   mkdir -p "$S"
-  cp -R "$ROOT/skills/groma-methodology/scripts" "$ROOT/skills/groma-methodology/templates" "$S/"
+  cp -R "$ROOT/skills/groma-methodology/scripts" "$ROOT/skills/groma-methodology/templates" \
+    "$ROOT/skills/groma-methodology/methodologies.yaml" "$S/"
 }
 
 break_status() {

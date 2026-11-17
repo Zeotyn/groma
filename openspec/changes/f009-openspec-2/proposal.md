@@ -2,11 +2,11 @@ Milestone: m004
 
 ## Why
 
-OpenSpec 2.0 (released 2026-11-11) removed the `/opsx:*` slash commands: `/opsx:apply` is now the skill `/openspec-apply` (`$openspec-apply` in Codex), and the skills live in `.agents/skills/`. groma still prints `/opsx:` commands in the next action, in AGENTS.md and in groma-loop, so a project that ran `openspec update` gets commands that no longer exist. Projects set up with OpenSpec 1.x must keep working, because teams upgrade at different times.
+OpenSpec 2.0 (released 2026-11-11) removed the `/opsx:*` slash commands: `/opsx:apply` is now the skill `/openspec-apply-change` (`$openspec-apply-change` in Codex), and the skills live in `.agents/skills/`. groma still prints `/opsx:` commands in the next action, in AGENTS.md and in groma-loop, so a project that ran `openspec update` gets commands that no longer exist. Projects set up with OpenSpec 1.x must keep working, because teams upgrade at different times.
 
 ## What Changes
 
-- groma recognizes which OpenSpec generation a project has installed, from files in the project only (no `openspec --version` call), and prints the matching command form: `/opsx:<step>` for 1.x, `/openspec-<step>` for 2.x, and no command when it cannot tell.
+- groma recognizes which OpenSpec generation a project has installed, from files in the project only (no `openspec --version` call), and prints the matching command form: `/opsx:<step>` while 1.x commands exist, the skill `/openspec-<step>-change` when only OpenSpec skills exist (every 2.x install, and a 1.x install without commands, such as Codex), and no command when it cannot tell.
 - The command forms and their marker paths are data in the shared recipe file (`methodologies.yaml`), not code.
 - The recipe's `touches` list includes `.agents/skills/openspec-*`, so a 2.x install counts as OpenSpec's own files.
 - groma-agents and groma-loop name the OpenSpec workflow so that it is right for both generations.

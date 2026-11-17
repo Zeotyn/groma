@@ -17,7 +17,7 @@ The findings report is this run's `<project>/docs/_groma/findings-<YYYY-MM-DD>.m
 
 1. **AGENTS.md.** If `<project>/AGENTS.md` is absent, fill [templates/AGENTS.md](templates/AGENTS.md):
    - commands: read them from the environment (`package.json` scripts, `Makefile`, `pyproject.toml`, `pom.xml`, `go.mod`, CI workflow); exact commands only, `Not yet documented.` when none exist.
-   - methodology, workflow and skills: from `.groma/config.yaml`; `methodology_hint` is one sentence on where changes live (for example "Changes live in openspec/changes/; use /opsx:propose").
+   - methodology, workflow and skills: from `.groma/config.yaml`; `methodology_hint` is one sentence on where changes live (for example "Changes live in openspec/changes/; use the OpenSpec propose skill (`/openspec-propose`, or `/opsx:propose` with OpenSpec 1.x)").
    - change naming: the rule text from [references/naming-rule.md](references/naming-rule.md) (a copy of groma-methodology's), with the config's types.
    - `status_script`: the path of `../groma-methodology/scripts/status.sh` as the project's agents will reach it (relative to the project when the skill is installed project-locally, else the installed path). groma-methodology missing: drop the "Session start" and "Session end" sections and tell the user to add it (`npx skills add Zeotyn/groma --skill groma-methodology`) for the status and next-action reminders.
    - `next_script`: the path of `../groma-methodology/scripts/next.sh`, resolved like `status_script`.

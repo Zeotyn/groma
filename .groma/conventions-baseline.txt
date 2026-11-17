@@ -30,3 +30,4 @@ m004-v0-4
 r001-vendor-shared-files
 s001-plugin-bundles-hooks
 f009-openspec-2
+f010-eval-skill-source

@@ -147,7 +147,10 @@ report() { # file rows...
   printf '#!/bin/sh\ncat "%s"\n' "$SAMPLES/result-success.json" > "$BATS_TEST_TMPDIR/bin/claude"
   chmod +x "$BATS_TEST_TMPDIR/bin/claude"
   report "$BATS_TEST_TMPDIR/reports/baseline.tsv" "empty 3000 15000 900000 45000 1.0000 40 180"
+  # CLAUDE_CONFIG_DIR below is an empty Claude config: user-level groma skills of
+  # the person running the tests would stop run.sh (skill-source.sh)
   PATH="$BATS_TEST_TMPDIR/bin:$PATH" GROMA_EVAL_DIR="$BATS_TEST_TMPDIR/work" \
+    CLAUDE_CONFIG_DIR="$BATS_TEST_TMPDIR/config" \
     GROMA_EVAL_REPORTS="$BATS_TEST_TMPDIR/reports" run sh "$ROOT/tests/evals/run.sh" empty
   # the stub writes no files, so the assertions fail; the report is still written
   [ "$status" -eq 1 ]
@@ -161,6 +164,7 @@ report() { # file rows...
   # a second run writes its own report instead of overwriting the first
   sleep 1
   PATH="$BATS_TEST_TMPDIR/bin:$PATH" GROMA_EVAL_DIR="$BATS_TEST_TMPDIR/work" \
+    CLAUDE_CONFIG_DIR="$BATS_TEST_TMPDIR/config" \
     GROMA_EVAL_REPORTS="$BATS_TEST_TMPDIR/reports" run sh "$ROOT/tests/evals/run.sh" empty
   [ "$(ls "$BATS_TEST_TMPDIR/reports"/[0-9]*.tsv | wc -l | tr -d ' ')" -eq 2 ]
 }

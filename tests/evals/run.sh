@@ -10,6 +10,10 @@
 #        GROMA_EVAL_DIR     work folder (default: $TMPDIR/groma-evals)
 #        GROMA_EVAL_MODEL   model alias for claude -p (default: CLI default)
 #        GROMA_EVAL_REPORTS report folder (default: tests/evals/reports)
+#        GROMA_EVAL_ALLOW_USER_SKILLS  1: only warn when a user-level groma skill
+#                           ($CLAUDE_CONFIG_DIR/skills or ~/.claude/skills) leads
+#                           outside this checkout's skills/; default: exit 3
+#                           before any API call (see skill-source.sh)
 # Report: one row per fixture (tokens, cost, turns, duration) in
 #         <reports>/<YYYY-MM-DDTHHMMSS>.tsv (one file per run, named at its
 #         start); the output names the file and ends with the totals and, when
@@ -27,6 +31,9 @@ BUDGET=${GROMA_EVAL_BUDGET:-3}
 REPORTS=${GROMA_EVAL_REPORTS:-"$HERE/reports"}
 REPORTS=${REPORTS%/}
 command -v claude >/dev/null 2>&1 || { echo "claude CLI not found" >&2; exit 3; }
+# Claude Code loads user-level skills next to --plugin-dir: stop before any API
+# call when one of them would replace this checkout's groma skills
+sh "$HERE/skill-source.sh" "$ROOT" || exit $?
 
 if [ $# -eq 0 ]; then
   set -- empty node-prisma java-flyway python-django-stale-docs go-no-db loop-openspec cli-node-prisma conflict-loop-openspec de-empty

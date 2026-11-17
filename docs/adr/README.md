@@ -81,7 +81,7 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0066](0066-fill-only-marked-blocks-of-the-roadmap.md) | Fill only marked blocks of the roadmap | accepted | 2026-11-16 |
 | [0067](0067-read-the-release-gate-from-the-roadmap.md) | Read the release gate from the roadmap | accepted | 2026-11-16 |
 | [0068](0068-migrate-change-names-by-baseline-and-suggestions.md) | Migrate change names by baseline and suggestions, never by renaming | accepted | 2026-11-16 |
-| [0069](0069-run-the-brownfield-survey-in-a-subagent.md) | Run the brownfield survey in a subagent where the agent has one | proposed | 2026-11-16 |
+| [0069](0069-run-the-brownfield-survey-in-a-subagent.md) | Run the brownfield survey in a subagent where the agent has one | accepted | 2026-11-16 |
 | [0070](0070-talk-to-the-user-in-the-users-language.md) | Talk to the user in the user's language, stated once in every skill | accepted | 2026-11-16 |
 | [0071](0071-cap-always-loaded-text-by-characters-and-lines.md) | Cap always-loaded text by characters and lines | accepted | 2026-11-12 |
 | [0073](0073-recognize-the-openspec-generation-from-project-files.md) | Recognize the OpenSpec generation from project files | accepted | 2026-11-17 |

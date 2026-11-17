@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-16
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma/SKILL.md, skills/groma-survey/SKILL.md, skills/groma-survey/scripts/report-check.sh, skills/groma-survey/templates/findings.md, tests/evals/assert.sh]
@@ -46,7 +46,7 @@ Details:
 
 ### Confirmation
 
-`tests/scripts/report-check.bats` checks the script; `tests/evals/assert.sh` asserts on the survey's report (`generated_by: groma-survey`) that it has every template section and a hand-off of one to ten lines, and fails a brownfield run without one. The confirmation is partial until an eval run records the token difference against `tests/evals/reports/baseline.tsv` in the change's tasks.
+`tests/scripts/report-check.bats` checks the script; `tests/evals/assert.sh` asserts on the survey's report (`generated_by: groma-survey`) that it has every template section and a hand-off of one to ten lines, and fails a brownfield run without one. The eval run of 2026-11-17 passed both brownfield fixtures and recorded the token difference against `tests/evals/reports/baseline.tsv` in the change's tasks: about $0.45 to $0.55 more per brownfield survey.
 
 ## Pros and Cons of the Options
 

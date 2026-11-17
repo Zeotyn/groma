@@ -5,7 +5,7 @@
 - [x] 1.3 C009 `c009-marketplace-bundles` implemented, verified and archived
 - [x] 1.4 C010 `c010-token-report` implemented, verified and archived, baseline recorded
 - [x] 1.5 C011 `c011-always-loaded-diet` implemented, verified and archived
-- [ ] 1.6 C012 `c012-survey-subagent` implemented, verified and archived
+- [x] 1.6 C012 `c012-survey-subagent` implemented, verified and archived
 - [ ] 1.7 C013 `c013-effect-measurement` implemented, verified and archived
 - [x] 1.8 C014 `c014-plugin-next-hooks` implemented, verified and archived
 - [x] 1.9 C015 `c015-user-language` implemented, verified and archived

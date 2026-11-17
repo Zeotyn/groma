@@ -87,7 +87,7 @@ Changes without a milestone are not listed here: `openspec list` and `skills/gro
 | `c009-marketplace-bundles` | archived | - |
 | `c010-token-report` | archived | - |
 | `c011-always-loaded-diet` | archived | - |
-| `c012-survey-subagent` | active | 8/9 |
+| `c012-survey-subagent` | archived | - |
 | `c013-effect-measurement` | active | 0/5 |
 | `c014-plugin-next-hooks` | archived | - |
 | `c015-user-language` | archived | - |

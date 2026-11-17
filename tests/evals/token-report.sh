@@ -6,6 +6,7 @@
 # Usage: token-report.sh header
 #        token-report.sh row <fixture> <result.json>
 #        token-report.sh text <result.json>
+#        token-report.sh meta <result.json>
 #        token-report.sh summary <report.tsv> [<baseline.tsv>]
 #
 # header   prints the report's column line.
@@ -18,6 +19,11 @@
 # text     prints the `result` text, unescaped (`\uXXXX` stays as is), for the
 #          eval log and assertions. A JSON result without a `result` text gives
 #          one line `no result text: subtype=<s> is_error=<b>`.
+# meta     prints `<subtype><TAB><denials><TAB><models>`: the result's `subtype`
+#          (`success`, `error_max_budget_usd` for a run the budget cap stopped,
+#          ...), the number of `permission_denials`, and the model ids that
+#          `modelUsage` names, comma-separated in file order; `-` for a missing
+#          value, three `-` fields for a missing or empty file.
 # summary  reads a report (and a baseline report in the same format) and prints
 #          one line per fixture, then the totals. With a baseline every line adds
 #          `vs_baseline` and the token and cost difference, `new` for a
@@ -35,11 +41,12 @@
 # Exit 0. Usage errors exit 2.
 set -eu
 
-usage() { sed -n '6,9p' "$0" | sed 's/^# //' >&2; exit 2; }
+usage() { sed -n '6,10p' "$0" | sed 's/^# //' >&2; exit 2; }
 
 # Walks a JSON document character by character and keeps the path of keys in
 # key[1..depth]; only values at known paths are used, so text inside strings
-# never counts. mode=row prints a report row, mode=text the result text.
+# never counts. mode=row prints a report row, mode=text the result text,
+# mode=meta subtype, permission denials and model ids.
 # shellcheck disable=SC2016 # awk program, expanded by awk
 json_awk='
 function emit(v, isstr) {
@@ -71,7 +78,12 @@ END {
   n = length(s); i = 1; depth = 0
   while (i <= n) {
     c = substr(s, i, 1)
-    if (c == "{") { depth++; kind[depth] = "o"; want[depth] = 1; i++ }
+    if (c == "{") {
+      depth++; kind[depth] = "o"; want[depth] = 1; i++
+      # a model id is the key of an object directly below modelUsage
+      if (depth == 3 && key[1] == "modelUsage") model_ids = model_ids (model_ids == "" ? "" : ",") key[2]
+      if (depth == 3 && key[1] == "permission_denials" && kind[2] == "a") denials++
+    }
     else if (c == "[") { depth++; kind[depth] = "a"; key[depth] = 0; i++ }
     else if (c == "}" || c == "]") { depth--; i++ }
     else if (c == ",") {
@@ -101,6 +113,10 @@ END {
       emit(v, 0)
     }
     else i++
+  }
+  if (mode == "meta") {
+    printf "%s\t%s\t%s\n", (subtype == "" ? "-" : subtype), (obj ? denials + 0 : "-"), (model_ids == "" ? "-" : model_ids)
+    exit
   }
   if (mode == "text") {
     if (text != "") print text
@@ -168,6 +184,9 @@ case "$1" in
     else
       printf '%s\t-\t-\t-\t-\t-\t-\t-\n' "$2"
     fi ;;
+  meta)
+    [ $# -eq 2 ] || usage
+    if [ -s "$2" ]; then awk -v mode=meta "$json_awk" "$2"; else printf -- '-\t-\t-\n'; fi ;;
   text)
     [ $# -eq 2 ] || usage
     if [ -s "$2" ]; then awk -v mode=text "$json_awk" "$2"; fi ;;

@@ -168,3 +168,17 @@ report() { # file rows...
     GROMA_EVAL_REPORTS="$BATS_TEST_TMPDIR/reports" run sh "$ROOT/tests/evals/run.sh" empty
   [ "$(ls "$BATS_TEST_TMPDIR/reports"/[0-9]*.tsv | wc -l | tr -d ' ')" -eq 2 ]
 }
+
+@test "meta names subtype, permission denials and the model ids" {
+  run sh "$S" meta "$SAMPLES/result-success.json"
+  [ "$status" -eq 0 ]
+  [ "$output" = "success${TAB}0${TAB}claude-sonnet-4-5,claude-haiku-4.5" ]
+  run sh "$S" meta "$SAMPLES/result-budget.json"
+  [ "$output" = "error_max_budget_usd${TAB}1${TAB}-" ]
+}
+
+@test "meta gives three - for a missing result" {
+  run sh "$S" meta "$BATS_TEST_TMPDIR/none.json"
+  [ "$status" -eq 0 ]
+  [ "$output" = "-${TAB}-${TAB}-" ]
+}

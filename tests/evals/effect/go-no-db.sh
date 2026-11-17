@@ -2,6 +2,7 @@
 # Acceptance test of the effect task on go-no-db (tests/evals/effect/go-no-db.md).
 # The agent never sees it. Builds outside the project, so nothing is left behind.
 # Usage: go-no-db.sh <project-dir>; exit 0 when every check passes.
+# Requires: go gofmt
 set -u
 P=$1
 tmp=$(mktemp -d)

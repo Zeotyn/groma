@@ -25,4 +25,6 @@ A cheaper run that fails the acceptance test is not a saving; the report shows b
 ## Risks / Trade-offs
 
 - [The task favors groma by construction] → choose a task whose needed knowledge exists in the code too, so the without-side can succeed.
-- [Cost] → the run states its maximum cost before it starts.
+- [Cost] → the run states its maximum cost before it starts, and checks everything that can stop it (claude CLI, skill source, the fixture's commands) before the first API call.
+- [Both sides load the operator's user-level Claude Code settings, CLAUDE.md and skills] → accepted as a stated limit: pointing `CLAUDE_CONFIG_DIR` at an empty folder could break the login, which may live there, so the eval leaves it alone. Both sides see the same user-level context, which adds to both and may blur the difference; the script header and every report header name the limit.
+- [A budget stop or permission denials skew a side] → every run row records the result subtype (`error_max_budget_usd` for a budget stop), the number of permission denials and the model id; the output names both per run.

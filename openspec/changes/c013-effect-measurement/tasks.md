@@ -1,7 +1,7 @@
 ## 1. Setup
 
-- [ ] 1.1 Pick fixture and task; write the task prompt and its acceptance test
-- [ ] 1.2 Effect mode in `tests/evals/` with N runs per side and a cost cap stated up front
+- [x] 1.1 Pick fixture and task; write the task prompt and its acceptance test
+- [x] 1.2 Effect mode in `tests/evals/` with N runs per side and a cost cap stated up front
 
 ## 2. Measure
 

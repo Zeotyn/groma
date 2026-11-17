@@ -15,6 +15,8 @@ C010 gives per-run token numbers. Agent runs vary; one pair of runs proves littl
 ### D1: One fixture, one task, at least three runs per side
 The `go-no-db` or `node-prisma` fixture with one task that needs project knowledge (a decision or convention that only the docs state). Report median and spread.
 
+Chosen: `go-no-db` with the task "add a `-l` flag that counts lines" (`tests/evals/effect/go-no-db.md`); the acceptance test (`go-no-db.sh`, never shown to the agent) checks both counts, gofmt and no new dependency. The only conventions this fixture holds are gofmt and stdlib only, both visible in the code, so the first measurement is a floor: it shows what groma's added context costs on a small project with little to know. A fixture whose docs state a real decision is the follow-up if this signal calls for it; changing `go-no-db` itself would shift the `/groma` eval baseline.
+
 Alternatives: one run per side (rejected: variance hides the effect); many fixtures (rejected: cost; start with one and extend if the signal is clear).
 
 ### D2: Pass rate counts with tokens

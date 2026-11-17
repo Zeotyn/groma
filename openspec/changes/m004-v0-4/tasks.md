@@ -11,7 +11,7 @@
 - [x] 1.9 C015 `c015-user-language` implemented, verified and archived
 - [x] 1.10 C016 `c016-agent-only-init` implemented, verified and archived, parity test green
 - [x] 1.11 C017 `c017-change-naming` implemented, verified and archived
-- [ ] 1.12 F009 `f009-openspec-2` implemented, verified and archived (OpenSpec 1.x and 2.x)
+- [x] 1.12 F009 `f009-openspec-2` implemented, verified and archived (OpenSpec 1.x and 2.x)
 
 ## 2. Release gate
 

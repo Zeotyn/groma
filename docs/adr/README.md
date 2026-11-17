@@ -84,6 +84,6 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0069](0069-run-the-brownfield-survey-in-a-subagent.md) | Run the brownfield survey in a subagent where the agent has one | proposed | 2026-11-16 |
 | [0070](0070-talk-to-the-user-in-the-users-language.md) | Talk to the user in the user's language, stated once in every skill | accepted | 2026-11-16 |
 | [0071](0071-cap-always-loaded-text-by-characters-and-lines.md) | Cap always-loaded text by characters and lines | accepted | 2026-11-12 |
-| [0073](0073-recognize-the-openspec-generation-from-project-files.md) | Recognize the OpenSpec generation from project files | proposed | 2026-11-17 |
+| [0073](0073-recognize-the-openspec-generation-from-project-files.md) | Recognize the OpenSpec generation from project files | accepted | 2026-11-17 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).

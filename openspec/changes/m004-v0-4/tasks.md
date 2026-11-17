@@ -12,6 +12,7 @@
 - [x] 1.10 C016 `c016-agent-only-init` implemented, verified and archived, parity test green
 - [x] 1.11 C017 `c017-change-naming` implemented, verified and archived
 - [x] 1.12 F009 `f009-openspec-2` implemented, verified and archived (OpenSpec 1.x and 2.x)
+- [x] 1.13 F010 `f010-eval-skill-source` implemented, verified and archived (evals stop when a user-level groma skill shadows the checkout)
 
 ## 2. Release gate
 

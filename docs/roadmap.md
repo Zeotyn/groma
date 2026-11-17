@@ -95,6 +95,7 @@ Changes without a milestone are not listed here: `openspec list` and `skills/gro
 | `f007-eval-assertions` | archived | - |
 | `f008-shellcheck-trap` | archived | - |
 | `f009-openspec-2` | archived | - |
+| `f010-eval-skill-source` | archived | - |
 | `r001-vendor-shared-files` | archived | - |
 | `s001-plugin-bundles-hooks` | archived | - |
 <!-- /groma:changes -->

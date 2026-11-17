@@ -108,11 +108,13 @@ mkdir -p "$META" "$WORK/run" "$REPORTS"
 
 echo "== setup: /groma on $FX"
 GROMA_EVAL_DIR="$META/setup" GROMA_EVAL_REPORTS="$META/setup-report" GROMA_EVAL_BUDGET="$SETUP_BUDGET" \
-  sh "$HERE/run.sh" "$FX" || { rc=$?; echo "setup failed: /groma eval on $FX exited $rc" >&2; exit "$rc"; }
+  sh "$HERE/run.sh" "$FX" || { rc=$?; echo "setup failed: /groma eval on $FX exited $rc" >&2; exit 1; }
 sh "$ROOT/tests/fixtures/generate.sh" "$META/plain" "$FX" >/dev/null
 
 prompt=$(cat "$HERE/effect/$FX.md")
-tools="Read Write Edit Glob Grep Bash(sh:*) Bash(go:*) Bash(gofmt:*) Bash(node:*) Bash(npm test:*) Bash(ls:*) Bash(cat:*) Bash(grep:*) Bash(find:*) Bash(printf:*) Bash(echo:*) Bash(git status:*) Bash(git diff:*) Bash(git log:*)"
+tools="Read Write Edit Glob Grep Bash(sh:*) Bash(go:*) Bash(gofmt:*) Bash(node:*) Bash(npm test:*) Bash(ls:*) Bash(cat:*) Bash(grep:*) Bash(find:*) Bash(printf:*) Bash(echo:*) Bash(mkdir:*) Bash(sed:*) Bash(openspec:*) Bash(git status:*) Bash(git diff:*) Bash(git log:*)"
+# the git steps a project's AGENTS.md may ask for; no push target exists in the copies
+tools="$tools Bash(git switch:*) Bash(git branch:*) Bash(git add:*) Bash(git commit:*) Bash(git rev-parse:*)"
 TAB=$(printf '\t')
 printf 'side\trun\tinput_tokens\toutput_tokens\tcache_read_tokens\tcache_write_tokens\tcost_usd\tturns\tduration_s\tpass\n' > "$REPORT"
 

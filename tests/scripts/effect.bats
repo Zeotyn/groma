@@ -119,7 +119,7 @@ GO
   printf '#!/bin/sh\nexit 0\n' > "$stub/claude"; chmod +x "$stub/claude"
   mkdir -p "$BATS_TEST_TMPDIR/reports"
   : > "$BATS_TEST_TMPDIR/reports/effect-$(date +%Y-%m-%d).tsv"
-  PATH="$stub:$PATH" GROMA_EVAL_REPORTS="$BATS_TEST_TMPDIR/reports" run sh "$S"
+  PATH="$stub:$PATH" GROMA_EVAL_DIR="$BATS_TEST_TMPDIR/work" GROMA_EVAL_REPORTS="$BATS_TEST_TMPDIR/reports" run sh "$S"
   [ "$status" -eq 2 ]
   assert_output_contains "not overwritten"
 }

@@ -26,6 +26,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - OpenSpec 2.x projects get working commands (fix F009): the next action prints the skill commands `/openspec-apply-change`, `/openspec-verify-change` and so on when the project has OpenSpec skills (`.agents/skills/openspec-*`) and no `opsx` command folder, as with every 2.x install and a 1.x install for Codex, `/opsx:` commands while a 1.x command folder exists (also next to 2.x skills), and no command when it finds neither. groma tells the generations apart from files in the project only, with the marker paths and command forms in the `generations` list of `methodologies.yaml`; the installer counts `.agents/skills/openspec-*` as OpenSpec's files. AGENTS.md and groma-loop name the propose skill for both versions. New projects still start on OpenSpec 1.16.0. ADR 0073.
+- Evals test the checkout they run from (fix F010): `tests/evals/run.sh` stops with exit 3, before any API call, when a user-level skill `groma` or `groma-*` in `~/.claude/skills` (or `$CLAUDE_CONFIG_DIR/skills`) resolves outside this checkout's `skills/`, and names the path and the fix. Claude Code loads those skills next to `--plugin-dir`, so an eval from a worktree had tested the main checkout's skill text. `GROMA_EVAL_ALLOW_USER_SKILLS=1` turns the stop into a warning.
 
 ## [0.3.0] - 2026-11-12
 

@@ -11,6 +11,6 @@
 
 ## 3. Docs
 
-- [ ] 3.1 `docs/architecture.md`: one sentence on the skill-source check in the evals paragraph
-- [ ] 3.2 `CHANGELOG.md`: Fixed entry under `[Unreleased]`
-- [ ] Docs: `docs/code-style.md` unchanged, because the new script and its bats file follow the documented shell and test conventions
+- [x] 3.1 `docs/architecture.md`: one sentence on the skill-source check in the evals paragraph
+- [x] 3.2 `CHANGELOG.md`: Fixed entry under `[Unreleased]`
+- [x] Docs: `docs/code-style.md` unchanged, because the new script and its bats file follow the documented shell and test conventions

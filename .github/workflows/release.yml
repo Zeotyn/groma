@@ -41,6 +41,9 @@ jobs:
           sudo install "shellcheck-$SC_VERSION/shellcheck" /usr/local/bin/shellcheck
       - name: Install CLI dependencies
         run: npm ci
+      # The bundle tests (C009) need the claude CLI in CI, as in test.yml.
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
       - name: Levels 1-3
         run: scripts/test.sh
       - name: Publish to npm

@@ -77,9 +77,9 @@ Changes without a milestone are not listed here: `openspec list` and `skills/gro
 **Goal:** Every groma skill installed alone with `npx skills add Zeotyn/groma --skill <name>` passes its standalone test; the marketplace offers the bundles the spike confirms (at least `groma` and `groma-docs`); the eval run writes a token and cost report per fixture with a recorded baseline, and the always-loaded diet and the survey subagent are measured against it; the effect measurement compares one task with and without groma docs; with the plugin installed and the next action switched on, a new Claude Code session starts with the next action in the agent context and no settings file was written; groma talks to the user in the user's language; `/groma` with the plugin only copies the skills into the project by default and gives the same project result as `npx groma-cli init`. `v0.4.0` tagged and published through the release workflow, all test levels green.
 
 **Release gate:** (also the open tasks of `m004-v0-4`, the last milestone that is a change)
-- [ ] Test levels 1–4 green, including the standalone-skill tests and the eval token report against the baseline
-- [ ] `v0.4.0` tagged, CHANGELOG released, npm package published by the release workflow
-- [ ] `docs/roadmap.md` shows M004 complete
+- [x] Test levels 1–4 green, including the standalone-skill tests and the eval token report against the baseline (2026-11-18: levels 1–3 on 0.4.0; all 9 eval fixtures passed on main, 2026-11-16 and 2026-11-17)
+- [x] `v0.4.0` tagged, CHANGELOG released, npm package published by the release workflow
+- [x] `docs/roadmap.md` shows M004 complete
 
 <!-- groma:changes m4 -->
 | Change | State | Tasks |

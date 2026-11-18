@@ -5,7 +5,7 @@
 
 ## 2. Measure
 
-- [ ] 2.1 Run; record medians, spread and pass rates in the report and here (re-run pending, see Result)
+- [x] 2.1 Run; record medians, spread and pass rates in the report and here (re-run 2026-11-18, see Result)
 - [x] 2.2 `scripts/test.sh` green
 
 ## 3. Docs
@@ -27,4 +27,13 @@
 
 ## Result
 
-No valid result yet. The first run (2026-11-17, go-no-db, 3 runs per side) is invalid: the "with" side was denied `git switch`, `git add`, `git commit`, `mkdir` and `sed`, which its AGENTS.md asks for, so part of its cost was harness friction. Its report was deleted and the tools were widened (commit 9c6f421); its figures are not used anywhere. A re-run is pending. When it is recorded, the text states what was observed without a causal claim, and includes the setup cost and the model id from the report header and rows.
+Re-run 2026-11-18: `tests/evals/reports/effect-2026-11-18.tsv`, fixture go-no-db, task "add `-l`", 3 runs per side, CLI default model, every run and the setup on `claude-opus-5-5`. Setup `/groma` USD 1.7694 (not in the medians). Both sides load the operator's user-level settings, CLAUDE.md and skills (limit in the report header).
+
+| Side | Median cost | Spread | Median turns | Median output tokens | Median duration | Pass | Permission denials |
+|---|---|---|---|---|---|---|---|
+| without | USD 0.0642 | 0.0641 to 0.2291 | 6 | 1334 | 13 s | 3/3 | 1, 0, 0 |
+| with | USD 0.6213 | 0.5348 to 0.6317 | 35 | 11714 | 105 s | 3/3 | 4, 4, 7 |
+
+Observed: equal pass rate; the "with" side's median cost is USD 0.5571 higher, with 29 more turns and about 10k more output tokens. Its runs wrote an OpenSpec change, an ADR and doc updates, which the acceptance test does not check. The "with" side still met permission denials, mostly compound shell commands (heredocs, `set -e` blocks, `git add -A && git commit`) and one `git rebase`; the agents worked around them and every run ended with `success`. How the denials shift cost is not measured. One fixture, three runs per side: no saving is shown for this task, and the README makes no effect claim.
+
+The first run (2026-11-17) is invalid: the "with" side was denied `git switch`, `git add`, `git commit`, `mkdir` and `sed`. Its report was deleted and its figures are not used.

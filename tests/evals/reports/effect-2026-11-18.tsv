@@ -1,0 +1,17 @@
+# effect go-no-db, 3 runs per side, 2026-11-18, requested model: CLI default
+# setup: cost_usd 1.7694, model claude-opus-5-5 (not in the medians)
+# limit: both sides load the operator's user-level Claude Code settings, CLAUDE.md and skills
+side	run	input_tokens	output_tokens	cache_read_tokens	cache_write_tokens	cost_usd	turns	duration_s	pass	end	denials	model
+without	1	12	1528	174614	20452	0.2291	8	18	pass	success	1	claude-opus-5-5
+with	1	32	10819	652744	34286	0.6213	24	96	pass	success	4	claude-opus-5-5
+with	2	38	11714	795334	17660	0.5348	35	105	pass	success	4	claude-opus-5-5
+without	2	8	1316	126766	1544	0.0641	6	13	pass	success	0	claude-opus-5-5
+without	3	8	1334	127573	1491	0.0642	5	13	pass	success	0	claude-opus-5-5
+with	3	40	13455	912511	22493	0.6317	40	126	pass	success	7	claude-opus-5-5
+without	median	8	1334	127573	1544	0.0642	6	13	3/3
+without	min	8	1316	126766	1491	0.0641	5	13	-
+without	max	12	1528	174614	20452	0.2291	8	18	-
+with	median	38	11714	795334	22493	0.6213	35	105	3/3
+with	min	32	10819	652744	17660	0.5348	24	96	-
+with	max	40	13455	912511	34286	0.6317	40	126	-
+difference	median	+30	+10380	+667761	+20949	+0.5571	+29	+92	+0

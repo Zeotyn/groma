@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-17
 decision-makers: Eugen Waldschmidt
 evidence: [tests/evals/effect.sh, tests/evals/effect/go-no-db.md, tests/evals/effect/go-no-db.sh, tests/scripts/effect.bats]

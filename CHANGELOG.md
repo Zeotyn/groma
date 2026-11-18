@@ -6,6 +6,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-18
+
 ### Breaking
 
 - Change names without padding and milestones in the roadmap (change C017). New changes are named `<type><N>-<slug>` (`c17-export`, not `c017-export`); a change of milestone N is `m<N>-<slug>`, with an optional type word (`m3-spike-…`, `m3-fix-…`, `m3-refactor-…`). A milestone is no longer a change: its title, `**Goal:**` and `**Release gate:**` checklist live in a hand-written `## M<N>: <title>` section of `docs/roadmap.md`, and `roadmap.sh` only fills the text between `<!-- groma:changes m<N> -->` and `<!-- /groma:changes -->`; it no longer generates the file. The `d` type is gone (docs belong to the change that causes them), `conventions.changes.digits` is ignored with a warning, `next-change-id.sh` prints `c17` and `next-change-id.sh m` the next milestone number. The release-gate reminder comes from the roadmap once a milestone has a change and none is active. Nothing is renamed: if you run `check-conventions.sh` in CI, old names in the form `<type>0NN-<slug>` stay green with INFO lines, archived names are never reported, and every other name that existed before the update belongs into `.groma/conventions-baseline.txt` first; `check-conventions.sh --suggest-migration` prints new names and roadmap sections without changing a file. ADRs 0062 to 0068.

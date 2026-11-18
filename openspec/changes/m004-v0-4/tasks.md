@@ -16,6 +16,6 @@
 
 ## 2. Release gate
 
-- [ ] 2.1 Test levels 1–4 green, including the standalone-skill tests and the eval token report against the baseline
+- [x] 2.1 Test levels 1–4 green, including the standalone-skill tests and the eval token report against the baseline (2026-11-18: levels 1–3 green on main with the 0.4.0 versions, 550 bats including `standalone.bats` and `bundles.bats`, 78 structure checks, CLI tests. Level 4: all 9 fixtures passed on main, 7 in the joint run of 2026-11-16 and java-flyway and cli-node-prisma in the re-run of 2026-11-17 after the C012 fix; token reports against `baseline.tsv` recorded in C010, C011 and C012. Not re-run after F009, F010 and C013, which change only the printed OpenSpec command form (bats-tested) and eval scripts; the user agreed to count the existing runs.)
 - [ ] 2.2 `v0.4.0` tagged, CHANGELOG released, npm package published by the release workflow
 - [ ] 2.3 `docs/roadmap.md` shows M004 complete

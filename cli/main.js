@@ -22,6 +22,9 @@ Options for init and update:
   --skills <recommended|none|id,...>
   --review <autonomous|gated>
   --ui <yes|no>                 the project has a user interface
+  --git <init|skip>             outside a git work tree: set up a repository (--yes: init for a
+                                new project, skip for existing code)
+  --commit <yes|no>             record the setup as the first commit of a repository without commits
   -y, --yes                     take the recommended answer for every open question
   --print                       write commands to .groma/install.sh instead of running them
   --dry-run                     show planned files and commands, change nothing
@@ -46,6 +49,8 @@ const OPTIONS = {
   skills: { type: 'string' },
   review: { type: 'string' },
   ui: { type: 'string' },
+  git: { type: 'string' },
+  commit: { type: 'string' },
   yes: { type: 'boolean', short: 'y' },
   print: { type: 'boolean' },
   'dry-run': { type: 'boolean' },

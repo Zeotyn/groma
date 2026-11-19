@@ -9,7 +9,7 @@ import { methodologyStep, skillSteps } from './recipes.js';
 import { planSkills, applySkills, readGenerated, downgrade } from './skills.js';
 import { renderConfig } from './config.js';
 import { existingTouches, onPath, runStep, writeInstallScript } from './exec.js';
-import { EXIT } from './main.js';
+import { EXIT, UsageError } from './main.js';
 
 const CONFIG = '.groma/config.yaml';
 export const today = () => new Date().toISOString().slice(0, 10);
@@ -17,6 +17,19 @@ export const today = () => new Date().toISOString().slice(0, 10);
 function projectType(project) {
   const r = spawnSync('sh', [join(SKILLS_SRC, 'groma-detect/scripts/detect.sh'), project], { encoding: 'utf8' });
   return /^project_type=(\w+)/m.exec(r.stdout ?? '')?.[1] ?? 'greenfield';
+}
+
+// Repository offer and first commit run the groma skill's scripts (c18).
+const script = (name) => join(SKILLS_SRC, 'groma/scripts', name);
+function gitState(project, type, env) {
+  if (!onPath('git', env)) return { state: 'missing' };
+  const r = spawnSync('sh', [script('git-init.sh'), '--check', '--type', type, project], { encoding: 'utf8', env });
+  const [, state = 'none', third = ''] = (r.stdout ?? '').trim().split('\t');
+  return { state, top: third, recommend: /recommend=(\w+)/.exec(r.stdout ?? '')?.[1] };
+}
+function unbornRepo(project, env) {
+  const g = (...a) => spawnSync('git', ['-C', project, ...a], { env }).status === 0;
+  return g('rev-parse', '--is-inside-work-tree') && !g('rev-parse', '-q', '--verify', 'HEAD');
 }
 
 function claudePluginInstalled(env) {
@@ -139,9 +152,11 @@ export default async function init({ project, flags, io, say }) {
     return EXIT.error;
   }
   const type = projectType(project);
+  const git = gitState(project, type, io.env);
+  if (flags.commit !== undefined && !['yes', 'no'].includes(flags.commit)) throw new UsageError(`unknown --commit value '${flags.commit}' (allowed: yes, no)`);
   const p = prompts(io, flags);
   try {
-    const answers = await resolveAnswers({ flags, data, project, home: io.env.HOME ?? homedir(), projectType: type, interactive: p.interactive, ask: p.ask, note: say });
+    const answers = await resolveAnswers({ flags, data, project, home: io.env.HOME ?? homedir(), projectType: type, interactive: p.interactive, ask: p.ask, note: say, gitState: git });
 
     // The project copy is what the team gets, so it is the default also when
     // the plugin is installed; the user switches the plugin off for this project.
@@ -163,6 +178,8 @@ export default async function init({ project, flags, io, say }) {
       say(`  ${CONFIG}\n  .groma/generated.json`);
       say('\nWould run (asking first where an installer touches existing files):');
       const m = methodologyStep(answers.methodology, answers.agents, data);
+      if (answers.git === 'init') say('  git init -b main (and .gitignore when absent)');
+      if (answers.git !== 'skip') say('  the first commit, when the repository has none');
       if (m?.command && !m.detect.some((d) => existsSync(join(project, d)))) say(`  ${m.command}`);
       for (const s of skillSteps(answers, data)) for (const c of s.commands) say(`  ${c}`);
       skillSummary(say, plan);
@@ -171,9 +188,13 @@ export default async function init({ project, flags, io, say }) {
       return EXIT.ok;
     }
 
+    if (answers.git === 'init') {
+      const r = spawnSync('sh', [script('git-init.sh'), project], { encoding: 'utf8', env: io.env });
+      if (r.status !== 0) throw new Error(`git init failed: ${r.stderr.trim()}`);
+    }
     applySkills(project, plan, data.version);
     const setup = await runSetup({ project, answers, data, flags, io, p });
-    const script = writeInstallScript(project, setup.pending, today());
+    const installScript = writeInstallScript(project, setup.pending, today());
     mkdirSync(join(project, '.groma'), { recursive: true });
     savePending(project, setup);
     writeFileSync(join(project, CONFIG), renderConfig(data, {
@@ -187,7 +208,23 @@ export default async function init({ project, flags, io, say }) {
     say(`Created:     ${plan.writes.length} skill files, ${CONFIG}, .groma/generated.json`);
     skillSummary(say, plan);
     if (pluginHint) say(PLUGIN_HINT);
-    pendingSummary(say, setup, script);
+    pendingSummary(say, setup, installScript);
+    // no commit into a parent repository's history or before pending installs (--print)
+    if (git.state === 'parent') say(`Git:         using the repository at ${git.top}, no commit`);
+    if (git.state === 'missing') say('Git:         git not found, no repository set up');
+    if (answers.git === 'skip') say('Git:         off (git.enabled: false)');
+    else if (git.state !== 'parent' && unbornRepo(project, io.env)) {
+      if (flags.print) say('Git:         no commit (--print: run the pending commands first, then commit)');
+      else if (flags.commit === undefined && !p.interactive && !flags.yes) say('No TTY: using the recommended answer for: commit');
+      const commit = flags.print ? 'no' : flags.commit ?? (p.interactive
+        ? await p.ask({ key: 'commit', text: 'Record the setup as the first commit?', select: 'single', options: [{ id: 'yes', hint: `commit every file as "chore: set up project with groma ${data.version}"` }, { id: 'no', hint: 'leave the files uncommitted' }], recommended: 'yes' })
+        : 'yes');
+      if (commit === 'yes') {
+        const r = spawnSync('sh', [script('first-commit.sh'), project, data.version], { encoding: 'utf8', env: io.env });
+        const [, state = 'failed', detail = r.stderr.trim()] = (r.stdout ?? '').trim().split('\t');
+        say(state === 'done' ? `Git:         first commit ${detail}` : `Git:         no commit (${state === 'no-identity' ? `no git identity; run: ${detail}` : detail})`);
+      }
+    }
     say('\nNext: open this project in your agent and run /groma');
     return EXIT.ok;
   } finally {

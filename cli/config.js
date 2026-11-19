@@ -28,6 +28,7 @@ export function renderConfig(data, { name, projectType, answers, steps, agentsVi
     text = text.replace(/^(agents: .*\n)/m, `$1agents_via_plugin: [${agentsViaPlugin.join(', ')}]  # these agents get the groma skills from the plugin\n`);
   }
   text = setInConfig(text, 'review.mode', answers.review);
+  if (answers.git === 'skip') text = setInConfig(text, 'git.enabled', false);
   for (const [step, state] of Object.entries(steps)) text = setInConfig(text, `steps.${step}`, state);
   return text;
 }

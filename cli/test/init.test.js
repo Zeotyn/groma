@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, chmodSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { parse } from 'yaml';
 import { spawnSync } from 'node:child_process';
 import { run, tmp, write } from './helpers.js';
@@ -197,4 +198,154 @@ test('a pending methodology init carries the docs link into install.sh', async (
   assert.match(sh, /if \[ ! -e openspec\/config\.yaml \]; then\n  npx --yes @fission-ai\/openspec/);
   assert.match(sh, /Product truth lives in docs\//);
   assert.equal(spawnSync('sh', ['-n', join(p, '.groma/install.sh')]).status, 0);
+});
+
+// Repository offer and first commit (c18): no repository above the test folder,
+// a git identity only when asked for.
+function gitEnv({ identity = true } = {}) {
+  const s = stubs();
+  const cfg = join(tmp(), 'gitconfig');
+  write(cfg, '', identity ? '[user]\n\tname = groma-test\n\temail = test@groma.invalid\n[commit]\n\tgpgsign = false\n' : '');
+  return { ...s, env: { ...s.env, PATH: `${s.env.PATH.split(':')[0]}:${process.env.PATH}`, GIT_CONFIG_GLOBAL: cfg, GIT_CONFIG_NOSYSTEM: '1', GIT_CEILING_DIRECTORIES: tmpdir() } };
+}
+const git = (p, ...args) => spawnSync('git', ['-C', p, ...args], { encoding: 'utf8', env: { ...process.env, GIT_CEILING_DIRECTORIES: tmpdir() } });
+
+test('init --yes outside git, greenfield: repository on main, one commit, clean tree', async () => {
+  const p = tmp();
+  const r = await run(['init', p, ...FLAGS, '--yes'], { env: gitEnv().env });
+  assert.equal(r.code, 0, r.err);
+  assert.equal(git(p, 'symbolic-ref', '--short', 'HEAD').stdout.trim(), 'main');
+  assert.equal(git(p, 'log', '--format=%s').stdout.trim(), `chore: set up project with groma ${version()}`);
+  assert.equal(git(p, 'status', '--porcelain').stdout, '');
+  assert.ok(existsSync(join(p, '.gitignore')));
+  assert.notEqual(parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8')).git.enabled, false);
+  assert.match(r.out.trim().split('\n').at(-1), /\/groma/);
+});
+
+test('init --git skip: no repository, git.enabled false', async () => {
+  const p = tmp();
+  const r = await run(['init', p, ...FLAGS, '--git', 'skip', '--yes'], { env: gitEnv().env });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(!existsSync(join(p, '.git')));
+  assert.equal(parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8')).git.enabled, false);
+});
+
+test('init --yes in a brownfield folder outside git takes skip', async () => {
+  const p = tmp();
+  write(p, 'main.py', 'print(1)\n');
+  const r = await run(['init', p, ...FLAGS, '--yes'], { env: gitEnv().env });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(!existsSync(join(p, '.git')));
+  assert.equal(parse(readFileSync(join(p, '.groma/config.yaml'), 'utf8')).git.enabled, false);
+});
+
+test('init --commit no: repository without commit', async () => {
+  const p = tmp();
+  const r = await run(['init', p, ...FLAGS, '--git', 'init', '--commit', 'no', '--yes'], { env: gitEnv().env });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(existsSync(join(p, '.git')));
+  assert.notEqual(git(p, 'rev-parse', '-q', '--verify', 'HEAD').status, 0);
+});
+
+test('init without a git identity commits nothing and names the commands', async () => {
+  const p = tmp();
+  const r = await run(['init', p, ...FLAGS, '--yes'], { env: gitEnv({ identity: false }).env });
+  assert.equal(r.code, 0, r.err);
+  assert.notEqual(git(p, 'rev-parse', '-q', '--verify', 'HEAD').status, 0);
+  assert.match(r.out, /git config user\.name/);
+});
+
+test('inside a repository with history: no repository or commit question, no commit', async () => {
+  const p = tmp();
+  const e = gitEnv();
+  spawnSync('git', ['init', '-q', '-b', 'main', p], { env: e.env });
+  write(p, 'README.md', 'hi\n');
+  spawnSync('git', ['-C', p, 'add', '-A'], { env: e.env });
+  spawnSync('git', ['-C', p, 'commit', '-q', '-m', 'first'], { env: e.env });
+  const asked = [];
+  const ask = async (q) => { asked.push(q.key); return q.recommended; };
+  const r = await run(['init', p, ...FLAGS], { env: e.env, isTTY: true, ask });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(!asked.includes('git') && !asked.includes('commit'), asked.join(','));
+  assert.equal(git(p, 'rev-list', '--count', 'HEAD').stdout.trim(), '1');
+});
+
+test('--git and --commit reject unknown values', async () => {
+  const r = await run(['init', tmp(), ...FLAGS, '--git', 'maybe', '--yes'], { env: gitEnv().env });
+  assert.equal(r.code, 2);
+  const c = await run(['init', tmp(), ...FLAGS, '--commit', 'maybe', '--yes'], { env: gitEnv().env });
+  assert.equal(c.code, 2);
+});
+
+test('interactive: asks the repository question, then the commit question, with their recommendations', async () => {
+  const p = tmp();
+  const asked = [];
+  const ask = async (q) => { asked.push(`${q.key}=${q.recommended}`); return q.key === 'commit' ? 'no' : q.recommended; };
+  const r = await run(['init', p, ...FLAGS], { env: gitEnv().env, isTTY: true, ask });
+  assert.equal(r.code, 0, r.err);
+  const git1 = asked.filter((a) => /^(git|commit)=/.test(a));
+  assert.deepEqual(git1, ['git=init', 'commit=yes']);
+  assert.ok(existsSync(join(p, '.git')));
+  assert.notEqual(git(p, 'rev-parse', '-q', '--verify', 'HEAD').status, 0);
+});
+
+test('interactive in a brownfield folder: skip is recommended and honoured', async () => {
+  const p = tmp();
+  write(p, 'main.py', 'print(1)\n');
+  const asked = [];
+  const ask = async (q) => { asked.push(`${q.key}=${q.recommended}`); return q.recommended; };
+  const r = await run(['init', p, ...FLAGS], { env: gitEnv().env, isTTY: true, ask });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(asked.includes('git=skip'));
+  assert.ok(!asked.some((a) => a.startsWith('commit=')));
+  assert.ok(!existsSync(join(p, '.git')));
+});
+
+test('an existing repository without commits gets no repository question and the first commit', async () => {
+  const p = tmp();
+  const e = gitEnv();
+  spawnSync('git', ['init', '-q', '-b', 'main', p], { env: e.env });
+  const r = await run(['init', p, ...FLAGS, '--yes'], { env: e.env });
+  assert.equal(r.code, 0, r.err);
+  assert.equal(git(p, 'rev-list', '--count', 'HEAD').stdout.trim(), '1');
+  assert.ok(!existsSync(join(p, '.gitignore')));
+});
+
+test('--print sets up the repository but makes no commit', async () => {
+  const p = tmp();
+  const r = await run(['init', p, ...FLAGS, '--yes', '--print'], { env: gitEnv().env });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(existsSync(join(p, '.git')));
+  assert.notEqual(git(p, 'rev-parse', '-q', '--verify', 'HEAD').status, 0);
+  assert.match(r.out, /no commit \(--print/);
+});
+
+test('--dry-run sets up no repository', async () => {
+  const p = tmp();
+  const r = await run(['init', p, ...FLAGS, '--yes', '--dry-run'], { env: gitEnv().env });
+  assert.equal(r.code, 0, r.err);
+  assert.deepEqual(readdirSync(p), []);
+  assert.match(r.out, /git init -b main/);
+});
+
+test('without git on PATH: no question, no repository, init still succeeds', async () => {
+  const p = tmp();
+  const s = stubs();
+  const bin = s.env.PATH.split(':')[0];
+  const r = await run(['init', p, ...FLAGS, '--yes'], { env: { ...s.env, PATH: bin } });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(!existsSync(join(p, '.git')));
+  assert.match(r.out, /git not found/);
+});
+
+test('a parent repository without commits: named, nothing committed into it', async () => {
+  const h = tmp();
+  const e = gitEnv();
+  spawnSync('git', ['init', '-q', '-b', 'main', h], { env: e.env });
+  const p = join(h, 'app');
+  mkdirSync(p);
+  const r = await run(['init', p, ...FLAGS, '--yes'], { env: e.env });
+  assert.equal(r.code, 0, r.err);
+  assert.match(r.out, /using the repository at/);
+  assert.notEqual(git(h, 'rev-parse', '-q', '--verify', 'HEAD').status, 0);
 });

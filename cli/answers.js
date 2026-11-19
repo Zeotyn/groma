@@ -46,7 +46,7 @@ function skillsFromFlag(flag, categories, workflowIds) {
   return picks;
 }
 
-export async function resolveAnswers({ flags, data, project, home, projectType, interactive, ask, note }) {
+export async function resolveAnswers({ flags, data, project, home, projectType, interactive, ask, note, gitState }) {
   const { agents: agentTable } = data.agents;
   const agentIds = Object.keys(agentTable);
   const { categories, skills: catalogSkills } = data.catalog;
@@ -117,8 +117,16 @@ export async function resolveAnswers({ flags, data, project, home, projectType, 
     recommended: 'autonomous',
   }, flags.review);
 
+  // repository offer, only outside a work tree (git-init.sh --check: state none)
+  if (flags.git !== undefined) oneOf(flags.git, ['init', 'skip'], '--git value');
+  const git = gitState?.state !== 'none' ? 'repo' : await answer({
+    key: 'git', text: 'Set up a git repository here?', select: 'single',
+    options: [opt('init', 'git init on main, with a .gitignore'), opt('skip', 'the project does not use git')],
+    recommended: gitState.recommend,
+  }, flags.git);
+
   if (defaulted.length && !flags.yes) note(`No TTY: using recommended answers for: ${defaulted.join(', ')}`);
-  return { agents, methodology, workflow, has_ui: hasUi, skills, review };
+  return { agents, methodology, workflow, has_ui: hasUi, skills, review, git };
 }
 
 // Interactive prompt on the terminal. Enter takes the recommended option.

@@ -21,7 +21,9 @@ groma-loop requires a clean working tree. After a setup run in a new repository 
 
 ## Decision Outcome
 
-Chosen option: "One commit before the summary, only when the repository has no commit", because it records every file the run wrote and starts the history cleanly. `first-commit.sh` stages what `git status --porcelain` lists below the project (honouring `.gitignore`), commits with `git commit -F` and the message `chore: set up project with groma <version>`, the user's identity and no `--no-verify`, and limits the commit to the project folder. Without an identity it commits nothing and prints the commands for the summary's next action.
+Chosen option: "One commit before the summary, only when the repository has no commit", because it records every file the run wrote and starts the history cleanly. `first-commit.sh` stages what `git status --porcelain` lists below the project (honouring `.gitignore`), commits with `git commit -F` and the message `chore: set up project with groma <version>`, the user's identity and no `--no-verify`, and limits the commit to the project folder. Without an identity it commits nothing and prints the commands for the summary's next action. The identity check reads `git config user.name` and `git config user.email` only and errs on the safe side: an identity set only through `GIT_AUTHOR_*` or `GIT_COMMITTER_*` counts as none, so no commit is made under a name the user did not configure.
+
+Consent: `/groma` and an interactive `npx groma-cli init` ask both questions. `npx groma-cli init` without a TTY and without `--yes` takes the recommended answers, as it does for every other question, and prints a `No TTY: using ...` note that names `git` and `commit`; this is the documented non-TTY fallback of `groma init`, so a greenfield folder gets `git init` and the first commit there. `--git skip` or `--commit no` turn them off without a TTY.
 
 Committing only groma's files lost because the user's files would stay untracked. A commit per step lost as noise. Committing into an existing history lost because groma-loop commits there per change with its own rules.
 

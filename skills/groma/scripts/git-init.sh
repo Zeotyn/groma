@@ -13,9 +13,10 @@
 #   --check: state<TAB>none<TAB>recommend=init|skip       (not inside a work tree)
 #            state<TAB>parent<TAB><top level><TAB>recommend=use
 #            state<TAB>repo<TAB><top level>                (the project is the top level)
+#            state<TAB>missing<TAB>recommend=skip          (git is not on PATH)
 #   init<TAB><project><TAB>branch=main<TAB>gitignore=written|kept
-# Exit 0; 1 when the project is already the top level of a repository or git
-# fails; usage errors exit 2.
+# Exit 0; 1 when the project is already the top level of a repository, git is
+# not on PATH, or git fails; usage errors exit 2.
 set -eu
 
 HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
@@ -33,8 +34,17 @@ while [ $# -gt 0 ]; do
   esac
 done
 case "$TYPE" in greenfield|brownfield) ;; *) usage ;; esac
-[ -n "$P" ] && [ -d "$P" ] || usage
+if [ -z "$P" ] || [ ! -d "$P" ]; then usage; fi
 P=$(CDPATH='' cd -- "$P" && pwd -P)
+
+if ! command -v git >/dev/null 2>&1; then
+  if [ "$CHECK" -eq 1 ]; then
+    printf 'state\tmissing\trecommend=skip\n'
+    exit 0
+  fi
+  echo "git not found on PATH: install git, then rerun" >&2
+  exit 1
+fi
 
 top=$(git -C "$P" rev-parse --show-toplevel 2>/dev/null || true)
 [ -z "$top" ] || top=$(CDPATH='' cd -- "$top" && pwd -P)

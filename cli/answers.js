@@ -117,13 +117,18 @@ export async function resolveAnswers({ flags, data, project, home, projectType, 
     recommended: 'autonomous',
   }, flags.review);
 
-  // repository offer, only outside a work tree (git-init.sh --check: state none)
-  if (flags.git !== undefined) oneOf(flags.git, ['init', 'skip'], '--git value');
-  const git = gitState?.state !== 'none' ? 'repo' : await answer({
-    key: 'git', text: 'Set up a git repository here?', select: 'single',
-    options: [opt('init', 'git init on main, with a .gitignore'), opt('skip', 'the project does not use git')],
-    recommended: gitState.recommend,
-  }, flags.git);
+  // repository offer (git-init.sh --check): outside a work tree init or skip,
+  // inside a parent work tree use it or set up one for the project
+  if (flags.git !== undefined) oneOf(flags.git, ['init', 'skip', 'use'], '--git value');
+  const gitQ = {
+    none: { text: 'Set up a git repository here?', options: [opt('init', 'git init on main, with a .gitignore'), opt('skip', 'the project does not use git')] },
+    parent: { text: `This folder is inside the git repository at ${gitState?.top}. Use it?`, options: [opt('use', 'use that repository, no first commit'), opt('init', 'set up a repository for this project: git init on main, with a .gitignore')] },
+  }[gitState?.state];
+  let git = 'repo';
+  if (gitQ) {
+    if (flags.git !== undefined) oneOf(flags.git, gitQ.options.map((o) => o.id), `--git value for a folder ${gitState.state === 'parent' ? 'inside a parent repository' : 'outside git'}`);
+    git = await answer({ key: 'git', select: 'single', recommended: gitState.recommend, ...gitQ }, flags.git);
+  }
 
   if (defaulted.length && !flags.yes) note(`No TTY: using recommended answers for: ${defaulted.join(', ')}`);
   return { agents, methodology, workflow, has_ui: hasUi, skills, review, git };

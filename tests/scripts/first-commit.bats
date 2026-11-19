@@ -91,3 +91,9 @@ identity() {
   [ "$status" -eq 0 ]
   [ "$(git -C "$H" ls-tree -r --name-only HEAD)" = "work/app/README.md" ]
 }
+
+@test "git not on PATH: no-git line, exit 1" {
+  run env PATH="$BATS_TEST_TMPDIR/empty" /bin/sh "$FC" "$P" 9.9.9
+  [ "$status" -eq 1 ]
+  [ "$output" = "commit	no-git	git not found on PATH" ]
+}

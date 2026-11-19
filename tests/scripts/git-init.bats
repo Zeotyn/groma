@@ -102,3 +102,16 @@ EOF
   [ "$status" -eq 1 ]
   [ ! -e "$P/.git" ]
 }
+
+@test "git not on PATH: --check names state missing, init exits 1 with a message" {
+  bin="$BATS_TEST_TMPDIR/nogit"
+  mkdir -p "$bin"
+  ln -s "$(command -v dirname)" "$bin/dirname"
+  run env PATH="$bin" /bin/sh "$GI" --check "$P"
+  [ "$status" -eq 0 ]
+  [ "$output" = "state	missing	recommend=skip" ]
+  run env PATH="$bin" /bin/sh "$GI" "$P"
+  [ "$status" -eq 1 ]
+  assert_output_contains "git not found"
+  [ ! -e "$P/.git" ]
+}

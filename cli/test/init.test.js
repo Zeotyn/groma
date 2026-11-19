@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync, chmodSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, chmodSync, mkdirSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { parse } from 'yaml';
@@ -348,4 +348,47 @@ test('a parent repository without commits: named, nothing committed into it', as
   assert.equal(r.code, 0, r.err);
   assert.match(r.out, /using the repository at/);
   assert.notEqual(git(h, 'rev-parse', '-q', '--verify', 'HEAD').status, 0);
+});
+
+test('a parent repository: asks use or init with use recommended; init sets up an own repository and commits', async () => {
+  const h = tmp();
+  const e = gitEnv();
+  spawnSync('git', ['init', '-q', '-b', 'main', h], { env: e.env });
+  const p = join(h, 'app');
+  mkdirSync(p);
+  const asked = [];
+  const ask = async (q) => { if (q.key === 'git') asked.push(`${q.recommended}:${q.options.map((o) => o.id).join(',')}`); return q.key === 'git' ? 'init' : q.recommended; };
+  const r = await run(['init', p, ...FLAGS], { env: e.env, isTTY: true, ask });
+  assert.equal(r.code, 0, r.err);
+  assert.deepEqual(asked, ['use:use,init']);
+  assert.equal(git(p, 'rev-parse', '--show-toplevel').stdout.trim(), realpathSync(p));
+  assert.equal(git(p, 'rev-list', '--count', 'HEAD').stdout.trim(), '1');
+  assert.notEqual(git(h, 'rev-parse', '-q', '--verify', 'HEAD').status, 0);
+});
+
+test('--git init in a parent repository sets up an own repository; --git skip there is a usage error', async () => {
+  const h = tmp();
+  const e = gitEnv();
+  spawnSync('git', ['init', '-q', '-b', 'main', h], { env: e.env });
+  const p = join(h, 'app');
+  mkdirSync(p);
+  const r = await run(['init', p, ...FLAGS, '--git', 'init', '--yes'], { env: e.env });
+  assert.equal(r.code, 0, r.err);
+  assert.ok(existsSync(join(p, '.git')));
+  const q = join(h, 'other');
+  mkdirSync(q);
+  const s = await run(['init', q, ...FLAGS, '--git', 'skip', '--yes'], { env: e.env });
+  assert.equal(s.code, 2);
+  const u = await run(['init', tmp(), ...FLAGS, '--git', 'use', '--yes'], { env: e.env });
+  assert.equal(u.code, 2);
+});
+
+test('the CLI has no stack question: .gitignore rows come from the manifests at the project root', async () => {
+  const p = tmp();
+  write(p, 'package.json', '{}\n');
+  const r = await run(['init', p, ...FLAGS, '--git', 'init', '--yes'], { env: gitEnv().env });
+  assert.equal(r.code, 0, r.err);
+  const gi = readFileSync(join(p, '.gitignore'), 'utf8').split('\n');
+  assert.ok(gi.includes('node_modules/') && gi.includes('.DS_Store'), gi.join(','));
+  assert.ok(!gi.includes('__pycache__/'));
 });

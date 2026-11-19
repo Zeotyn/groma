@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Structure checks for the groma repository (test level 1).
 
-Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|bundles|hooks|versions|code-style|shared|handoffs|user-language|all]
+Usage: uv run --with pyyaml python tests/structure/check.py [skills|links|published|catalog|agents|methodologies|manifests|bundles|hooks|versions|code-style|shared|handoffs|user-language|git-off|all]
 Exit code 0 when all selected checks pass, 1 otherwise.
 """
 from __future__ import annotations
@@ -706,6 +706,49 @@ def check_user_language(root: Path = ROOT) -> None:
             err(f"{rel}: user-language rule missing or different; copy the line from {USER_LANGUAGE_SOURCE}")
 
 
+GIT_OFF = "`git.enabled: false`"
+GIT_OFF_AGENTS = "skills/groma-agents/SKILL.md"
+GIT_OFF_LOOP = "skills/groma-loop/SKILL.md"
+GIT_OFF_TEMPLATE = "skills/groma-agents/templates/AGENTS.md"
+GIT_OFF_LOOP_NOTE = "git steps skipped (git.enabled: false)"
+GIT_SECTION = "## Git workflow"
+
+
+def drop_section(text: str, heading: str) -> str:
+    """The text without the `## ` section that starts with heading, up to the next `## ` heading."""
+    out, skip = [], False
+    for line in text.splitlines(keepends=True):
+        if line.startswith("## "):
+            skip = line.rstrip() == heading
+        if not skip:
+            out.append(line)
+    return "".join(out)
+
+
+def check_git_off(root: Path = ROOT) -> None:
+    """`git.enabled: false` turns git off (c18 D4): groma-agents drops the Git workflow section,
+    the template stays within its budget without it, groma-loop skips every git step."""
+    agents, loop, template = root / GIT_OFF_AGENTS, root / GIT_OFF_LOOP, root / GIT_OFF_TEMPLATE
+    for f in (agents, loop, template):
+        if not f.is_file():
+            err(f"{f.relative_to(root).as_posix()}: missing")
+            return
+    if not any(GIT_OFF in l and "drop the section" in l for l in agents.read_text(encoding="utf-8").splitlines()):
+        err(f"{GIT_OFF_AGENTS}: no rule that drops the Git workflow section on {GIT_OFF}")
+    lines = loop.read_text(encoding="utf-8").splitlines()
+    if not any(GIT_OFF in l and "skip every git step" in l and GIT_OFF_LOOP_NOTE in l for l in lines):
+        err(f"{GIT_OFF_LOOP}: no rule that skips every git step on {GIT_OFF} and says '{GIT_OFF_LOOP_NOTE}'")
+    text = template.read_text(encoding="utf-8")
+    if GIT_SECTION not in text.splitlines():
+        err(f"{GIT_OFF_TEMPLATE}: no '{GIT_SECTION}' heading to drop")
+        return
+    off = drop_section(text, GIT_SECTION)
+    if "Git workflow" in off:
+        err(f"{GIT_OFF_TEMPLATE}: 'Git workflow' still present with the section dropped")
+    if len(off.splitlines()) > AGENTS_TEMPLATE_MAX_LINES or len(off) > AGENTS_TEMPLATE_MAX_CHARS:
+        err(f"{GIT_OFF_TEMPLATE}: without the Git workflow section not within {AGENTS_TEMPLATE_MAX_LINES} lines and {AGENTS_TEMPLATE_MAX_CHARS} chars")
+
+
 CHECKS = {
     "skills": check_skills,
     "links": check_links,
@@ -721,6 +764,7 @@ CHECKS = {
     "shared": check_shared,
     "handoffs": check_handoffs,
     "user-language": check_user_language,
+    "git-off": check_git_off,
 }
 
 

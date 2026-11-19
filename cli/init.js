@@ -179,7 +179,7 @@ export default async function init({ project, flags, io, say }) {
       say('\nWould run (asking first where an installer touches existing files):');
       const m = methodologyStep(answers.methodology, answers.agents, data);
       if (answers.git === 'init') say('  git init -b main (and .gitignore when absent)');
-      if (answers.git !== 'skip') say('  the first commit, when the repository has none');
+      if (answers.git !== 'skip' && answers.git !== 'use' && git.state !== 'missing') say('  the first commit, when the repository has none');
       if (m?.command && !m.detect.some((d) => existsSync(join(project, d)))) say(`  ${m.command}`);
       for (const s of skillSteps(answers, data)) for (const c of s.commands) say(`  ${c}`);
       skillSummary(say, plan);
@@ -210,10 +210,10 @@ export default async function init({ project, flags, io, say }) {
     if (pluginHint) say(PLUGIN_HINT);
     pendingSummary(say, setup, installScript);
     // no commit into a parent repository's history or before pending installs (--print)
-    if (git.state === 'parent') say(`Git:         using the repository at ${git.top}, no commit`);
+    if (answers.git === 'use') say(`Git:         using the repository at ${git.top}, no commit`);
     if (git.state === 'missing') say('Git:         git not found, no repository set up');
     if (answers.git === 'skip') say('Git:         off (git.enabled: false)');
-    else if (git.state !== 'parent' && unbornRepo(project, io.env)) {
+    else if (answers.git !== 'use' && unbornRepo(project, io.env)) {
       if (flags.print) say('Git:         no commit (--print: run the pending commands first, then commit)');
       else if (flags.commit === undefined && !p.interactive && !flags.yes) say('No TTY: using the recommended answer for: commit');
       const commit = flags.print ? 'no' : flags.commit ?? (p.interactive

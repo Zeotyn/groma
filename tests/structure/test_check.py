@@ -701,3 +701,49 @@ def test_user_language_source_needs_the_rule(tmp_path):
     write(tmp_path / "skills/groma/SKILL.md", "# groma\n")
     check.check_user_language(tmp_path)
     assert any("no line starting with" in e for e in check.errors)
+
+
+GIT_OFF_TEMPLATE = "# A\n\n## Session start\n\nx\n\n## Git workflow\n\n- Branches: y\n\n## Docs rules\n\nz\n"
+
+
+def git_off_fixture(tmp_path, agents_rule: str, loop_rule: str, template: str = GIT_OFF_TEMPLATE) -> None:
+    write(tmp_path / "skills/groma-agents/SKILL.md", f"# groma-agents\n\n{agents_rule}\n")
+    write(tmp_path / "skills/groma-loop/SKILL.md", f"# groma-loop\n\n{loop_rule}\n")
+    write(tmp_path / "skills/groma-agents/templates/AGENTS.md", template)
+
+
+AGENTS_RULE = "Git section. `git.enabled: false`, or not a git repository: drop the section."
+LOOP_RULE = "`git.enabled: false`: skip every git step without asking and say \"git steps skipped (git.enabled: false)\" once."
+
+
+def test_git_off_rules_pass(tmp_path):
+    git_off_fixture(tmp_path, AGENTS_RULE, LOOP_RULE)
+    check.check_git_off(tmp_path)
+    assert check.errors == []
+
+
+def test_git_off_shipped_skills_pass():
+    check.check_git_off()
+    assert check.errors == []
+
+
+def test_git_off_missing_rules_fail(tmp_path):
+    git_off_fixture(tmp_path, "Not a git repository: drop the section.", "Run only inside a git repository.")
+    check.check_git_off(tmp_path)
+    assert len(check.errors) == 2
+    assert "groma-agents/SKILL.md" in check.errors[0] and "groma-loop/SKILL.md" in check.errors[1]
+
+
+def test_git_off_template_without_section_drops_only_that_section():
+    off = check.drop_section(GIT_OFF_TEMPLATE, "## Git workflow")
+    assert "Git workflow" not in off and "## Docs rules" in off and "## Session start" in off
+
+
+def test_git_off_template_needs_the_section_and_a_second_mention_fails(tmp_path):
+    git_off_fixture(tmp_path, AGENTS_RULE, LOOP_RULE, "# A\n\n## Docs rules\n\nsee Git workflow\n")
+    check.check_git_off(tmp_path)
+    assert any("no '## Git workflow' heading" in e for e in check.errors)
+    check.errors.clear()
+    git_off_fixture(tmp_path, AGENTS_RULE, LOOP_RULE, GIT_OFF_TEMPLATE + "\nSee Git workflow.\n")
+    check.check_git_off(tmp_path)
+    assert any("still present" in e for e in check.errors)

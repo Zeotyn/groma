@@ -1,7 +1,7 @@
 ---
 title: Code style
 status: draft
-last_reviewed: 2026-11-16
+last_reviewed: 2026-11-19
 review_after_days: 90
 owner: Eugen Waldschmidt
 sources: [.editorconfig, scripts/test.sh, skills/, tests/, cli/, install.sh, uninstall.sh]
@@ -29,7 +29,7 @@ One rule per line. `EXTRACTED` comes from configuration or an accepted ADR, `INF
 - No `A && B || C` as an if-else (shellcheck SC2015): write `if`; a bare `[ cond ] && cmd` is used only as the last statement or when `cmd` cannot fail (INFERRED, `skills/groma-lay-out/scripts/docs-impact.sh:168`, `skills/groma-survey/scripts/style-drift.sh:145`).
 - Every script starts with a comment header: purpose, `Usage:` line, inputs, output format, exit codes; usage errors exit 2 (INFERRED, `skills/groma-lay-out/scripts/docs-impact.sh:1-27`, `skills/groma-survey/scripts/freshness.sh:1-12`).
 - Script output is tab-separated with a fixed first field (`note`, `impact`, `drift`, ...) and ends with one `summary` line; deterministic text parsing is done in `awk`, never in a language runtime (INFERRED, `skills/groma-lay-out/scripts/docs-impact.sh:21-26`, `skills/groma-survey/scripts/style-drift.sh:18-23`).
-- Scripts in `skills/*/scripts/` are read-only toward the target project and never print credentials; the exceptions are `materialize.sh`, which writes the groma skill copies it owns by hash and `.groma/generated.json`, and `roadmap.sh`, which writes only between its marker lines in `docs/roadmap.md` (EXTRACTED, [ADR 0006](adr/0006-additive-writes-only.md), [ADR 0007](adr/0007-data-model-from-files-no-db.md), [ADR 0057](adr/0057-mirror-the-cli-materialization-rules-in-a-shell-script.md), [ADR 0066](adr/0066-fill-only-marked-blocks-of-the-roadmap.md)).
+- Scripts in `skills/*/scripts/` are read-only toward the target project and never print credentials; the exceptions are `materialize.sh`, which writes the groma skill copies it owns by hash and `.groma/generated.json`, `roadmap.sh`, which writes only between its marker lines in `docs/roadmap.md`, and `git-init.sh` and `first-commit.sh` (groma), which run after the user said yes, add `.git/` and a `.gitignore` only when absent, and commit without changing a file (EXTRACTED, [ADR 0075](adr/0075-offer-a-repository-in-the-interview.md), [ADR 0076](adr/0076-offer-the-first-commit-before-the-summary.md), [ADR 0006](adr/0006-additive-writes-only.md), [ADR 0007](adr/0007-data-model-from-files-no-db.md), [ADR 0057](adr/0057-mirror-the-cli-materialization-rules-in-a-shell-script.md), [ADR 0066](adr/0066-fill-only-marked-blocks-of-the-roadmap.md)).
 - Stack knowledge lives in Markdown tables under `references/`, parsed by scripts and read by agents; no per-language branches in scripts (EXTRACTED, [ADR 0004](adr/0004-stack-knowledge-in-reference-tables.md), `skills/groma-detect/references/signals.md`).
 - Tests: one bats file per script in `tests/scripts/<script>.bats` using `helpers.bash` (`make_repo`, `commit_at`, `assert_output_contains`); structure checks are Python under `tests/structure/` with their own pytest file (EXTRACTED, `scripts/test.sh:17-45`; INFERRED, `tests/scripts/docs-impact.bats:1-12`).
 - Markdown tables: a header row, a `|---|` separator without alignment colons, one row per item, paths and commands in backticks, no trailing spaces (INFERRED, `skills/groma-lay-out/references/doc-slots.md:5-16`).

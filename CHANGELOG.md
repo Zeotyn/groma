@@ -6,6 +6,10 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Repository offer and first commit (change C18). Outside a git work tree, `/groma` and `npx groma-cli init` ask "Set up a git repository here?" (recommended for greenfield, not for brownfield; `--git init|skip`); yes runs `git init` on `main` and writes a `.gitignore` from the new stack table `references/gitignore.md` only when none exists. A folder inside a parent repository names it and asks whether to use it. Before the summary, a repository without commits is offered a first commit `chore: set up project with groma <version>` with your git identity (`--commit yes|no`); without an identity nothing is committed and the next action names the commands. A declined repository is recorded as `git.enabled: false`: AGENTS.md gets no Git workflow section, groma-loop skips its git steps, and `docs-impact.sh` reports ADR candidates with a `note` instead of failing outside git or before the first commit. ADRs 0075 to 0078.
+
 ## [0.4.0] - 2026-11-18
 
 ### Breaking

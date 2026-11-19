@@ -16,13 +16,15 @@
 
 ## 3. CLI
 
-- [ ] 3.1 CLI unit tests first: `--git init|skip`, `--commit yes|no`, `--yes` recommendations for greenfield and brownfield, no question inside a repository
-- [ ] 3.2 `cli/init.js`, `cli/answers.js`, `cli/config.js`: the repository question and the first commit through the same scripts as the skill
-- [ ] 3.3 `scripts/test.sh` green; `openspec validate --all --strict`; style drift 0
+- [x] 3.1 CLI unit tests first: `--git init|skip`, `--commit yes|no`, `--yes` recommendations for greenfield and brownfield, no question inside a repository
+- [x] 3.2 `cli/init.js`, `cli/answers.js`, `cli/config.js`: the repository question and the first commit through the same scripts as the skill
+- [x] 3.3 `scripts/test.sh` green; `openspec validate --all --strict`; style drift 0
 
 ## 4. Docs
 
-- [ ] 4.1 `docs/concept.md` (repository offer, first commit), `docs/architecture.md` (scripts, reference table, CLI path), `docs/data-model.md` (`git.enabled`)
-- [ ] 4.2 ADRs for D1 to D4 (proposed, `origin: c18-git-setup#D<n>`), `docs/adr/README.md`
-- [ ] 4.3 `skills/groma/references/upgrades.md` row for the next version; CHANGELOG `[Unreleased]`
-- [ ] 4.4 `sh skills/groma-lay-out/scripts/docs-impact.sh --root . --gate openspec/changes/c18-git-setup` prints `impact=0 adr=0`, or a `Docs: <path> unchanged, because <reason>` line per doc it names
+- [x] 4.1 `docs/concept.md` (repository offer, first commit), `docs/architecture.md` (scripts, reference table, CLI path), `docs/data-model.md` (`git.enabled`)
+- [x] 4.2 ADRs for D1 to D4 (proposed, `origin: c18-git-setup#D<n>`), `docs/adr/README.md`
+- [x] 4.3 `skills/groma/references/upgrades.md` row for the next version; CHANGELOG `[Unreleased]`
+- [x] 4.4 `sh skills/groma-lay-out/scripts/docs-impact.sh --root . --gate openspec/changes/c18-git-setup` prints `impact=0 adr=0`, or a `Docs: <path> unchanged, because <reason>` line per doc it names
+- [x] Docs: `docs/glossary.md` unchanged, because the change adds no new term (repository, first commit and `git.enabled` are plain words or config keys described in concept and data model)
+- [x] Docs: `docs/vision.md` unchanged, because the README only gained the `--git` and `--commit` flags, not a change of purpose or audience

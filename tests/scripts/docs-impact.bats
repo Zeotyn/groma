@@ -248,3 +248,33 @@ ADR: yes/' "$CH/design.md" && rm "$CH/design.md.bak"
   after=$(mtime "$P/.git/index")
   [ "$before" = "$after" ]
 }
+
+# outside git and before the first commit: part (b) only, with a note
+nogit() { export GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR/f"; rm -rf "$P/.git"; }
+
+@test "outside git: note, ADR candidates still reported, --gate exits 4" {
+  nogit
+  di --gate openspec/changes/c007-cache
+  [ "$status" -eq 4 ]
+  assert_output_contains "note	no git history"
+  assert_output_contains "adr	c007-cache#D2	Use Redis"
+  assert_output_contains "summary	impact=0	adr=1"
+}
+
+@test "outside git without ADR candidates: --gate exits 0" {
+  nogit
+  printf -- '---\nstatus: proposed\norigin: c007-cache#D2\n---\n# Use Redis\n' > "$P/docs/adr/0002-use-redis.md"
+  di --gate openspec/changes/c007-cache
+  [ "$status" -eq 0 ]
+  assert_output_contains "note	no git history"
+  assert_output_contains "summary	impact=0	adr=0"
+}
+
+@test "repository before its first commit: note, no failure" {
+  nogit
+  git -C "$P" init -q -b main
+  di openspec/changes/c007-cache
+  [ "$status" -eq 0 ]
+  assert_output_contains "note	no git history"
+  assert_output_contains "summary	impact=0	adr=1"
+}

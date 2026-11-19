@@ -172,16 +172,18 @@ done
 v=$(get reminders.stale_change_days)
 if [ -n "$v" ] && ! is_int "$v"; then report error reminders.stale_change_days "reminders.stale_change_days must be a number >= 0, got '$v'"; fi
 
-# --- git workflow (optional section; missing keys mean rebase, true, conventional, ask) ----
+# --- git workflow (optional section; missing keys mean true, rebase, true, conventional, ask)
 enum() { # key "allowed values" "allowed, as text"
   v=$(get "$1"); [ -z "$v" ] || in_set "$v" "$2" || report error "$1" "$1 must be $3, got '$v'$(c=$(closest "$v" "$2"); [ -z "$c" ] || printf ', did you mean %s?' "$c")"
 }
 enum git.integrate "rebase merge squash" "rebase, merge or squash"
 enum git.commits "conventional free" "conventional or free"
 enum git.push "ask auto never" "ask, auto or never"
-v=$(get git.branch_per_change); [ -z "$v" ] || in_set "$v" "true false" || report error git.branch_per_change "git.branch_per_change must be true or false, got '$v'"
+for b in enabled branch_per_change; do
+  v=$(get "git.$b"); [ -z "$v" ] || in_set "$v" "true false" || report error "git.$b" "git.$b must be true or false, got '$v'"
+done
 for k in $(printf '%s\n' "$FLAT" | cut -f1 | grep '^git\.' || true); do
-  in_set "${k#git.}" "integrate branch_per_change commits push" || report warning "$k" "unknown git key '${k#git.}' (known: integrate, branch_per_change, commits, push)"
+  in_set "${k#git.}" "enabled integrate branch_per_change commits push" || report warning "$k" "unknown git key '${k#git.}' (known: enabled, integrate, branch_per_change, commits, push)"
 done
 
 # --- next action (optional section; missing keys mean auto, 30) ---------------------------

@@ -72,6 +72,7 @@ next:
 # the section yourself, or re-run /groma: it puts the rendered section into the findings
 # report as a snippet and never edits an existing AGENTS.md.
 git:
+  enabled: true                   # true | false, false: the project does not use git, groma runs no git command
   integrate: rebase               # rebase | merge | squash, how a change branch reaches the main branch
   branch_per_change: true         # true | false, groma-loop works on a branch named after the change
   commits: conventional           # conventional | free

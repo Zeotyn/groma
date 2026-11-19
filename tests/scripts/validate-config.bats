@@ -320,7 +320,7 @@ YAML
   ln=$(grep -n 'force:' "$C" | cut -d: -f1)
   run sh "$V" "$C"
   [ "$status" -eq 0 ]
-  assert_output_contains "warning	line $ln	unknown git key 'force' (known: integrate, branch_per_change, commits, push)"
+  assert_output_contains "warning	line $ln	unknown git key 'force' (known: enabled, integrate, branch_per_change, commits, push)"
 }
 
 # --- next action (C007) -------------------------------------------------------------
@@ -401,4 +401,16 @@ YAML
   [ "$status" -eq 0 ]
   assert_output_contains "warning	line $ln	conventions.changes.digits is ignored"
   assert_output_contains "summary	errors=0	warnings=1"
+}
+
+@test "git.enabled is in the template and must be a boolean" {
+  grep -qE '^  enabled: true ' "$TPL"
+  printf 'git:\n  enabled: false\n' >> "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 0 ]
+  assert_output_contains "summary	errors=0	warnings=0"
+  sed -i.bak 's/enabled: false/enabled: no/' "$C"
+  run sh "$V" "$C"
+  [ "$status" -eq 1 ]
+  assert_output_contains "git.enabled must be true or false, got 'no'"
 }

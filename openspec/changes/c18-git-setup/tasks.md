@@ -1,18 +1,18 @@
 ## 1. Tests first
 
-- [ ] 1.1 Bats fixtures and tests for the repository offer: empty folder outside git (yes and no), brownfield folder outside git (no recommended), parent work tree named and asked, `git init` fallback when `-b` is rejected (stub git)
-- [ ] 1.2 Bats tests for the first commit: with identity (one commit, clean tree, message), without identity (no commit, next action), repository with history (no question, no commit), `.gitignore` honoured
-- [ ] 1.3 Bats tests for `docs-impact.sh` outside git and before the first commit: `note` line, part (b) still reported, `--gate` exit 0 and 4
-- [ ] 1.4 Structure check: `git.enabled` in the config template and accepted by config validation; `references/gitignore.md` vendored byte-identical where it is read
+- [x] 1.1 Bats fixtures and tests for the repository offer: empty folder outside git (yes and no), brownfield folder outside git (no recommended), parent work tree named and asked, `git init` fallback when `-b` is rejected (stub git)
+- [x] 1.2 Bats tests for the first commit: with identity (one commit, clean tree, message), without identity (no commit, next action), repository with history (no question, no commit), `.gitignore` honoured
+- [x] 1.3 Bats tests for `docs-impact.sh` outside git and before the first commit: `note` line, part (b) still reported, `--gate` exit 0 and 4
+- [x] 1.4 Structure check: `git.enabled` in the config template and accepted by config validation; `references/gitignore.md` vendored byte-identical where it is read (only the groma skill and the CLI, through `skills/groma/scripts/git-init.sh`, read it, so there is no copy to vendor)
 
 ## 2. Skill
 
-- [ ] 2.1 `skills/groma/references/gitignore.md`: stack rows and the `all` rows; vendor it with `scripts/sync-shared.sh`
-- [ ] 2.2 A small script in `skills/groma/scripts/` that sets up the repository (`git init -b main` with fallback, `.gitignore` only when absent) and one that makes the first commit by D2 (identity check, `git commit -F`), both printing one result line
-- [ ] 2.3 `skills/groma/SKILL.md`: repository question in the interview (D1, parent repository), first-commit step before the summary (D2), `git.enabled: false` on no; config template gets `enabled: true`
-- [ ] 2.4 `groma-methodology` config validation knows `git.enabled` (boolean)
-- [ ] 2.5 `groma-agents`: no "Git workflow" section when `git.enabled: false`; `groma-loop`: git off skips every git step and says so once
-- [ ] 2.6 `docs-impact.sh`: outside git or without a commit, report part (b) with a `note`, exit 0 or 4 by the gate; sync the vendored copies
+- [x] 2.1 `skills/groma/references/gitignore.md`: stack rows and the `all` rows; vendor it with `scripts/sync-shared.sh` (no consumer outside the groma skill, so no entry)
+- [x] 2.2 A small script in `skills/groma/scripts/` that sets up the repository (`git init -b main` with fallback, `.gitignore` only when absent) and one that makes the first commit by D2 (identity check, `git commit -F`), both printing one result line
+- [x] 2.3 `skills/groma/SKILL.md`: repository question in the interview (D1, parent repository), first-commit step before the summary (D2), `git.enabled: false` on no; config template gets `enabled: true`
+- [x] 2.4 `groma-methodology` config validation knows `git.enabled` (boolean)
+- [x] 2.5 `groma-agents`: no "Git workflow" section when `git.enabled: false`; `groma-loop`: git off skips every git step and says so once
+- [x] 2.6 `docs-impact.sh`: outside git or without a commit, report part (b) with a `note`, exit 0 or 4 by the gate; sync the vendored copies
 
 ## 3. CLI
 

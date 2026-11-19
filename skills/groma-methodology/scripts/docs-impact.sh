@@ -9,7 +9,9 @@
 # change (the main branch: the remote's default branch, else main, else
 # master); otherwise to the parent of the commit that added
 # <change-dir>/proposal.md; without that commit the working tree is compared
-# with HEAD (both announced by a `note` line).
+# with HEAD (both announced by a `note` line). Outside git, or before the
+# first commit, no paths are compared (--base is ignored): a `note` line says
+# so and only (b) runs.
 #
 # (a) impact: a non-ADR doc whose frontmatter `sources` prefix-match a changed
 #     path while the doc itself is unchanged. Sources inside the docs dir are
@@ -46,7 +48,6 @@ case "$CHANGE" in /*) ;; *) [ -d "$CHANGE" ] || CHANGE="$ROOT/$CHANGE" ;; esac
 CHANGE=$(CDPATH='' cd -- "$CHANGE" && pwd -P)
 cd "$ROOT"
 ROOT=$(pwd -P)
-git rev-parse HEAD >/dev/null 2>&1 || { echo "not a git repository with commits: $ROOT" >&2; exit 2; }
 REL=${CHANGE#"$ROOT"/}
 NAME=${CHANGE##*/}
 DOCS=${DOCS#./}; DOCS=${DOCS%/}
@@ -70,43 +71,48 @@ ref_of() {
   fi
 }
 
-if [ -z "$BASE" ]; then
-  branch=$(git symbolic-ref -q --short HEAD 2>/dev/null || true)
-  main=$(main_branch)
-  if [ "$branch" = "$NAME" ] && [ -n "$main" ] && [ "$main" != "$branch" ]; then
-    # on the change branch: everything since it left the main branch; unrelated
-    # histories (an orphan branch) have no merge base and keep the fallback below
-    ref=$(ref_of "$main")
-    [ -z "$ref" ] || BASE=$(git merge-base "$ref" HEAD 2>/dev/null) || BASE=""
-    [ -z "$BASE" ] || printf 'note%son branch %s, comparing with its merge base with %s (%s)\n' "$TAB" "$branch" "$main" "$(git rev-parse --short "$BASE")"
-  fi
-fi
-if [ -z "$BASE" ]; then
-  added=$(git log --diff-filter=A --format=%H -- "$REL/proposal.md" | tail -n 1)
-  if [ -z "$added" ]; then
-    BASE=HEAD
-    printf 'note%sproposal not committed, comparing the working tree with HEAD\n' "$TAB"
-  else
-    # root commit has no parent: compare with the empty tree
-    BASE=$(git rev-parse -q --verify "$added^" || git hash-object -t tree /dev/null)
-  fi
-elif ! git rev-parse -q --verify "$BASE^{commit}" >/dev/null; then
-  echo "unknown base: $BASE" >&2; exit 2
-fi
-
 # newline-separated lists from here on: no word splitting on spaces, no globbing
 set -f
 NL='
 '
 IFS=$NL
-# committed since the base (tree against tree), then uncommitted and untracked from
-# status: neither writes .git/index, so a status line never competes for index.lock
-PREFIX=$(git rev-parse --show-prefix)
-CHANGED=$( { git -c core.quotePath=false diff --relative --no-renames --name-only "$BASE" HEAD -- .
-  git --no-optional-locks status --porcelain -z --no-renames --untracked-files=all -- . |
-    tr '\0' '\n' | cut -c4- | while IFS= read -r f; do printf '%s\n' "${f#"$PREFIX"}"; done
-  } | LC_ALL=C sort -u)
-CHANGED=$(printf '%s\n' "$CHANGED" | grep -v "^$REL/" || true)
+CHANGED=""
+if ! git rev-parse -q --verify HEAD >/dev/null 2>&1; then
+  printf 'note%sno git history, changed paths are not compared; only ADR candidates are reported\n' "$TAB"
+else
+  if [ -z "$BASE" ]; then
+    branch=$(git symbolic-ref -q --short HEAD 2>/dev/null || true)
+    main=$(main_branch)
+    if [ "$branch" = "$NAME" ] && [ -n "$main" ] && [ "$main" != "$branch" ]; then
+      # on the change branch: everything since it left the main branch; unrelated
+      # histories (an orphan branch) have no merge base and keep the fallback below
+      ref=$(ref_of "$main")
+      [ -z "$ref" ] || BASE=$(git merge-base "$ref" HEAD 2>/dev/null) || BASE=""
+      [ -z "$BASE" ] || printf 'note%son branch %s, comparing with its merge base with %s (%s)\n' "$TAB" "$branch" "$main" "$(git rev-parse --short "$BASE")"
+    fi
+  fi
+  if [ -z "$BASE" ]; then
+    added=$(git log --diff-filter=A --format=%H -- "$REL/proposal.md" | tail -n 1)
+    if [ -z "$added" ]; then
+      BASE=HEAD
+      printf 'note%sproposal not committed, comparing the working tree with HEAD\n' "$TAB"
+    else
+      # root commit has no parent: compare with the empty tree
+      BASE=$(git rev-parse -q --verify "$added^" || git hash-object -t tree /dev/null)
+    fi
+  elif ! git rev-parse -q --verify "$BASE^{commit}" >/dev/null; then
+    echo "unknown base: $BASE" >&2; exit 2
+  fi
+
+  # committed since the base (tree against tree), then uncommitted and untracked from
+  # status: neither writes .git/index, so a status line never competes for index.lock
+  PREFIX=$(git rev-parse --show-prefix)
+  CHANGED=$( { git -c core.quotePath=false diff --relative --no-renames --name-only "$BASE" HEAD -- .
+    git --no-optional-locks status --porcelain -z --no-renames --untracked-files=all -- . |
+      tr '\0' '\n' | cut -c4- | while IFS= read -r f; do printf '%s\n' "${f#"$PREFIX"}"; done
+    } | LC_ALL=C sort -u)
+  CHANGED=$(printf '%s\n' "$CHANGED" | grep -v "^$REL/" || true)
+fi
 
 # frontmatter value for key, empty if absent
 fm_get() {

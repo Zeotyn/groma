@@ -1,0 +1,28 @@
+## 1. Tests first
+
+- [ ] 1.1 Bats fixtures and tests for the repository offer: empty folder outside git (yes and no), brownfield folder outside git (no recommended), parent work tree named and asked, `git init` fallback when `-b` is rejected (stub git)
+- [ ] 1.2 Bats tests for the first commit: with identity (one commit, clean tree, message), without identity (no commit, next action), repository with history (no question, no commit), `.gitignore` honoured
+- [ ] 1.3 Bats tests for `docs-impact.sh` outside git and before the first commit: `note` line, part (b) still reported, `--gate` exit 0 and 4
+- [ ] 1.4 Structure check: `git.enabled` in the config template and accepted by config validation; `references/gitignore.md` vendored byte-identical where it is read
+
+## 2. Skill
+
+- [ ] 2.1 `skills/groma/references/gitignore.md`: stack rows and the `all` rows; vendor it with `scripts/sync-shared.sh`
+- [ ] 2.2 A small script in `skills/groma/scripts/` that sets up the repository (`git init -b main` with fallback, `.gitignore` only when absent) and one that makes the first commit by D2 (identity check, `git commit -F`), both printing one result line
+- [ ] 2.3 `skills/groma/SKILL.md`: repository question in the interview (D1, parent repository), first-commit step before the summary (D2), `git.enabled: false` on no; config template gets `enabled: true`
+- [ ] 2.4 `groma-methodology` config validation knows `git.enabled` (boolean)
+- [ ] 2.5 `groma-agents`: no "Git workflow" section when `git.enabled: false`; `groma-loop`: git off skips every git step and says so once
+- [ ] 2.6 `docs-impact.sh`: outside git or without a commit, report part (b) with a `note`, exit 0 or 4 by the gate; sync the vendored copies
+
+## 3. CLI
+
+- [ ] 3.1 CLI unit tests first: `--git init|skip`, `--commit yes|no`, `--yes` recommendations for greenfield and brownfield, no question inside a repository
+- [ ] 3.2 `cli/init.js`, `cli/answers.js`, `cli/config.js`: the repository question and the first commit through the same scripts as the skill
+- [ ] 3.3 `scripts/test.sh` green; `openspec validate --all --strict`; style drift 0
+
+## 4. Docs
+
+- [ ] 4.1 `docs/concept.md` (repository offer, first commit), `docs/architecture.md` (scripts, reference table, CLI path), `docs/data-model.md` (`git.enabled`)
+- [ ] 4.2 ADRs for D1 to D4 (proposed, `origin: c18-git-setup#D<n>`), `docs/adr/README.md`
+- [ ] 4.3 `skills/groma/references/upgrades.md` row for the next version; CHANGELOG `[Unreleased]`
+- [ ] 4.4 `sh skills/groma-lay-out/scripts/docs-impact.sh --root . --gate openspec/changes/c18-git-setup` prints `impact=0 adr=0`, or a `Docs: <path> unchanged, because <reason>` line per doc it names

@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-19
 decision-makers: Eugen Waldschmidt
 evidence: [skills/groma/scripts/first-commit.sh, skills/groma/SKILL.md, cli/init.js, tests/scripts/first-commit.bats]

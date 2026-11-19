@@ -39,11 +39,15 @@ The generated AGENTS.md SHALL tell agents to read the code-style doc before writ
 - **THEN** AGENTS.md contains the pointer line and both commands
 
 ### Requirement: Git workflow section
-The generated AGENTS.md SHALL contain a "Git workflow" section derived from the `git` settings: branch naming, commit style, the integration commands for the configured strategy, that a request to "merge" a branch means this strategy, to stop and ask on conflicts, and that force-push and deleting branches are not allowed.
+The generated AGENTS.md SHALL contain a "Git workflow" section derived from the `git` settings: branch naming, commit style, the integration commands for the configured strategy, that a request to "merge" a branch means this strategy, to stop and ask on conflicts, and that force-push and deleting branches are not allowed. When `git.enabled` is `false`, AGENTS.md SHALL contain no "Git workflow" section.
 
 #### Scenario: Rebase project
 - **WHEN** `integrate: rebase`
 - **THEN** AGENTS.md says to integrate with `git rebase <main> <branch>` followed by `git merge --ff-only <branch>` and that "merge" requests mean exactly this
+
+#### Scenario: Git off
+- **WHEN** `git.enabled: false`
+- **THEN** AGENTS.md has no "Git workflow" heading and stays within its line budget
 
 ### Requirement: Next-action fallback and offer
 The generated AGENTS.md SHALL tell agents to end a work session by naming the output of the next-action command. groma-agents SHALL offer, once, the next action when `claude` is among the agents: with the groma plugin installed, it SHALL print the global flag command and the status-line pill instead of writing settings; without the plugin, it SHALL offer the Claude Code Stop hook through the settings file and the status-line snippet.

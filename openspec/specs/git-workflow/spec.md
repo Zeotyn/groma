@@ -4,11 +4,15 @@
 Makes a project's git workflow explicit: how changes get a branch, how commits are written, how branches are integrated into the main branch, and when groma pushes, so every agent integrates the same way.
 ## Requirements
 ### Requirement: Git settings
-The `git` section of `.groma/config.yaml` SHALL define `integrate` (`rebase`, `merge`, `squash`; default `rebase`), `branch_per_change` (default `true`), `commits` (`conventional`, `free`; default `conventional`) and `push` (`ask`, `auto`, `never`; default `ask`). The main branch SHALL be the remote's default branch, else `main`, else `master`.
+The `git` section of `.groma/config.yaml` SHALL define `enabled` (default `true`), `integrate` (`rebase`, `merge`, `squash`; default `rebase`), `branch_per_change` (default `true`), `commits` (`conventional`, `free`; default `conventional`) and `push` (`ask`, `auto`, `never`; default `ask`). `enabled: false` SHALL mean the project does not use git: groma SHALL run no git command in it and SHALL ignore the other `git` keys. The main branch SHALL be the remote's default branch, else `main`, else `master`.
 
 #### Scenario: Defaults
 - **WHEN** the config has no `git` section
-- **THEN** groma behaves as `integrate: rebase`, `branch_per_change: true`, `commits: conventional`, `push: ask`
+- **THEN** groma behaves as `enabled: true`, `integrate: rebase`, `branch_per_change: true`, `commits: conventional`, `push: ask`
+
+#### Scenario: Git off
+- **WHEN** the config has `git.enabled: false`
+- **THEN** groma-loop runs no git step and says once in its summary that git is off for the project
 
 ### Requirement: Integration strategies
 `rebase` SHALL rebase the change branch onto the main branch and then fast-forward the main branch, producing no merge commit. `merge` SHALL create a merge commit with `--no-ff`. `squash` SHALL squash the branch into one commit on the main branch whose subject names the change id. groma SHALL never rewrite commits that are already on the main branch.
@@ -38,4 +42,15 @@ A read-only script SHALL analyze the last 200 commits of the main branch and pri
 #### Scenario: Empty repository
 - **WHEN** the repository has no commits
 - **THEN** the script prints `integrate: rebase`, `commits: conventional` and "no history"
+
+### Requirement: Ignore file for a new repository
+When groma set up the repository and the project has no `.gitignore`, groma SHALL write `.gitignore` from the stack's rows of a reference table plus the rows for all stacks. An existing `.gitignore` SHALL NOT be changed.
+
+#### Scenario: Node project
+- **WHEN** groma set up the repository in a project whose stack is Node and that has no `.gitignore`
+- **THEN** `.gitignore` lists `node_modules/` and the rows for all stacks, and is committed with the first commit when the user agreed to it
+
+#### Scenario: Existing ignore file
+- **WHEN** the project has a `.gitignore`
+- **THEN** it is byte-identical after the run
 

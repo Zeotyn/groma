@@ -86,9 +86,9 @@ Format: [MADR 4.0](https://adr.github.io/madr/). File names: `NNNN-kebab-title.m
 | [0071](0071-cap-always-loaded-text-by-characters-and-lines.md) | Cap always-loaded text by characters and lines | accepted | 2026-11-12 |
 | [0073](0073-recognize-the-openspec-generation-from-project-files.md) | Recognize the OpenSpec generation from project files | accepted | 2026-11-17 |
 | [0074](0074-measure-the-effect-on-one-fixture-with-repeated-runs.md) | Measure the effect on one fixture with repeated runs per side | accepted | 2026-11-17 |
-| [0075](0075-offer-a-repository-in-the-interview.md) | Offer a repository in the interview, recommended for greenfield only | proposed | 2026-11-19 |
-| [0076](0076-offer-the-first-commit-before-the-summary.md) | Offer the first commit before the summary, only in a repository without commits | proposed | 2026-11-19 |
-| [0077](0077-write-gitignore-from-a-stack-table-only-when-absent.md) | Write `.gitignore` from a stack table, only when absent | proposed | 2026-11-19 |
-| [0078](0078-turn-git-off-with-git-enabled-false.md) | Turn git off consistently with `git.enabled: false` | proposed | 2026-11-19 |
+| [0075](0075-offer-a-repository-in-the-interview.md) | Offer a repository in the interview, recommended for greenfield only | accepted | 2026-11-19 |
+| [0076](0076-offer-the-first-commit-before-the-summary.md) | Offer the first commit before the summary, only in a repository without commits | accepted | 2026-11-19 |
+| [0077](0077-write-gitignore-from-a-stack-table-only-when-absent.md) | Write `.gitignore` from a stack table, only when absent | accepted | 2026-11-19 |
+| [0078](0078-turn-git-off-with-git-enabled-false.md) | Turn git off consistently with `git.enabled: false` | accepted | 2026-11-19 |
 
 Decision notes D1-D11 also live in `openspec/changes/c001-groma-suite/design.md` (change design, not ADRs).
